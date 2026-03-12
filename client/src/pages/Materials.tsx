@@ -135,9 +135,13 @@ export default function Materials() {
                           <CalendarDays className="h-3 w-3" />
                           <span>{stage.date}</span>
                         </div>
-                        <p className="text-gray-600 text-xs mt-0.5 truncate">
-                          {stage.chapterNames.map(c => c.name.split(" – ")[0]).join(" · ")}
-                        </p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {stage.chapterNames.map((c, ci) => (
+                            <span key={ci} className="text-[10px] bg-white/5 border border-white/8 text-gray-500 px-1.5 py-0.5 rounded">
+                              {c.name.split(" – ")[0]}
+                            </span>
+                          ))}
+                        </div>
                       </div>
 
                       <div className="text-gray-600 flex-shrink-0 ml-1">
@@ -163,7 +167,12 @@ export default function Materials() {
                                   <span className="w-6 h-6 rounded-md bg-gold-500/10 flex items-center justify-center text-gold-400 text-xs font-bold flex-shrink-0">
                                     {ci + 1}
                                   </span>
-                                  <span className="text-white text-sm">{ch.name}</span>
+                                  <div>
+                                    <span className="text-white text-sm">{ch.name.split(" – ")[0]}</span>
+                                    {ch.name.includes(" – ") && (
+                                      <p className="text-gray-500 text-xs mt-0.5">{ch.name.split(" – ")[1]}</p>
+                                    )}
+                                  </div>
                                 </div>
                                 <ExternalLink className="h-3.5 w-3.5 text-gray-600 group-hover:text-gold-400 transition-colors flex-shrink-0" />
                               </a>
