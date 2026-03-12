@@ -80,11 +80,14 @@ export default function Admin() {
           ...s,
           results: (scoresData || [])
             .filter((r: any) => r.student_id === s.id)
-            .map((r: any) => ({
-              score: r.score,
-              passed: r.score >= 80,
-              stage_title: r.stage_title || r.quiz_id || "מבחן",
-            })),
+            .map((r: any, idx: number) => {
+              const trackName = TRACKS.find(t => t.id === r.quiz_id)?.name;
+              return {
+                score: r.score,
+                passed: r.score >= 80,
+                stage_title: r.stage_title || (trackName ? trackName : `מבחן ${idx + 1}`),
+              };
+            }),
         }));
         setStudents(merged);
       }
@@ -390,7 +393,7 @@ export default function Admin() {
                           <div className="flex flex-col gap-1">
                             {s.results.map((r, ri) => (
                               <span key={ri} className={`text-sm font-medium ${r.score >= 95 ? "text-gold-400" : r.passed ? "text-green-400" : "text-red-400"}`}>
-                                {r.stage_title || `מבחן ${ri + 1}`}: {r.score}%
+                                מבחן {ri + 1}: {r.score}%
                               </span>
                             ))}
                           </div>
