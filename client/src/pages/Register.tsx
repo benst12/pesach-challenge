@@ -103,9 +103,24 @@ export default function Register() {
     }
     setRegLoading(true);
     try {
+      // בדוק אם כבר קיים תלמיד עם אותו טלפון
+      const cleanPhone = phone.trim().replace(/[-\s]/g, "");
+      const { data: existing } = await supabase
+        .from("students")
+        .select("id, first_name, last_name, track_id")
+        .or(`phone.eq.${phone.trim()},phone.eq.${cleanPhone}`)
+        .limit(1)
+        .single();
+
+      if (existing) {
+        toast.error(`מספר הטלפון כבר רשום! אם זה אתה, השתמש ב"כבר נרשמתי" כדי להיכנס.`);
+        setRegLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("students")
-        .insert({ first_name: firstName, last_name: lastName, phone, school_name: school, grade })
+        .insert({ first_name: firstName, last_name: lastName, phone: phone.trim(), school_name: school, grade })
         .select()
         .single();
 
