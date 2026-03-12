@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { getQuestionsForTrack, IMAGES } from "@/lib/data";
+import { getQuestionsForTrack, getQuestionsForChapters, IMAGES } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { useStudent } from "@/contexts/StudentContext";
 import { useLocation } from "wouter";
@@ -31,8 +31,19 @@ export default function Quiz() {
   const { student, selectedTrack } = useStudent();
 
   const questions = useMemo<PreparedQuestion[]>(() => {
-    // Get questions specific to the selected track
-    const pool = selectedTrack ? getQuestionsForTrack(selectedTrack.id, 25) : [];
+    // Check if we have stage-specific chapters (from multi-exam flow)
+    let pool;
+    try {
+      const stageChaptersRaw = localStorage.getItem("pesach_current_stage_chapters");
+      if (stageChaptersRaw) {
+        const stageChapters: string[] = JSON.parse(stageChaptersRaw);
+        pool = getQuestionsForChapters(stageChapters, 20);
+      } else {
+        pool = selectedTrack ? getQuestionsForTrack(selectedTrack.id, 20) : [];
+      }
+    } catch {
+      pool = selectedTrack ? getQuestionsForTrack(selectedTrack.id, 20) : [];
+    }
     const keys = ["A", "B", "C", "D"];
     return pool.map((q) => {
       const shuffledOpts = shuffle(q.options.map((o, i) => ({ ...o, origIndex: i })));

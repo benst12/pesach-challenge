@@ -1,42 +1,47 @@
-/* Design: Royal Blue & Gold - Study materials */
+/* Design: Royal Blue & Gold – Study materials + multi-exam stages */
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IMAGES } from "@/lib/data";
+import { getTrackExamConfig, isStageOpen, type ExamStage } from "@/lib/examConfig";
 import { useStudent } from "@/contexts/StudentContext";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, ExternalLink, CheckCircle2, GraduationCap, Lock } from "lucide-react";
+import {
+  ArrowRight, BookOpen, ExternalLink, CheckCircle2,
+  GraduationCap, Lock, CalendarDays, ChevronDown, ChevronUp,
+} from "lucide-react";
 import { useState } from "react";
-
-const EXAM_OPEN_KEY = "pesach_exam_open";
-
-function isExamOpen(): boolean {
-  return localStorage.getItem(EXAM_OPEN_KEY) === "true";
-}
 
 export default function Materials() {
   const [, navigate] = useLocation();
-  const { student, selectedTrack, studyCompleted, setStudyCompleted } = useStudent();
-  const [checked, setChecked] = useState(studyCompleted);
-  const examOpen = isExamOpen();
+  const { student, selectedTrack, setStudyCompleted } = useStudent();
+  const [openStage, setOpenStage] = useState<number | null>(0);
+  const [checkedMap, setCheckedMap] = useState<Record<number, boolean>>({});
 
   if (!student || !selectedTrack) {
     navigate("/register");
     return null;
   }
 
-  const handleReady = () => {
-    if (!examOpen) return;
+  const config = getTrackExamConfig(selectedTrack.id);
+  if (!config) { navigate("/"); return null; }
+
+  const handleStartExam = (stage: ExamStage) => {
+    if (!isStageOpen(stage)) return;
     setStudyCompleted(true);
+    localStorage.setItem("pesach_current_stage_chapters", JSON.stringify(stage.chapters));
+    localStorage.setItem("pesach_current_stage_title", stage.title);
     navigate("/quiz");
   };
+
+  const heLetters = ["א", "ב", "ג", "ד"];
 
   return (
     <div className="min-h-screen bg-[#0c1a33]" dir="rtl">
       {/* Header */}
-      <div className="relative h-64 overflow-hidden">
-        <img src={IMAGES.books} alt="" className="w-full h-full object-cover opacity-30" />
+      <div className="relative h-52 overflow-hidden">
+        <img src={IMAGES.books} alt="" className="w-full h-full object-cover opacity-25" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#0c1a33]/60 to-[#0c1a33]" />
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -44,95 +49,187 @@ export default function Materials() {
               <div className="absolute inset-0 rounded-xl bg-white/20 blur-2xl scale-150" />
               <img src={IMAGES.logo} alt="רשת נעם צביה" className="relative h-12 w-auto brightness-125" />
             </div>
-            <h1 className="font-display text-4xl text-white mb-2">חומר הלימוד</h1>
-            <p className="text-gold-400 text-lg">{selectedTrack.name}</p>
+            <h1 className="font-display text-3xl text-white mb-1">חומר הלימוד והמבחנים</h1>
+            <p className="text-gold-400">{selectedTrack.name}</p>
           </motion.div>
         </div>
       </div>
 
-      <div className="container max-w-3xl py-8 -mt-8 relative z-10">
+      <div className="container max-w-3xl py-8 -mt-8 relative z-10 px-4">
         <button onClick={() => navigate("/")}
           className="flex items-center gap-2 text-gray-400 hover:text-gold-400 transition-colors mb-8 group">
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           <span>חזרה לדף הבית</span>
         </button>
 
-        {/* Info card */}
-        <motion.div className="bg-gradient-to-b from-[#12243f] to-[#0f1f3a] border border-royal-400/10 rounded-2xl p-6 mb-8"
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <div className="flex items-center gap-3 mb-4">
-            <BookOpen className="h-6 w-6 text-gold-400" />
-            <h2 className="font-display text-xl text-white">פרקים ללימוד</h2>
+        {/* Track banner */}
+        <motion.div
+          className="bg-gradient-to-l from-royal-600/20 to-gold-500/10 border border-gold-400/20 rounded-2xl p-5 mb-7 flex items-center gap-4"
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <div className="text-4xl">{selectedTrack.icon}</div>
+          <div>
+            <p className="text-white font-bold text-base">{selectedTrack.name}</p>
+            <p className="text-gray-400 text-sm">{selectedTrack.description}</p>
+            <p className="text-gold-400/70 text-xs mt-1">
+              {config.stages.length} מבחנים במסלול זה • הלחצו על כל מבחן לפרטים
+            </p>
           </div>
-          <p className="text-gray-400 mb-2">
-            לחצו על כל פרק כדי לקרוא אותו באתר פניני הלכה. חשוב לקרוא את כל הפרקים לפני המבחן!
-          </p>
-          <p className="text-gold-400/80 text-sm">
-            הפרקים נלקחים מתוך ספר הלכות פסח של הרב אליעזר מלמד
-          </p>
         </motion.div>
 
-        {/* Chapters list */}
-        <div className="space-y-3 mb-10">
-          {selectedTrack.chapters.map((chapter, i) => (
-            <motion.a key={i} href={chapter.url} target="_blank" rel="noopener noreferrer" className="block"
-              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.08 }}>
-              <div className="bg-[#12243f] border border-royal-400/10 rounded-xl p-5 flex items-center justify-between hover:border-gold-400/30 hover:bg-[#152a48] transition-all duration-300 group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-gold-500/10 flex items-center justify-center text-gold-400 font-display text-lg flex-shrink-0">
-                    {i + 1}
+        {/* Timeline + stages */}
+        <div className="relative">
+          {/* Vertical line */}
+          <div className="absolute right-6 top-6 bottom-6 w-0.5 bg-gradient-to-b from-gold-500/40 via-royal-400/20 to-transparent" />
+
+          <div className="space-y-4">
+            {config.stages.map((stage, idx) => {
+              const stageOpen = isStageOpen(stage);
+              const isExpanded = openStage === idx;
+              const isChecked = checkedMap[stage.examNumber] ?? false;
+
+              return (
+                <motion.div
+                  key={stage.examNumber}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + idx * 0.07 }}
+                >
+                  {/* Stage card */}
+                  <div className={`mr-14 rounded-2xl border overflow-hidden transition-all duration-300 ${
+                    stageOpen
+                      ? "border-gold-400/35 bg-gradient-to-b from-[#13243f] to-[#0f1f3a] shadow-lg shadow-gold-500/5"
+                      : "border-royal-400/12 bg-[#0e1c34]"
+                  }`}>
+
+                    {/* Stage header */}
+                    <button
+                      className="w-full text-right px-5 py-4 flex items-center gap-3"
+                      onClick={() => setOpenStage(isExpanded ? null : idx)}>
+
+                      {/* Dot on timeline */}
+                      <div className={`absolute right-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all z-10 ${
+                        stageOpen
+                          ? "border-gold-400 bg-gold-500 shadow-md shadow-gold-500/40"
+                          : "border-gray-600 bg-[#0c1a33]"
+                      }`}>
+                        <div className={`w-2 h-2 rounded-full ${stageOpen ? "bg-[#0c1a33]" : "bg-gray-600"}`} />
+                      </div>
+
+                      {/* Number */}
+                      <div className={`w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center font-display text-xl font-bold ${
+                        stageOpen ? "bg-gold-500 text-[#0c1a33]" : "bg-[#192c47] text-gray-500"
+                      }`}>
+                        {heLetters[idx]}
+                      </div>
+
+                      <div className="flex-1 text-right">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-white font-bold">{stage.title}</span>
+                          {stageOpen ? (
+                            <span className="px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 text-xs">✓ פתוח</span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full bg-gray-600/25 text-gray-500 text-xs">🔒 סגור</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gold-400/60 mt-0.5">
+                          <CalendarDays className="h-3 w-3" />
+                          <span>{stage.date}</span>
+                        </div>
+                        <p className="text-gray-600 text-xs mt-0.5 truncate">
+                          {stage.chapterNames.map(c => c.name.split(" – ")[0]).join(" · ")}
+                        </p>
+                      </div>
+
+                      <div className="text-gray-600 flex-shrink-0 ml-1">
+                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </div>
+                    </button>
+
+                    {/* Expanded body */}
+                    {isExpanded && (
+                      <div className="border-t border-royal-400/10 px-5 pb-5">
+
+                        {/* Chapters */}
+                        <div className="mt-4 mb-5">
+                          <div className="flex items-center gap-2 mb-3">
+                            <BookOpen className="h-4 w-4 text-gold-400" />
+                            <span className="text-gold-400 text-sm font-medium">פרקים ל{stage.title}</span>
+                          </div>
+                          <div className="space-y-2">
+                            {stage.chapterNames.map((ch, ci) => (
+                              <a key={ci} href={ch.url} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center justify-between bg-[#0a1829] border border-royal-400/10 rounded-xl px-4 py-3 hover:border-gold-400/25 hover:bg-[#0f2035] transition-all group">
+                                <div className="flex items-center gap-3">
+                                  <span className="w-6 h-6 rounded-md bg-gold-500/10 flex items-center justify-center text-gold-400 text-xs font-bold flex-shrink-0">
+                                    {ci + 1}
+                                  </span>
+                                  <span className="text-white text-sm">{ch.name}</span>
+                                </div>
+                                <ExternalLink className="h-3.5 w-3.5 text-gray-600 group-hover:text-gold-400 transition-colors flex-shrink-0" />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Exam entry box */}
+                        <div className={`rounded-xl p-5 text-center border ${
+                          stageOpen
+                            ? "bg-green-950/20 border-green-500/20"
+                            : "bg-[#0a1625] border-gray-700/30"
+                        }`}>
+                          {stageOpen ? (
+                            <>
+                              <CheckCircle2 className="h-8 w-8 text-gold-400 mx-auto mb-3" />
+                              <h3 className="font-display text-xl text-white mb-2">מוכנים ל{stage.title}?</h3>
+                              <p className="text-gray-400 text-sm mb-4">
+                                קראו את כל הפרקים, סמנו את התיבה ולחצו להתחיל
+                              </p>
+                              <div className="flex items-center justify-center gap-3 mb-5">
+                                <Checkbox
+                                  id={`chk-${stage.examNumber}`}
+                                  checked={isChecked}
+                                  onCheckedChange={(v) => setCheckedMap(m => ({ ...m, [stage.examNumber]: v === true }))}
+                                  className="border-2 border-gold-500/50 data-[state=checked]:bg-gold-500 data-[state=checked]:border-gold-500 h-5 w-5"
+                                />
+                                <label htmlFor={`chk-${stage.examNumber}`}
+                                  className="text-gold-300 text-sm font-medium cursor-pointer select-none">
+                                  למדתי את הפרקים ואני מוכן/ה
+                                </label>
+                              </div>
+                              <Button
+                                onClick={() => handleStartExam(stage)}
+                                disabled={!isChecked}
+                                className="bg-gradient-to-l from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-[#0c1a33] font-bold px-8 py-5 rounded-xl glow-gold transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:hover:scale-100">
+                                <GraduationCap className="ml-2 h-5 w-5" />
+                                התחלת {stage.title}
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-11 h-11 mx-auto mb-3 rounded-full bg-gray-800/60 flex items-center justify-center">
+                                <Lock className="h-5 w-5 text-gray-500" />
+                              </div>
+                              <h3 className="font-display text-lg text-white mb-1">{stage.title} טרם נפתח</h3>
+                              <p className="text-gold-400/50 text-sm">{stage.date}</p>
+                              <p className="text-gray-600 text-xs mt-2">
+                                בינתיים – למדו את הפרקים והתכוננו 📖
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <span className="text-white font-medium">{chapter.name}</span>
-                </div>
-                <ExternalLink className="h-5 w-5 text-gray-500 group-hover:text-gold-400 transition-colors flex-shrink-0" />
-              </div>
-            </motion.a>
-          ))}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Exam section */}
-        <motion.div className="rounded-2xl p-8 text-center border-2"
-          style={{
-            background: examOpen
-              ? "linear-gradient(135deg, rgba(26,42,16,0.5), rgba(15,31,58,0.5))"
-              : "linear-gradient(135deg, rgba(20,20,35,0.8), rgba(12,26,51,0.8))",
-            borderColor: examOpen ? "rgba(212,160,23,0.4)" : "rgba(100,100,130,0.3)",
-          }}
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-
-          {examOpen ? (
-            <>
-              <CheckCircle2 className="h-12 w-12 text-gold-400 mx-auto mb-4" />
-              <h3 className="font-display text-2xl text-white mb-3">מוכנים למבחן?</h3>
-              <p className="text-gray-400 mb-6">לאחר שקראתם את כל הפרקים, סמנו את התיבה ולחצו על הכפתור</p>
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <Checkbox id="study-complete" checked={checked} onCheckedChange={(v) => setChecked(v === true)}
-                  className="border-2 border-gold-500/50 data-[state=checked]:bg-gold-500 data-[state=checked]:border-gold-500 h-6 w-6" />
-                <label htmlFor="study-complete" className="text-gold-300 font-medium text-base cursor-pointer select-none">
-                  למדתי את החומר ואני מוכן/ה למבחן
-                </label>
-              </div>
-              <Button onClick={handleReady} disabled={!checked}
-                className="bg-gradient-to-l from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-[#0c1a33] font-bold text-lg px-10 py-6 rounded-xl glow-gold transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:hover:scale-100">
-                <GraduationCap className="ml-2 h-5 w-5" />
-                התחלת מבחן
-              </Button>
-            </>
-          ) : (
-            <>
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-700/50 flex items-center justify-center">
-                <Lock className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="font-display text-2xl text-white mb-3">המבחן יפתח בקרוב</h3>
-              <p className="text-gray-400 mb-2">
-                בינתיים – למדו את החומר, קראו את הפרקים והתכוננו!
-              </p>
-              <p className="text-gold-400/70 text-sm font-medium">
-                ✨ כשהמבחן ייפתח תוכלו לגשת אליו מכאן
-              </p>
-            </>
-          )}
-        </motion.div>
+        <motion.p className="text-center text-gray-700 text-xs mt-8 pb-6"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
+          הפרקים נלקחים מתוך ספר פניני הלכה של הרב אליעזר מלמד
+        </motion.p>
       </div>
     </div>
   );

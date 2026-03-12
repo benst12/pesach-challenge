@@ -398,6 +398,34 @@ export function getQuestionsForTrack(trackId: string, count: number = 25): Quest
   return selected.sort(() => Math.random() - 0.5);
 }
 
+// Get questions for an explicit list of chapters (used by multi-exam stages)
+export function getQuestionsForChapters(chapters: string[], count: number = 20): Question[] {
+  const pool = ALL_QUESTIONS.filter(q => chapters.includes(q.chapter));
+  const byChapter: Record<string, Question[]> = {};
+  for (const q of pool) {
+    if (!byChapter[q.chapter]) byChapter[q.chapter] = [];
+    byChapter[q.chapter].push(q);
+  }
+  const selected: Question[] = [];
+  const usedIds = new Set<number>();
+  // 1 from each chapter first
+  for (const ch of chapters) {
+    const qs = byChapter[ch] || [];
+    if (qs.length > 0) {
+      const idx = Math.floor(Math.random() * qs.length);
+      selected.push(qs[idx]);
+      usedIds.add(qs[idx].id);
+    }
+  }
+  // fill remaining
+  const remaining = pool.filter(q => !usedIds.has(q.id)).sort(() => Math.random() - 0.5);
+  for (const q of remaining) {
+    if (selected.length >= count) break;
+    selected.push(q);
+  }
+  return selected.sort(() => Math.random() - 0.5);
+}
+
 // Backward compatibility
 export const QUESTIONS_HE_VAV = ALL_QUESTIONS.filter(q => 
   ["פרק א", "פרק ד", "פרק יג", "פרק טז"].includes(q.chapter)
