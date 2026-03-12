@@ -1,4 +1,4 @@
-/* Admin dashboard – exam toggle + student management */
+/* Admin dashboard */
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { EXAM_CONFIGS, isStageOpen, setStageOpen } from "@/lib/examConfig";
 import { supabase } from "@/lib/supabase";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Lock, Users, Award, Star, Search, ArrowRight, ToggleLeft, ToggleRight, Download } from "lucide-react";
+import { Lock, Users, Award, Star, Search, ArrowRight, ToggleLeft, ToggleRight, Download, Trash2, RefreshCw, AlertTriangle } from "lucide-react";
 
 interface StudentResult {
   id: string;
@@ -18,10 +18,8 @@ interface StudentResult {
   school_name: string;
   grade: string;
   track_id: string;
-  results: { score: number; passed: boolean }[];
+  results: { score: number; passed: boolean; exam_number?: number; stage_title?: string }[];
 }
-
-
 
 export default function Admin() {
   const [, navigate] = useLocation();
@@ -31,6 +29,10 @@ export default function Admin() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "school" | "score">("name");
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleteMultiple, setDeleteMultiple] = useState<Set<string>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
+
   const [examStates, setExamStates] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     for (const tc of EXAM_CONFIGS) {
@@ -63,20 +65,25 @@ export default function Admin() {
     try {
       const { data: studentsData } = await supabase
         .from("students")
-        .select("id, first_name, last_name, phone, school_name, grade, track_id");
+        .select("id, first_name, last_name, phone, school_name, grade, track_id")
+        .order("first_name", { ascending: true });
 
-      let scoresData: any[] = [];
-      try {
-        const res = await supabase.from("scores").select("student_id, score");
-        if (res.data) scoresData = res.data;
-      } catch (e) {}
+      // טעינת כל הציונים כולל מספר מבחן
+      const { data: scoresData } = await supabase
+        .from("scores")
+        .select("student_id, score, quiz_id, exam_number, stage_title, created_at");
 
       if (studentsData) {
         const merged = studentsData.map((s: any) => ({
           ...s,
-          results: scoresData
+          results: (scoresData || [])
             .filter((r: any) => r.student_id === s.id)
-            .map((r: any) => ({ score: r.score, passed: r.score >= 80 })),
+            .map((r: any) => ({
+              score: r.score,
+              passed: r.score >= 80,
+              exam_number: r.exam_number,
+              stage_title: r.stage_title,
+            })),
         }));
         setStudents(merged);
       }
@@ -87,10 +94,48 @@ export default function Admin() {
     }
   };
 
+  // מחיקת תלמיד אחד
+  const deleteStudent = async (id: string) => {
+    try {
+      await supabase.from("scores").delete().eq("student_id", id);
+      await supabase.from("students").delete().eq("id", id);
+      setStudents(prev => prev.filter(s => s.id !== id));
+      setDeleteConfirm(null);
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("שגיאה במחיקה");
+    }
+  };
+
+  // מחיקת מרובים
+  const deleteMultipleStudents = async () => {
+    const ids = Array.from(deleteMultiple);
+    try {
+      for (const id of ids) {
+        await supabase.from("scores").delete().eq("student_id", id);
+        await supabase.from("students").delete().eq("id", id);
+      }
+      setStudents(prev => prev.filter(s => !deleteMultiple.has(s.id)));
+      setDeleteMultiple(new Set());
+      setSelectMode(false);
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("שגיאה במחיקה");
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setDeleteMultiple(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   const getTrackName = (trackId: string) => TRACKS.find(t => t.id === trackId)?.name || "—";
 
   const filteredStudents = students
-    .filter((s) => {
+    .filter(s => {
       const q = search.toLowerCase();
       return (
         s.first_name?.toLowerCase().includes(q) ||
@@ -112,9 +157,9 @@ export default function Admin() {
     });
 
   const totalRegistered = students.length;
-  const tookExam = students.filter((s) => s.results.length > 0).length;
-  const passed = students.filter((s) => s.results.some((r) => r.passed)).length;
-  const excellent = students.filter((s) => s.results.some((r) => r.score >= 95)).length;
+  const tookExam = students.filter(s => s.results.length > 0).length;
+  const passed = students.filter(s => s.results.some(r => r.passed)).length;
+  const excellent = students.filter(s => s.results.some(r => r.score >= 95)).length;
 
   const exportCSV = () => {
     const header = "שם,טלפון,מוסד,כיתה,מסלול,ציון,סטטוס";
@@ -143,14 +188,11 @@ export default function Admin() {
               <Lock className="h-8 w-8 text-gold-400" />
             </div>
             <h1 className="font-display text-2xl text-white mb-6">כניסת מנהל</h1>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+            <Input type="password" value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleLogin()}
               placeholder="הזן סיסמה"
-              className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 h-12 mb-4 text-center"
-            />
+              className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 h-12 mb-4 text-center" />
             <Button onClick={handleLogin} className="w-full bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold h-12">
               כניסה
             </Button>
@@ -178,22 +220,20 @@ export default function Admin() {
 
         <h1 className="font-display text-3xl text-white mb-8">לוח בקרה – מבצע שאגת הארי</h1>
 
-        {/* ── Multi-exam toggles ───────────────────────── */}
+        {/* פתיחת מבחנים */}
         <div className="mb-8">
           <h2 className="font-display text-xl text-white mb-4">פתיחת מבחנים</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {EXAM_CONFIGS.map((tc) => {
+            {EXAM_CONFIGS.map(tc => {
               const track = TRACKS.find(t => t.id === tc.trackId);
               return (
                 <div key={tc.trackId} className="bg-[#0f1d36] border border-royal-400/15 rounded-2xl overflow-hidden">
-                  {/* Track header */}
                   <div className="px-4 py-3 border-b border-royal-400/10 flex items-center gap-3">
                     <span className="text-xl">{track?.icon}</span>
                     <span className="text-white font-bold text-sm">{track?.name}</span>
                   </div>
-                  {/* Stages */}
                   <div className="divide-y divide-royal-400/10">
-                    {tc.stages.map((stage) => {
+                    {tc.stages.map(stage => {
                       const open = examStates[stage.storageKey] ?? false;
                       return (
                         <div key={stage.storageKey} className={`flex items-center justify-between px-4 py-3 transition-colors ${open ? "bg-green-900/10" : ""}`}>
@@ -201,15 +241,10 @@ export default function Admin() {
                             <p className="text-white text-sm font-medium">{stage.title}</p>
                             <p className="text-gray-500 text-xs">{stage.date}</p>
                           </div>
-                          <Button
-                            onClick={() => toggleStage(stage.storageKey)}
-                            size="sm"
+                          <Button onClick={() => toggleStage(stage.storageKey)} size="sm"
                             className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 h-auto rounded-lg transition-all ${
-                              open
-                                ? "bg-red-600/80 hover:bg-red-500 text-white"
-                                : "bg-green-700/80 hover:bg-green-600 text-white"
-                            }`}
-                          >
+                              open ? "bg-red-600/80 hover:bg-red-500 text-white" : "bg-green-700/80 hover:bg-green-600 text-white"
+                            }`}>
                             {open ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
                             {open ? "סגור" : "פתח"}
                           </Button>
@@ -223,7 +258,7 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* Stats */}
+        {/* סטטיסטיקות */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { icon: <Users className="h-6 w-6" />, label: "נרשמו", value: totalRegistered, color: "text-royal-300" },
@@ -239,77 +274,117 @@ export default function Admin() {
           ))}
         </div>
 
-        {/* Search + sort + export */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        {/* כלי חיפוש ופעולות */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)}
+            <Input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="חיפוש לפי שם, טלפון, מוסד או כיתה..."
               className="bg-[#12243f] border-royal-400/20 text-white placeholder:text-gray-600 h-12 pr-10" />
           </div>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-[#12243f] border border-royal-400/20 text-white rounded-lg px-4 h-12 text-sm"
-          >
+          <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
+            className="bg-[#12243f] border border-royal-400/20 text-white rounded-lg px-4 h-12 text-sm">
             <option value="name">מיין לפי שם</option>
             <option value="school">מיין לפי מוסד</option>
             <option value="score">מיין לפי ציון</option>
           </select>
+          <Button onClick={loadStudents} variant="outline" className="border-royal-400/30 text-royal-300 hover:bg-royal-400/10 h-12 gap-2">
+            <RefreshCw className="h-4 w-4" />
+            רענן
+          </Button>
           <Button onClick={exportCSV} variant="outline" className="border-gold-400/30 text-gold-400 hover:bg-gold-400/10 h-12 gap-2">
             <Download className="h-4 w-4" />
-            ייצוא Excel
+            ייצוא
+          </Button>
+          <Button onClick={() => { setSelectMode(!selectMode); setDeleteMultiple(new Set()); }}
+            variant="outline"
+            className={`h-12 gap-2 ${selectMode ? "border-red-400/50 text-red-400 bg-red-400/10" : "border-red-400/20 text-red-400/60 hover:bg-red-400/10 hover:text-red-400"}`}>
+            <Trash2 className="h-4 w-4" />
+            {selectMode ? "ביטול בחירה" : "מחיקה מרובה"}
           </Button>
         </div>
 
-        {/* Table */}
+        {/* כפתור מחיקה מרובה */}
+        {selectMode && deleteMultiple.size > 0 && (
+          <div className="mb-4 flex items-center gap-3 bg-red-900/20 border border-red-500/30 rounded-xl p-4">
+            <AlertTriangle className="h-5 w-5 text-red-400 flex-shrink-0" />
+            <span className="text-red-300 text-sm flex-1">נבחרו {deleteMultiple.size} תלמידים למחיקה</span>
+            <Button onClick={deleteMultipleStudents}
+              className="bg-red-600 hover:bg-red-500 text-white h-9 px-4 text-sm gap-2">
+              <Trash2 className="h-4 w-4" />
+              מחק {deleteMultiple.size} תלמידים
+            </Button>
+          </div>
+        )}
+
+        {/* טבלה */}
         <div className="bg-[#12243f] border border-royal-400/10 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-royal-400/10">
+                  {selectMode && <th className="p-4 w-10"></th>}
                   <th className="text-right text-gray-400 text-sm font-medium p-4">שם</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">טלפון</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">מוסד</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">כיתה</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">מסלול</th>
-                  <th className="text-right text-gray-400 text-sm font-medium p-4">ציון</th>
-                  <th className="text-right text-gray-400 text-sm font-medium p-4">סטטוס</th>
+                  <th className="text-right text-gray-400 text-sm font-medium p-4">ציונים</th>
+                  <th className="text-right text-gray-400 text-sm font-medium p-4">פעולות</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredStudents.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center text-gray-500 py-12">{loading ? "טוען..." : "לא נמצאו תלמידים"}</td></tr>
+                  <tr><td colSpan={8} className="text-center text-gray-500 py-12">{loading ? "טוען..." : "לא נמצאו תלמידים"}</td></tr>
                 ) : (
-                  filteredStudents.map((s) => {
-                    const bestResult = s.results.reduce(
-                      (best, r) => (r.score > (best?.score || 0) ? r : best),
-                      null as { score: number; passed: boolean } | null
-                    );
-                    return (
-                      <tr key={s.id} className="border-b border-[#1a2f50] hover:bg-[#152a48]">
-                        <td className="p-4 text-white font-medium">{s.first_name} {s.last_name}</td>
-                        <td className="p-4 text-gray-400" dir="ltr">{s.phone}</td>
-                        <td className="p-4 text-gray-400">{s.school_name}</td>
-                        <td className="p-4 text-gray-400">{s.grade}</td>
-                        <td className="p-4 text-royal-300 text-sm">{getTrackName(s.track_id)}</td>
+                  filteredStudents.map(s => (
+                    <tr key={s.id} className={`border-b border-[#1a2f50] hover:bg-[#152a48] ${deleteMultiple.has(s.id) ? "bg-red-900/10" : ""}`}>
+                      {selectMode && (
                         <td className="p-4">
-                          {bestResult ? (
-                            <span className={bestResult.score >= 95 ? "text-gold-400 font-bold" : bestResult.passed ? "text-green-400" : "text-red-400"}>
-                              {bestResult.score}%
-                            </span>
-                          ) : <span className="text-gray-600">—</span>}
+                          <input type="checkbox" checked={deleteMultiple.has(s.id)}
+                            onChange={() => toggleSelect(s.id)}
+                            className="w-4 h-4 accent-red-500 cursor-pointer" />
                         </td>
-                        <td className="p-4">
-                          {bestResult ? (
-                            bestResult.score >= 95 ? <span className="px-2 py-1 rounded-full bg-gold-500/10 text-gold-400 text-xs">🌟 מצטיין</span>
-                            : bestResult.passed ? <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-400 text-xs">✓ עבר</span>
-                            : <span className="px-2 py-1 rounded-full bg-red-500/10 text-red-400 text-xs">✗ לא עבר</span>
-                          ) : <span className="px-2 py-1 rounded-full bg-gray-500/10 text-gray-500 text-xs">לא נבחן</span>}
-                        </td>
-                      </tr>
-                    );
-                  })
+                      )}
+                      <td className="p-4 text-white font-medium">{s.first_name} {s.last_name}</td>
+                      <td className="p-4 text-gray-400" dir="ltr">{s.phone}</td>
+                      <td className="p-4 text-gray-400 text-sm">{s.school_name}</td>
+                      <td className="p-4 text-gray-400">{s.grade}</td>
+                      <td className="p-4 text-royal-300 text-sm">{getTrackName(s.track_id)}</td>
+                      <td className="p-4">
+                        {s.results.length === 0 ? (
+                          <span className="text-gray-600 text-sm">לא נבחן</span>
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            {s.results.map((r, ri) => (
+                              <span key={ri} className={`text-sm font-medium ${r.score >= 95 ? "text-gold-400" : r.passed ? "text-green-400" : "text-red-400"}`}>
+                                {r.stage_title || `מבחן ${ri + 1}`}: {r.score}%
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        {deleteConfirm === s.id ? (
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => deleteStudent(s.id)}
+                              className="text-xs bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded">
+                              אשר
+                            </button>
+                            <button onClick={() => setDeleteConfirm(null)}
+                              className="text-xs text-gray-400 hover:text-white px-2 py-1">
+                              ביטול
+                            </button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setDeleteConfirm(s.id)}
+                            className="text-gray-600 hover:text-red-400 transition-colors p-1 rounded">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -318,6 +393,7 @@ export default function Admin() {
             מציג {filteredStudents.length} מתוך {students.length} תלמידים
           </div>
         </div>
+
       </div>
     </div>
   );
