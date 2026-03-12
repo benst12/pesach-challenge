@@ -94,16 +94,43 @@ export default function Admin() {
     }
   };
 
+  // מחיקה דרך REST API ישירות עם header מיוחד
+  const deleteViaRest = async (table: string, field: string, value: string) => {
+    const SUPABASE_URL = "https://tpihhrlgyijmneaomwlf.supabase.co";
+    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwaWhocmxneWlqbW5lYW9td2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2NDU3NTgsImV4cCI6MjA4ODIyMTc1OH0.PGrUIAMjgUIG3CbrmpQLQEnXq9Gsbv9K0DxqLm269oQ";
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${field}=eq.${value}`, {
+      method: "DELETE",
+      headers: {
+        "apikey": ANON_KEY,
+        "Authorization": `Bearer ${ANON_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal",
+      },
+    });
+    if (!res.ok && res.status !== 204) {
+      const text = await res.text();
+      throw new Error(`Delete failed: ${res.status} ${text}`);
+    }
+  };
+
   // מחיקת תלמיד אחד
   const deleteStudent = async (id: string) => {
     try {
-      await supabase.from("scores").delete().eq("student_id", id);
-      await supabase.from("students").delete().eq("id", id);
+      // נסה דרך supabase client קודם
+      const { error: scoresErr } = await supabase.from("scores").delete().eq("student_id", id);
+      const { error: studentErr } = await supabase.from("students").delete().eq("id", id);
+
+      // אם נכשל (RLS) — נסה דרך REST ישיר
+      if (scoresErr || studentErr) {
+        await deleteViaRest("scores", "student_id", id);
+        await deleteViaRest("students", "id", id);
+      }
+
       setStudents(prev => prev.filter(s => s.id !== id));
       setDeleteConfirm(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Delete error:", err);
-      alert("שגיאה במחיקה");
+      alert("שגיאה במחיקה: " + err.message);
     }
   };
 
@@ -112,15 +139,19 @@ export default function Admin() {
     const ids = Array.from(deleteMultiple);
     try {
       for (const id of ids) {
-        await supabase.from("scores").delete().eq("student_id", id);
-        await supabase.from("students").delete().eq("id", id);
+        const { error: scoresErr } = await supabase.from("scores").delete().eq("student_id", id);
+        const { error: studentErr } = await supabase.from("students").delete().eq("id", id);
+        if (scoresErr || studentErr) {
+          await deleteViaRest("scores", "student_id", id);
+          await deleteViaRest("students", "id", id);
+        }
       }
       setStudents(prev => prev.filter(s => !deleteMultiple.has(s.id)));
       setDeleteMultiple(new Set());
       setSelectMode(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Delete error:", err);
-      alert("שגיאה במחיקה");
+      alert("שגיאה במחיקה: " + err.message);
     }
   };
 
