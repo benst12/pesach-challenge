@@ -303,11 +303,32 @@ export default function Home() {
             })}
           </div>
 
-          {/* הערה */}
-          <motion.p className="text-center text-gray-500 text-sm mt-8"
-            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-            * תאריכי המבחנים בתשפ"ה – המבחן נפתח ביום הקבוע ונסגר לפי הנחיית המנהל
-          </motion.p>
+          {/* פרטי המבחן + הערה */}
+          <motion.div className="mt-10 flex flex-col items-center gap-4"
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+
+            {/* כרטיסי פורמט */}
+            <div className="flex flex-wrap justify-center gap-3">
+              {[
+                { icon: "📝", label: "פורמט", value: "אמריקאי – בחירה מרובה" },
+                { icon: "❓", label: "שאלות", value: "15–20 שאלות לכל מבחן" },
+                { icon: "⏱️", label: "זמן", value: "25 דקות לכל מבחן" },
+                { icon: "✅", label: "עמידה", value: "80% לעבור | 95% הצטיינות" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2 bg-white/5 border border-white/8 rounded-xl px-4 py-2.5">
+                  <span className="text-lg">{item.icon}</span>
+                  <div>
+                    <p className="text-gray-500 text-xs">{item.label}</p>
+                    <p className="text-white text-sm font-medium">{item.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-gray-600 text-xs text-center">
+              * תאריכי המבחנים בתשפ"ו – המבחן נפתח ביום הקבוע ונסגר לפי הנחיית המנהל
+            </p>
+          </motion.div>
         </div>
       </section>
 
