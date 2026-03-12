@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { IMAGES, TRACKS } from "@/lib/data";
 import { useStudent } from "@/contexts/StudentContext";
 import { motion } from "framer-motion";
-import { BookOpen, Trophy, ChevronLeft, Star, Shield, Zap, GraduationCap, Users, LogIn, ArrowLeft } from "lucide-react";
+import { BookOpen, Trophy, ChevronLeft, Star, Shield, Zap, GraduationCap, Users, LogIn, ArrowLeft, Calendar, BookMarked } from "lucide-react";
+import { EXAM_CONFIGS } from "@/lib/examConfig";
 import { useLocation } from "wouter";
 
 function getChapterNum(name: string): string {
@@ -229,6 +230,84 @@ export default function Home() {
               );
             })}
           </motion.div>
+        </div>
+      </section>
+
+
+      {/* ── לוח מבחנים ── */}
+      <section className="py-20 bg-gradient-to-b from-[#0a1628] to-[#0c1a33]">
+        <div className="container">
+          <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-4">
+              <Calendar className="h-4 w-4 text-gold-400" />
+              <span className="text-gold-300 text-sm font-medium">לוח מבחנים</span>
+            </div>
+            <h2 className="font-display text-4xl text-white mb-3">תאריכים וחומר לימוד</h2>
+            <p className="text-gray-400">כל מסלול מחולק למבחנים עם תאריכים קבועים מראש</p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {EXAM_CONFIGS.map((tc, ti) => {
+              const track = TRACKS.find(t => t.id === tc.trackId);
+              if (!track) return null;
+              const colors = [
+                "from-blue-900/30 to-blue-800/10 border-blue-400/20",
+                "from-orange-900/30 to-orange-800/10 border-orange-400/20",
+                "from-purple-900/30 to-purple-800/10 border-purple-400/20",
+                "from-gold-900/30 to-gold-800/10 border-gold-400/30",
+              ];
+              const dotColors = ["bg-blue-400", "bg-orange-400", "bg-purple-400", "bg-gold-400"];
+              return (
+                <motion.div key={tc.trackId}
+                  className={`bg-gradient-to-b ${colors[ti]} border rounded-2xl overflow-hidden`}
+                  initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }} transition={{ delay: ti * 0.1 }}>
+                  {/* כותרת מסלול */}
+                  <div className="px-6 py-4 border-b border-white/5 flex items-center gap-3">
+                    <span className="text-2xl">{track.icon}</span>
+                    <div>
+                      <h3 className="text-white font-bold">{track.name}</h3>
+                      <p className="text-gray-400 text-xs">כיתות {track.grades} • {tc.stages.length} מבחנים</p>
+                    </div>
+                  </div>
+                  {/* מבחנים */}
+                  <div className="p-4 space-y-4">
+                    {tc.stages.map((stage, si) => (
+                      <div key={si} className="flex gap-3">
+                        {/* קו ציר זמן */}
+                        <div className="flex flex-col items-center">
+                          <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${dotColors[ti]}`} />
+                          {si < tc.stages.length - 1 && <div className="w-px flex-1 bg-white/10 my-1" />}
+                        </div>
+                        <div className="flex-1 pb-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-white font-semibold text-sm">{stage.title}</span>
+                            <span className="text-gray-400 text-xs bg-white/5 px-2 py-0.5 rounded-full">
+                              {stage.dateShort}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {stage.chapterNames.map((ch, ci) => (
+                              <span key={ci}
+                                className="text-xs bg-white/5 border border-white/10 text-gray-300 px-2 py-0.5 rounded-full">
+                                {ch.name.split(" – ")[0]}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* הערה */}
+          <motion.p className="text-center text-gray-500 text-sm mt-8"
+            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+            * תאריכי המבחנים בתשפ"ה – המבחן נפתח ביום הקבוע ונסגר לפי הנחיית המנהל
+          </motion.p>
         </div>
       </section>
 
