@@ -96,8 +96,8 @@ export default function Admin() {
 
   // מחיקה דרך REST API ישירות עם header מיוחד
   const deleteViaRest = async (table: string, field: string, value: string) => {
-    const SUPABASE_URL = "https://tpihhrlgyijmneaomwlf.supabase.co";
-    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwaWhocmxneWlqbW5lYW9td2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2NDU3NTgsImV4cCI6MjA4ODIyMTc1OH0.PGrUIAMjgUIG3CbrmpQLQEnXq9Gsbv9K0DxqLm269oQ";
+    const SUPABASE_URL = "https://qobhbnbbqnzbsnacbfxm.supabase.co";
+    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvYmhibmJicW56YnNuYWNiZnhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjU2MTgsImV4cCI6MjA4ODg0MTYxOH0.hmRyy6OsGZRfx9B5KZsuN45mokd6FOflq4zNhbc0JVc";
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${field}=eq.${value}`, {
       method: "DELETE",
       headers: {
