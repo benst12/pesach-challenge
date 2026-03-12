@@ -68,10 +68,12 @@ export default function Admin() {
         .select("id, first_name, last_name, phone, school_name, grade, track_id")
         .order("first_name", { ascending: true });
 
-      // טעינת כל הציונים כולל מספר מבחן
-      const { data: scoresData } = await supabase
+      // טעינת ציונים — רק עמודות שבטוח קיימות
+      const { data: scoresData, error: scoresError } = await supabase
         .from("scores")
-        .select("student_id, score, quiz_id, exam_number, stage_title, created_at");
+        .select("student_id, score, quiz_id, created_at");
+
+      if (scoresError) console.error("Scores fetch error:", scoresError);
 
       if (studentsData) {
         const merged = studentsData.map((s: any) => ({
@@ -81,8 +83,7 @@ export default function Admin() {
             .map((r: any) => ({
               score: r.score,
               passed: r.score >= 80,
-              exam_number: r.exam_number,
-              stage_title: r.stage_title,
+              stage_title: r.stage_title || r.quiz_id || "מבחן",
             })),
         }));
         setStudents(merged);
