@@ -38,11 +38,28 @@ export default function Register() {
     if (!loginPhone.trim()) { toast.error("נא להזין מספר טלפון"); return; }
     setLoginLoading(true);
     try {
-      const { data, error } = await supabase
+      // נקה את הטלפון — הסר מקפים ורווחים
+      const cleanPhone = loginPhone.trim().replace(/[-\s]/g, "");
+
+      // חפש עם וגם בלי מקפים
+      let { data, error } = await supabase
         .from("students")
         .select("*")
-        .eq("phone", loginPhone.trim())
+        .or(`phone.eq.${loginPhone.trim()},phone.eq.${cleanPhone}`)
+        .limit(1)
         .single();
+
+      // אם לא נמצא — נסה חיפוש חלקי (ilike)
+      if (error || !data) {
+        const res2 = await supabase
+          .from("students")
+          .select("*")
+          .ilike("phone", `%${cleanPhone.slice(-8)}%`)
+          .limit(1)
+          .single();
+        data = res2.data;
+        error = res2.error;
+      }
 
       if (error || !data) {
         toast.error("לא נמצא תלמיד עם מספר זה. בדקו שוב או הירשמו.");
