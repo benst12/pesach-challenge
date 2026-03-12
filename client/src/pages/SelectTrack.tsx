@@ -129,11 +129,15 @@ export default function SelectTrack() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-baseline gap-1.5 flex-wrap">
                                 <span className="text-white text-xs font-semibold">{stage.title}</span>
-                                <span className="text-gold-400/60 text-[10px]">– {stage.dateShort}</span>
+                                <span className="text-gold-400/60 text-[10px]">– {stage.date}</span>
                               </div>
-                              <p className="text-gray-500 text-[10px] mt-0.5 leading-tight">
-                                {stage.chapterNames.map(c => c.name.split(" – ")[0]).join(" · ")}
-                              </p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {stage.chapterNames.map((c, ci) => (
+                                  <span key={ci} className="text-[10px] bg-white/5 border border-white/8 text-gray-400 px-1.5 py-0.5 rounded">
+                                    {c.name.split(" – ")[0]}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         ))}
