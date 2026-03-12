@@ -90,20 +90,27 @@ export default function Home() {
             <span className="text-gold-300/80 text-sm font-medium hidden sm:block">רשת נעם צביה – ישיבות ואולפנות ברחבי הארץ</span>
           </div>
 
-          {/* כפתור כניסה מהירה בפס העליון */}
-          {student ? (
-            <button onClick={() => navigate("/materials")}
-              className="flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-xl px-4 py-2 text-gold-400 text-sm font-medium hover:bg-gold-500/20 transition-all">
-              <span>שלום, {student.firstName}</span>
-              <ArrowLeft className="h-4 w-4" />
+          {/* כפתורים בפס העליון */}
+          <div className="flex items-center gap-2">
+            {student ? (
+              <button onClick={() => navigate("/materials")}
+                className="flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-xl px-4 py-2 text-gold-400 text-sm font-medium hover:bg-gold-500/20 transition-all">
+                <span>שלום, {student.firstName}</span>
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+            ) : (
+              <button onClick={() => navigate("/register")}
+                className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-gray-300 text-sm hover:bg-white/10 transition-all">
+                <LogIn className="h-4 w-4" />
+                <span>כניסה</span>
+              </button>
+            )}
+            <button onClick={() => navigate("/admin")}
+              className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-gray-500 text-xs hover:bg-white/10 hover:text-gray-300 transition-all">
+              <Shield className="h-3.5 w-3.5" />
+              <span className="hidden sm:block">מנהל</span>
             </button>
-          ) : (
-            <button onClick={() => navigate("/register")}
-              className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-gray-300 text-sm hover:bg-white/10 transition-all">
-              <LogIn className="h-4 w-4" />
-              <span>כניסה</span>
-            </button>
-          )}
+          </div>
         </div>
       </div>
 
