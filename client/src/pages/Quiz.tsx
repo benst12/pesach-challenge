@@ -109,13 +109,32 @@ export default function Quiz() {
       setSubmitted(true);
 
       try {
-        await supabase.from("scores").insert({
+        // שמור עם השדות הבסיסיים בלבד — בלי עמודות שאולי לא קיימות
+        const insertData: any = {
           student_id: student.id,
           quiz_id: selectedTrack.id,
           score: scorePercent,
           total_questions: totalQuestions,
           correct_answers: correct,
-        });
+        };
+
+        // הוסף stage_title אם קיים
+        const stageTitle = localStorage.getItem("pesach_current_stage_title");
+        if (stageTitle) {
+          try { insertData.stage_title = stageTitle; } catch {}
+        }
+
+        const { error: scoreError } = await supabase.from("scores").insert(insertData);
+
+        if (scoreError) {
+          console.error("Score save error:", scoreError);
+          // נסה שוב בלי stage_title אם נכשל
+          if (scoreError.message?.includes("stage_title") || scoreError.code === "42703") {
+            delete insertData.stage_title;
+            const { error: retryError } = await supabase.from("scores").insert(insertData);
+            if (retryError) console.error("Retry error:", retryError);
+          }
+        }
       } catch (dbErr) {
         console.error("Error saving results:", dbErr);
       }
