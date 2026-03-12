@@ -440,5 +440,5 @@ export const IMAGES = {
   books: "https://d2xsxph8kpxj0f.cloudfront.net/310519663368814931/2BoQ6VXxhE4awMaEseKDF7/books-study-4hWajnWpzo8qaXHt2iBseX.webp",
   quizBg: "https://d2xsxph8kpxj0f.cloudfront.net/310519663368814931/2BoQ6VXxhE4awMaEseKDF7/quiz-bg-iYYf4y6DpdSCTj57NPgJE7.webp",
   logo: "https://d2xsxph8kpxj0f.cloudfront.net/310519663368814931/2BoQ6VXxhE4awMaEseKDF7/noam-tzvia-logo_057460a5.png",
-  vetenBelibenu: "https://d2xsxph8kpxj0f.cloudfront.net/310519663368814931/2BoQ6VXxhE4awMaEseKDF7/veten-belibenu-1_e5f1666f.png",
+  vetenBelibenu: "/veten-belibenu.png",
 };
