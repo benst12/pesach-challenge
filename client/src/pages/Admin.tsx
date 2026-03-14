@@ -34,6 +34,8 @@ export default function Admin() {
   const [deleteMultiple, setDeleteMultiple] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [autoSchedule, setAutoSchedule] = useState<Record<string, string>>({});
+  const [waSearch, setWaSearch] = useState("");
+  const [personalMsg, setPersonalMsg] = useState(true);
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
   const [reportSchool, setReportSchool] = useState("");
 
@@ -361,37 +363,59 @@ export default function Admin() {
             <textarea
               value={waMessage}
               onChange={e => setWaMessage(e.target.value)}
-              rows={4}
-              className="w-full bg-[#0c1a33] border border-green-500/20 rounded-xl p-3 text-white text-xs resize-none mb-3 focus:outline-none focus:border-green-400/50"
+              rows={3}
+              className="w-full bg-[#0c1a33] border border-green-500/20 rounded-xl p-3 text-white text-xs resize-none mb-2 focus:outline-none focus:border-green-400/50"
+            />
+            <label className="flex items-center gap-2 mb-3 cursor-pointer">
+              <input type="checkbox" checked={personalMsg} onChange={e => setPersonalMsg(e.target.checked)}
+                className="accent-green-500 w-3.5 h-3.5" />
+              <span className="text-gray-400 text-xs">הוסף "שלום [שם]" בתחילת ההודעה</span>
+            </label>
+
+            {/* סינון */}
+            <div className="flex gap-2 mb-2">
+              <select value={reportSchool} onChange={e => setReportSchool(e.target.value)}
+                className="flex-1 bg-[#0c1a33] border border-green-500/20 rounded-xl px-3 py-2 text-white text-xs focus:outline-none">
+                <option value="">כל התלמידים</option>
+                {schoolStats.map(([school, count]) => (
+                  <option key={school} value={school}>{school} ({count})</option>
+                ))}
+              </select>
+            </div>
+            <input
+              value={waSearch}
+              onChange={e => setWaSearch(e.target.value)}
+              placeholder="חיפוש לפי שם..."
+              className="w-full bg-[#0c1a33] border border-green-500/20 rounded-xl px-3 py-2 text-white text-xs mb-3 focus:outline-none focus:border-green-400/50"
             />
 
-            {/* סינון לפי מוסד */}
-            <select value={reportSchool} onChange={e => setReportSchool(e.target.value)}
-              className="w-full bg-[#0c1a33] border border-green-500/20 rounded-xl px-3 py-2 text-white text-xs mb-3 focus:outline-none">
-              <option value="">כל התלמידים ({students.length})</option>
-              {schoolStats.map(([school, count]) => (
-                <option key={school} value={school}>{school} ({count})</option>
-              ))}
-            </select>
-
-            {/* רשימה לשליחה */}
+            {/* רשימה */}
             {(() => {
-              const filtered = reportSchool ? students.filter(s => s.school_name === reportSchool) : students;
+              const q = waSearch.toLowerCase();
+              const filtered = students.filter(s => {
+                const nameMatch = !q || `${s.first_name} ${s.last_name}`.toLowerCase().includes(q);
+                const schoolMatch = !reportSchool || s.school_name === reportSchool;
+                return nameMatch && schoolMatch;
+              });
               return (
                 <div className="space-y-1 max-h-52 overflow-y-auto">
-                  <p className="text-gray-500 text-xs mb-2">לחץ על שם לשליחה — {filtered.length} תלמידים</p>
-                  {filtered.map(s => (
-                    <a key={s.id}
-                      href={`https://wa.me/972${s.phone?.replace(/^0/,"").replace(/-/g,"")}?text=${encodeURIComponent(waMessage)}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-between bg-green-900/10 border border-green-500/10 rounded-lg px-3 py-1.5 hover:bg-green-900/20 transition-all">
-                      <div>
-                        <span className="text-white text-xs">{s.first_name} {s.last_name}</span>
-                        <span className="text-gray-500 text-[10px] mr-2">{s.school_name}</span>
-                      </div>
-                      <Send className="h-3 w-3 text-green-400 flex-shrink-0" />
-                    </a>
-                  ))}
+                  <p className="text-gray-500 text-xs mb-2">{filtered.length} תלמידים</p>
+                  {filtered.map(s => {
+                    const msg = personalMsg ? `שלום ${s.first_name}! 👋
+${waMessage}` : waMessage;
+                    return (
+                      <a key={s.id}
+                        href={`https://wa.me/972${s.phone?.replace(/^0/,"").replace(/-/g,"")}?text=${encodeURIComponent(msg)}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="flex items-center justify-between bg-green-900/10 border border-green-500/10 rounded-lg px-3 py-1.5 hover:bg-green-900/20 transition-all">
+                        <div>
+                          <span className="text-white text-xs font-medium">{s.first_name} {s.last_name}</span>
+                          <span className="text-gray-500 text-[10px] mr-2">{s.school_name}</span>
+                        </div>
+                        <Send className="h-3 w-3 text-green-400 flex-shrink-0" />
+                      </a>
+                    );
+                  })}
                 </div>
               );
             })()}
