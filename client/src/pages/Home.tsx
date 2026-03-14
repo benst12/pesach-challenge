@@ -43,6 +43,7 @@ export default function Home() {
   const [dailyAnswers, setDailyAnswers] = useState<Record<number, string>>({});
   const [dailyRevealed, setDailyRevealed] = useState(false);
   const [dailyLoaded, setDailyLoaded] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [hebrewDate, setHebrewDate] = useState("");
   const [daysToSeder, setDaysToSeder] = useState<number | null>(null);
 
@@ -54,13 +55,19 @@ export default function Home() {
     const diff = Math.ceil((seder.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     setDaysToSeder(diff > 0 ? diff : 0);
 
-    // תאריך עברי דרך API
-    const pad = (n: number) => String(n).padStart(2,"0");
-    const y = today.getFullYear(), m = pad(today.getMonth()+1), d = pad(today.getDate());
-    fetch(`https://www.hebcal.com/converter?cfg=json&gy=${y}&gm=${m}&gd=${d}&g2h=1`)
-      .then(r => r.json())
-      .then(data => { if (data.hdate) setHebrewDate(data.hdate); })
-      .catch(() => setHebrewDate(""));
+    // תאריך עברי — חישוב ישיר בלי API
+    const hebrewMonths = ["תשרי","חשון","כסלו","טבת","שבט","אדר","ניסן","אייר","סיון","תמוז","אב","אלול"];
+    const hebrewDays = ["","א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ז׳","ח׳","ט׳","י׳","י״א","י״ב","י״ג","י״ד","ט״ו","ט״ז","י״ז","י״ח","י״ט","כ׳","כ״א","כ״ב","כ״ג","כ״ד","כ״ה","כ״ו","כ״ז","כ״ח","כ״ט","ל׳"];
+    try {
+      const fmt = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", { day: "numeric", month: "long", year: "numeric" });
+      const parts = fmt.formatToParts(today);
+      const heDay = parts.find(p => p.type === "day")?.value || "";
+      const heMonth = parts.find(p => p.type === "month")?.value || "";
+      const heYear = parts.find(p => p.type === "year")?.value || "";
+      if (heDay && heMonth) setHebrewDate(`${heDay} ${heMonth} ${heYear}`);
+    } catch {
+      setHebrewDate("");
+    }
   }, []);
 
   useEffect(() => {
@@ -104,6 +111,27 @@ export default function Home() {
         const trackCounts: Record<string, number> = {};
         data.forEach((s: any) => { if (s.track_id) trackCounts[s.track_id] = (trackCounts[s.track_id] || 0) + 1; });
         setStats({ total, topSchools, trackCounts });
+
+        // לוח מובילים אתגר יומי — מסופאבייס
+        const { data: scoreData } = await supabase
+          .from("scores")
+          .select("student_id, correct_answers, total_questions")
+          .eq("stage_title", "אתגר יומי");
+        if (scoreData && scoreData.length > 0) {
+          const totals: Record<string, number> = {};
+          scoreData.forEach((s: any) => { totals[s.student_id] = (totals[s.student_id] || 0) + (s.correct_answers || 0); });
+          const { data: studData } = await supabase
+            .from("students")
+            .select("id, first_name, last_name, grade, school_name")
+            .in("id", Object.keys(totals));
+          if (studData) {
+            const board = studData
+              .map((s: any) => ({ ...s, total: totals[s.id] || 0 }))
+              .sort((a: any, b: any) => b.total - a.total)
+              .slice(0, 10);
+            setLeaderboard(board);
+          }
+        }
       } catch {}
     };
     loadStats();
@@ -611,6 +639,51 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+            {/* ── לוח מובילים אתגר יומי ── */}
+      {leaderboard.length > 0 && (
+        <section className="py-16 bg-[#0a1628]">
+          <div className="container max-w-2xl">
+            <motion.div className="text-center mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-4">
+                <Trophy className="h-4 w-4 text-gold-400" />
+                <span className="text-gold-300 font-bold">לוח המובילים</span>
+              </div>
+              <h2 className="font-display text-3xl text-white mb-2">מצטייני האתגר היומי</h2>
+              <p className="text-gray-400 text-sm">10 התלמידים עם הכי הרבה תשובות נכונות מצטברות</p>
+            </motion.div>
+            <div className="space-y-2">
+              {leaderboard.map((s, i) => (
+                <motion.div key={s.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }} transition={{ delay: i * 0.06 }}
+                  className={`flex items-center gap-4 rounded-2xl px-5 py-4 border ${
+                    i === 0 ? "bg-gold-500/10 border-gold-400/40" :
+                    i === 1 ? "bg-gray-400/5 border-gray-400/20" :
+                    i === 2 ? "bg-amber-700/10 border-amber-600/20" :
+                    "bg-[#12243f] border-royal-400/10"
+                  }`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-display text-xl font-bold flex-shrink-0 ${
+                    i === 0 ? "bg-gold-500 text-[#0c1a33]" :
+                    i === 1 ? "bg-gray-400 text-[#0c1a33]" :
+                    i === 2 ? "bg-amber-600 text-white" :
+                    "bg-[#0c1a33] text-gray-400"
+                  }`}>
+                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-bold text-base truncate">{s.first_name} {s.last_name}</p>
+                    <p className="text-gray-400 text-sm truncate">{s.school_name} • {s.grade}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className={`font-display text-2xl font-bold ${i < 3 ? "text-gold-400" : "text-gray-300"}`}>{s.total}</p>
+                    <p className="text-gray-500 text-xs">תשובות נכונות</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
             {/* ── Bottom CTA ── */}
       <section className="relative py-24 overflow-hidden">
