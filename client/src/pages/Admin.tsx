@@ -36,6 +36,7 @@ export default function Admin() {
   const [autoSchedule, setAutoSchedule] = useState<Record<string, string>>({});
   const [waSearch, setWaSearch] = useState("");
   const [personalMsg, setPersonalMsg] = useState(true);
+  const [dailyLeaders, setDailyLeaders] = useState<any[]>([]);
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
   const [reportSchool, setReportSchool] = useState("");
 
@@ -132,6 +133,22 @@ export default function Admin() {
             }),
         }));
         setStudents(merged);
+      }
+      // טעינת מצטייני אתגר יומי
+      const { data: dailyScores } = await supabase
+        .from("scores")
+        .select("student_id, correct_answers")
+        .eq("stage_title", "אתגר יומי");
+      if (dailyScores) {
+        const totals: Record<string, number> = {};
+        dailyScores.forEach((s: any) => { totals[s.student_id] = (totals[s.student_id] || 0) + (s.correct_answers || 0); });
+        if (studentsData) {
+          const leaders = studentsData
+            .filter((s: any) => totals[s.id])
+            .map((s: any) => ({ ...s, dailyTotal: totals[s.id] || 0 }))
+            .sort((a: any, b: any) => b.dailyTotal - a.dailyTotal);
+          setDailyLeaders(leaders);
+        }
       }
     } catch (err) {
       console.error("Error loading students:", err);
@@ -543,6 +560,46 @@ ${waMessage}` : waMessage;
             </div>
           </div>
         </div>
+
+        {/* ── אתגר יומי — מובילים ── */}
+        {dailyLeaders.length > 0 && (
+          <div className="bg-[#12243f] border border-gold-400/15 rounded-2xl overflow-hidden mb-8">
+            <div className="px-5 py-3 border-b border-royal-400/10 flex items-center gap-2">
+              <Star className="h-4 w-4 text-gold-400" />
+              <span className="text-white font-bold text-sm">מצטייני אתגר יומי — תשובות נכונות מצטברות</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-royal-400/10">
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">#</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">שם</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">מוסד</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">כיתה</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">מסלול</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">נכון מצטבר</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyLeaders.map((s, i) => (
+                    <tr key={s.id} className={`border-b border-[#1a2f50] ${i < 3 ? "bg-gold-500/5" : ""}`}>
+                      <td className="p-3">
+                        <span className="text-lg">{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : <span className="text-gray-500 text-sm">{i+1}</span>}</span>
+                      </td>
+                      <td className="p-3 text-white font-medium text-sm">{s.first_name} {s.last_name}</td>
+                      <td className="p-3 text-gray-400 text-sm">{s.school_name}</td>
+                      <td className="p-3 text-gray-400 text-sm">{s.grade}</td>
+                      <td className="p-3 text-royal-300 text-sm">{getTrackName(s.track_id)}</td>
+                      <td className="p-3">
+                        <span className={`font-display text-xl font-bold ${i < 3 ? "text-gold-400" : "text-white"}`}>{s.dailyTotal}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* כלי חיפוש ופעולות */}
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
