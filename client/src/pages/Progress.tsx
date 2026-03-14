@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useStudent } from "@/contexts/StudentContext";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
+import { toHebrewDate } from "@/lib/dailyUtils";
 import { TRACKS, IMAGES } from "@/lib/data";
 import { getTrackExamConfig } from "@/lib/examConfig";
 import { motion } from "framer-motion";
@@ -204,7 +205,7 @@ export default function Progress() {
                       </div>
                       <div className="flex-1">
                         <p className="text-white text-sm font-medium">{s.stage_title || `מבחן ${i + 1}`}</p>
-                        <p className="text-gray-500 text-xs">{new Date(s.created_at).toLocaleDateString("he-IL")}</p>
+                        <p className="text-gray-500 text-xs">{toHebrewDate(new Date(s.created_at))}</p>
                       </div>
                       <div className="text-xs text-gray-500">{s.correct_answers}/{s.total_questions} נכון</div>
                     </div>
@@ -248,7 +249,7 @@ export default function Progress() {
                 <div className="space-y-2">
                   {dailyHistory.slice(-10).reverse().map((s, i) => (
                     <div key={i} className="flex items-center justify-between bg-[#0c1a33] rounded-xl px-4 py-3">
-                      <span className="text-gray-400 text-sm">{new Date(s.created_at).toLocaleDateString("he-IL")}</span>
+                      <span className="text-gray-400 text-sm">{toHebrewDate(new Date(s.created_at))}</span>
                       <span className={`font-bold text-sm ${s.correct_answers === s.total_questions ? "text-gold-400" : s.correct_answers >= 2 ? "text-green-400" : "text-red-400"}`}>
                         {s.correct_answers}/{s.total_questions} ✓
                       </span>

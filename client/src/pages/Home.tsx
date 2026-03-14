@@ -1,7 +1,8 @@
 /* Design: Royal Blue & Gold - matching Noam Tzvia logo */
 
 import { Button } from "@/components/ui/button";
-import { IMAGES, TRACKS, getQuestionsForTrack } from "@/lib/data";
+import { IMAGES, TRACKS } from "@/lib/data";
+import { getDailyQuestions, getTodayKeyFromDayIndex, toHebrewDate } from "@/lib/dailyUtils";
 import { useStudent } from "@/contexts/StudentContext";
 import { motion } from "framer-motion";
 import { BookOpen, Trophy, ChevronLeft, Star, Shield, Zap, GraduationCap, Users, LogIn, ArrowLeft, Calendar, BookMarked, LogOut } from "lucide-react";
@@ -55,52 +56,16 @@ export default function Home() {
     const diff = Math.ceil((seder.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     setDaysToSeder(diff > 0 ? diff : 0);
 
-    // תאריך עברי — חישוב ישיר בלי API
-    try {
-      // פורמט: כ"ה אדר תשפ"ו
-      const hebrewMonths = ["","ניסן","אייר","סיון","תמוז","אב","אלול","תשרי","חשון","כסלו","טבת","שבט","אדר","אדר ב"];
-      const hebrewYears: Record<number,string> = { 5785: 'תשפ"ה', 5786: 'תשפ"ו', 5787: 'תשפ"ז', 5788: 'תשפ"ח' };
-      const hebrewDayStr = (n: number) => {
-        const units = ["","א","ב","ג","ד","ה","ו","ז","ח","ט"];
-        const tens  = ["","י","כ","ל"];
-        if (n <= 9) return units[n] + "׳";
-        if (n === 15) return 'ט"ו';
-        if (n === 16) return 'ט"ז';
-        if (n < 20) return "י" + '"' + units[n-10];
-        const t = Math.floor(n/10), u = n%10;
-        return u === 0 ? tens[t]+"׳" : tens[t]+'"'+units[u];
-      };
-      const fmt = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", { day: "numeric", month: "numeric", year: "numeric" });
-      const parts = fmt.formatToParts(today);
-      const heDay = parseInt(parts.find(p => p.type==="day")?.value||"1");
-      const heMon = parseInt(parts.find(p => p.type==="month")?.value||"1");
-      const heYr  = parseInt(parts.find(p => p.type==="year")?.value||"5786");
-      const monthName = hebrewMonths[heMon] || "";
-      const yearName  = hebrewYears[heYr] || "";
-      if (monthName && yearName) setHebrewDate(`${hebrewDayStr(heDay)} ${monthName} ${yearName}`);
-    } catch {
-      setHebrewDate("");
-    }
+    setHebrewDate(toHebrewDate(today));
   }, []);
 
   useEffect(() => {
-    const allQ = getQuestionsForTrack(TRACKS[0].id, 999);
-    const d = new Date();
-    const dayIdx = d.getFullYear() * 366 + d.getMonth() * 31 + d.getDate();
-    const keys = ["א","ב","ג","ד"];
-    const picked = [0,1,2].map(offset => {
-      const q = allQ[(dayIdx + offset * 37) % allQ.length];
-      if (!q) return null;
-      const shuffled = [...q.options].sort((a,b) => ((dayIdx + offset + a.text.length) % 2) - 0.5);
-      return { ...q, options: shuffled.map((o,i) => ({ ...o, key: keys[i] })) };
-    }).filter(Boolean);
+    const picked = getDailyQuestions();
     setDailyQs(picked);
-
     // טעינת תשובות שמורות מהיום
-    const todayKey = (() => { const t = new Date(); return `${t.getFullYear()}-${t.getMonth()+1}-${t.getDate()}`; })();
-    // student עשוי להיות null כאן — נשתמש ב-localStorage ישירות
+    const todayDayKey = getTodayKeyFromDayIndex();
     try {
-      const keys2 = Object.keys(localStorage).filter(k => k.startsWith("pesach_daily_") && k.endsWith(todayKey));
+      const keys2 = Object.keys(localStorage).filter(k => k.startsWith("pesach_daily_") && k.endsWith(todayDayKey));
       if (keys2.length > 0) {
         const saved = JSON.parse(localStorage.getItem(keys2[0]) || "{}");
         if (saved.answers) { setDailyAnswers(saved.answers); setDailyRevealed(true); }
@@ -411,8 +376,8 @@ export default function Home() {
                       if (!student) { navigate("/register"); return; }
                       setDailyRevealed(true);
                       // שמור תשובות
-                      const todayKey = (() => { const t = new Date(); return `${t.getFullYear()}-${t.getMonth()+1}-${t.getDate()}`; })();
-                      const sKey = `pesach_daily_${student.id}_${todayKey}`;
+                      const todayDayKey2 = getTodayKeyFromDayIndex();
+                      const sKey = `pesach_daily_${student.id}_${todayDayKey2}`;
                       const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
                       try { localStorage.setItem(sKey, JSON.stringify({ answers: dailyAnswers, correct, total: dailyQs.length })); } catch {}
                     }}

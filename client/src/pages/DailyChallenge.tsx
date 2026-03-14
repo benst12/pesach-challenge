@@ -1,43 +1,23 @@
-/* אתגר יומי — שומר לסופאבייס */
+/* אתגר יומי — שאלות אחידות לכולם, מתחלפות בחצות */
 
 import { useState, useEffect, useMemo } from "react";
 import { useStudent } from "@/contexts/StudentContext";
 import { useLocation } from "wouter";
-import { IMAGES, TRACKS, getQuestionsForTrack } from "@/lib/data";
+import { IMAGES } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
-import { motion, AnimatePresence } from "framer-motion";
+import { getDailyQuestions, getTodayKeyFromDayIndex, toHebrewDate } from "@/lib/dailyUtils";
+import { motion } from "framer-motion";
 import { ArrowRight, Zap, CheckCircle, XCircle, Trophy, Calendar, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const KEYS = ["א","ב","ג","ד"];
-
-function getTodayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-}
-
-function getDailyQuestions(trackId: string) {
-  const all = getQuestionsForTrack(trackId, 999);
-  if (!all.length) return [];
-  const d = new Date();
-  const dayIdx = d.getFullYear() * 366 + d.getMonth() * 31 + d.getDate();
-  return Array.from({ length: 3 }, (_, offset) => {
-    const q = all[(dayIdx + offset * 37) % all.length];
-    if (!q) return null;
-    const shuffled = [...q.options].sort((a,b) => ((dayIdx + offset + a.text.length) % 2) - 0.5);
-    return { ...q, options: shuffled.map((o,i) => ({ ...o, key: KEYS[i] })) };
-  }).filter(Boolean) as any[];
-}
-
 export default function DailyChallenge() {
   const [, navigate] = useLocation();
-  const { student, selectedTrack } = useStudent();
-  const track = selectedTrack || TRACKS.find(t => t.id === student?.trackId) || TRACKS[0];
-  const questions = useMemo(() => getDailyQuestions(track.id), [track.id]);
+  const { student } = useStudent();
 
-  const todayKey = getTodayKey();
-  const lsKey = `pesach_daily_${student?.id || "guest"}_${todayKey}`;
+  const questions = useMemo(() => getDailyQuestions(), []);
+  const todayDayKey = getTodayKeyFromDayIndex();
+  const lsKey = `pesach_daily_${student?.id || "guest"}_${todayDayKey}`;
   const streakKey = `pesach_streak_${student?.id || "guest"}`;
 
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -47,20 +27,15 @@ export default function DailyChallenge() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // טעינת תשובות היום מ-localStorage
     try {
       const saved = localStorage.getItem(lsKey);
       if (saved) { const d = JSON.parse(saved); setAnswers(d.answers||{}); setRevealed(true); }
       setStreak(parseInt(localStorage.getItem(streakKey) || "0"));
     } catch {}
-
-    // טעינת היסטוריה מסופאבייס
     if (student?.id) {
       supabase.from("scores").select("correct_answers, total_questions, created_at")
-        .eq("student_id", student.id)
-        .eq("stage_title", "אתגר יומי")
-        .order("created_at", { ascending: false })
-        .limit(30)
+        .eq("student_id", student.id).eq("stage_title", "אתגר יומי")
+        .order("created_at", { ascending: false }).limit(30)
         .then(({ data }) => setDbHistory(data || []));
     }
   }, [student?.id, lsKey, streakKey]);
@@ -70,46 +45,36 @@ export default function DailyChallenge() {
       toast.error(`ענה על כל ${questions.length} השאלות`); return;
     }
     if (!student) { navigate("/register"); return; }
-
     const correct = questions.filter((q: any) =>
       q.options.find((o: any) => o.key === answers[q.id])?.correct
     ).length;
-
     setRevealed(true);
     localStorage.setItem(lsKey, JSON.stringify({ answers, correct, total: questions.length }));
-
-    // עדכן streak
     const lastKey = `pesach_streak_last_${student.id}`;
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    const yKey = `${yesterday.getFullYear()}-${yesterday.getMonth()+1}-${yesterday.getDate()}`;
+    const yDayKey = `day_${Math.floor((yesterday.getTime() + 2*3600000) / 86400000)}`;
     const lastPlayed = localStorage.getItem(lastKey);
-    const newStreak = lastPlayed === yKey ? streak + 1 : 1;
+    const newStreak = lastPlayed === yDayKey ? streak + 1 : 1;
     localStorage.setItem(streakKey, String(newStreak));
-    localStorage.setItem(lastKey, todayKey);
+    localStorage.setItem(lastKey, todayDayKey);
     setStreak(newStreak);
-
-    // שמור בסופאבייס
     setSaving(true);
     try {
       await supabase.from("scores").insert({
-        student_id: student.id,
-        quiz_id: track.id,
+        student_id: student.id, quiz_id: "daily",
         score: Math.round((correct / questions.length) * 100),
-        total_questions: questions.length,
-        correct_answers: correct,
+        total_questions: questions.length, correct_answers: correct,
         stage_title: "אתגר יומי",
       });
-      // רענן היסטוריה
       const { data } = await supabase.from("scores").select("correct_answers, total_questions, created_at")
         .eq("student_id", student.id).eq("stage_title", "אתגר יומי")
         .order("created_at", { ascending: false }).limit(30);
       setDbHistory(data || []);
-    } catch (e) { console.error(e); }
+    } catch(e) { console.error(e); }
     setSaving(false);
-
-    if (correct === questions.length) toast.success("מושלם! כל התשובות נכונות 🏆");
-    else if (correct >= 2) toast.success(`${correct}/3 נכון! 🌟`);
-    else toast.error(`${correct}/3 נכון. נסה שוב מחר!`);
+    if (correct === questions.length) toast.success("מושלם! 🏆");
+    else if (correct >= 2) toast.success(`${correct}/3 נכון 🌟`);
+    else toast.error(`${correct}/3 נכון`);
   };
 
   const correctCount = revealed
@@ -126,7 +91,7 @@ export default function DailyChallenge() {
             <h1 className="font-display text-3xl text-white mb-1 flex items-center gap-3 justify-center">
               <Zap className="h-8 w-8 text-gold-400" />אתגר יומי
             </h1>
-            <p className="text-gold-400 text-sm">{new Date().toLocaleDateString("he-IL", { weekday:"long", day:"numeric", month:"long" })}</p>
+            <p className="text-gold-400 text-sm">{toHebrewDate(new Date())}</p>
           </motion.div>
         </div>
       </div>
@@ -137,7 +102,7 @@ export default function DailyChallenge() {
             className="flex items-center gap-2 text-gray-400 hover:text-gold-400 transition-colors group">
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />חזרה
           </button>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {totalCorrectAll > 0 && (
               <div className="flex items-center gap-2 bg-gold-500/10 border border-gold-400/20 rounded-xl px-3 py-2">
                 <Trophy className="h-4 w-4 text-gold-400" />
@@ -152,7 +117,6 @@ export default function DailyChallenge() {
           </div>
         </div>
 
-        {/* 3 שאלות */}
         <div className="space-y-5 mb-6">
           {questions.map((q: any, qi: number) => (
             <motion.div key={qi} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -161,9 +125,10 @@ export default function DailyChallenge() {
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-7 h-7 rounded-lg bg-gold-500/20 text-gold-400 text-sm font-bold flex items-center justify-center">{qi + 1}</span>
                 <span className="text-gray-500 text-xs">{q.chapter}</span>
-                {revealed && (q.options.find((o: any) => o.key === answers[q.id])?.correct
-                  ? <span className="text-green-400 text-xs flex items-center gap-1 mr-auto"><CheckCircle className="h-3.5 w-3.5" />נכון</span>
-                  : <span className="text-red-400 text-xs flex items-center gap-1 mr-auto"><XCircle className="h-3.5 w-3.5" />לא נכון</span>
+                {revealed && (
+                  q.options.find((o: any) => o.key === answers[q.id])?.correct
+                    ? <span className="text-green-400 text-xs flex items-center gap-1 mr-auto"><CheckCircle className="h-3.5 w-3.5" />נכון</span>
+                    : <span className="text-red-400 text-xs flex items-center gap-1 mr-auto"><XCircle className="h-3.5 w-3.5" />לא נכון</span>
                 )}
               </div>
               <p className="text-white font-bold text-lg mb-4 leading-relaxed">{q.question}</p>
@@ -200,7 +165,8 @@ export default function DailyChallenge() {
         </div>
 
         {!revealed ? (
-          <Button onClick={handleReveal} disabled={Object.keys(answers).length < questions.length || saving}
+          <Button onClick={handleReveal}
+            disabled={Object.keys(answers).length < questions.length || saving}
             className="w-full bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold h-14 text-lg disabled:opacity-40 mb-6">
             {Object.keys(answers).length < questions.length
               ? `ענה על עוד ${questions.length - Object.keys(answers).length} שאלות`
@@ -208,15 +174,17 @@ export default function DailyChallenge() {
           </Button>
         ) : (
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-            className={`rounded-2xl p-6 text-center mb-6 ${correctCount === 3 ? "bg-gold-500/10 border border-gold-400/30" : correctCount >= 2 ? "bg-green-900/20 border border-green-500/30" : "bg-red-900/20 border border-red-500/30"}`}>
+            className={`rounded-2xl p-6 text-center mb-6 ${
+              correctCount === 3 ? "bg-gold-500/10 border border-gold-400/30" :
+              correctCount >= 2 ? "bg-green-900/20 border border-green-500/30" :
+              "bg-red-900/20 border border-red-500/30"}`}>
             <div className="text-4xl mb-2">{correctCount === 3 ? "🏆" : correctCount >= 2 ? "🌟" : "💪"}</div>
             <p className="text-white font-bold text-2xl">{correctCount}/{questions.length} נכון</p>
             {streak > 1 && <p className="text-orange-400 text-sm mt-1">🔥 רצף {streak} ימים!</p>}
-            <p className="text-gray-500 text-xs mt-2">שאלות חדשות מחר!</p>
+            <p className="text-gray-500 text-xs mt-2">שאלות חדשות בחצות הלילה!</p>
           </motion.div>
         )}
 
-        {/* היסטוריה מסופאבייס */}
         {dbHistory.length > 0 && (
           <div className="bg-[#12243f] border border-royal-400/10 rounded-2xl p-5">
             <h3 className="font-display text-lg text-white mb-4 flex items-center gap-2">
@@ -226,8 +194,10 @@ export default function DailyChallenge() {
             <div className="space-y-2">
               {dbHistory.map((h, i) => (
                 <div key={i} className="flex items-center justify-between bg-[#0c1a33] rounded-xl px-4 py-3">
-                  <span className="text-gray-400 text-sm">{new Date(h.created_at).toLocaleDateString("he-IL")}</span>
-                  <span className={`font-bold text-sm ${h.correct_answers === h.total_questions ? "text-gold-400" : h.correct_answers >= 2 ? "text-green-400" : "text-red-400"}`}>
+                  <span className="text-gray-400 text-sm">{toHebrewDate(new Date(h.created_at))}</span>
+                  <span className={`font-bold text-sm ${
+                    h.correct_answers === h.total_questions ? "text-gold-400" :
+                    h.correct_answers >= 2 ? "text-green-400" : "text-red-400"}`}>
                     {h.correct_answers}/{h.total_questions} ✓
                   </span>
                 </div>
