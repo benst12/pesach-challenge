@@ -317,9 +317,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-      )}
 
-            {/* ── לוח מובילים אתגר יומי ── */}
+      {/* ── לוח מובילים אתגר יומי ── */}
       {leaderboard.length > 0 && (
         <section className="py-16 bg-[#0a1628]">
           <div className="container max-w-2xl">
