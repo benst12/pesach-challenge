@@ -11,6 +11,8 @@ import SelectTrack from "./pages/SelectTrack";
 import Materials from "./pages/Materials";
 import Quiz from "./pages/Quiz";
 import Admin from "./pages/Admin";
+import Progress from "./pages/Progress";
+import DailyChallenge from "./pages/DailyChallenge";
 
 function Router() {
   return (
@@ -21,6 +23,8 @@ function Router() {
       <Route path={"/materials"} component={Materials} />
       <Route path={"/quiz"} component={Quiz} />
       <Route path={"/admin"} component={Admin} />
+      <Route path={"/progress"} component={Progress} />
+      <Route path={"/daily"} component={DailyChallenge} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
