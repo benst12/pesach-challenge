@@ -41,8 +41,6 @@ export default function Home() {
   const { student, selectedTrack, setStudent, setSelectedTrack } = useStudent();
   const [stats, setStats] = useState<{ total: number; topSchools: { name: string; count: number }[]; trackCounts: Record<string, number> } | null>(null);
   const [dailyQs, setDailyQs] = useState<any[]>([]);
-  const [dailyAnswers, setDailyAnswers] = useState<Record<number, string>>({});
-  const [dailyRevealed, setDailyRevealed] = useState(false);
   const [dailyLoaded, setDailyLoaded] = useState(false);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [hebrewDate, setHebrewDate] = useState("");
@@ -62,15 +60,6 @@ export default function Home() {
   useEffect(() => {
     const picked = getDailyQuestions();
     setDailyQs(picked);
-    // טעינת תשובות שמורות מהיום
-    const todayDayKey = getTodayKeyFromDayIndex();
-    try {
-      const keys2 = Object.keys(localStorage).filter(k => k.startsWith("pesach_daily_") && k.endsWith(todayDayKey));
-      if (keys2.length > 0) {
-        const saved = JSON.parse(localStorage.getItem(keys2[0]) || "{}");
-        if (saved.answers) { setDailyAnswers(saved.answers); setDailyRevealed(true); }
-      }
-    } catch {}
     setDailyLoaded(true);
   }, []);
 
@@ -372,79 +361,28 @@ export default function Home() {
               <span className="text-gold-300 font-bold">אתגר יומי</span>
             </div>
             <h2 className="font-display text-4xl text-white mb-2">3 שאלות של היום</h2>
-            <p className="text-gray-400">ענה על 3 שאלות יומיות בהלכות פסח</p>
+            <p className="text-gray-400">היכנס לאזור האישי שלך כדי לענות ולראות תוצאות</p>
           </motion.div>
 
           {dailyQs.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               className="bg-gradient-to-b from-[#12243f] to-[#0f1f3a] border border-royal-400/10 rounded-2xl p-6">
-
               <div className="space-y-6">
                 {dailyQs.map((q: any, qi: number) => (
-                  <div key={qi} className={`${qi > 0 ? "pt-6 border-t border-royal-400/10" : ""}`}>
+                  <div key={qi} className={qi > 0 ? "pt-6 border-t border-royal-400/10" : ""}>
                     <div className="flex items-center gap-2 mb-3">
                       <span className="w-7 h-7 rounded-lg bg-gold-500/20 text-gold-400 text-sm font-bold flex items-center justify-center">{qi + 1}</span>
                       <span className="text-gray-500 text-xs">{q.chapter}</span>
                     </div>
-                    <p className="text-white font-bold text-lg mb-4 leading-relaxed">{q.question}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {q.options.map((opt: any) => {
-                        const isSelected = dailyAnswers[q.id] === opt.key;
-                        const isCorrect = opt.correct;
-                        let cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-300 hover:border-gold-500/30";
-                        if (dailyRevealed) {
-                          if (isCorrect) cls = "border-green-500 bg-green-900/20 text-white";
-                          else if (isSelected) cls = "border-red-500 bg-red-900/20 text-gray-400";
-                          else cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-600 opacity-50";
-                        } else if (isSelected) cls = "border-gold-500 bg-gold-500/10 text-white";
-                        return (
-                          <button key={opt.key} disabled={dailyRevealed}
-                            onClick={() => !dailyRevealed && setDailyAnswers(prev => ({ ...prev, [q.id]: opt.key }))}
-                            className={`text-right p-3 rounded-xl border-2 transition-all flex items-center gap-2 ${cls}`}>
-                            <span className={`w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center flex-shrink-0 ${isSelected && !dailyRevealed ? "bg-gold-500 text-[#0c1a33]" : "bg-[#1a2f50] text-gray-500"}`}>
-                              {opt.key}
-                            </span>
-                            <span className="text-sm">{opt.text}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <p className="text-white font-bold text-lg leading-relaxed">{q.question}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
-                {!dailyRevealed ? (
-                  <button
-                    onClick={() => {
-                      if (Object.keys(dailyAnswers).length < dailyQs.length) return;
-                      if (!student) { navigate("/register"); return; }
-                      setDailyRevealed(true);
-                      // שמור תשובות
-                      const todayDayKey2 = getTodayKeyFromDayIndex();
-                      const sKey = `pesach_daily_${student.id}_${todayDayKey2}`;
-                      const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
-                      try { localStorage.setItem(sKey, JSON.stringify({ answers: dailyAnswers, correct, total: dailyQs.length })); } catch {}
-                    }}
-                    disabled={Object.keys(dailyAnswers).length < dailyQs.length}
-                    className="flex-1 bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold py-3 rounded-xl disabled:opacity-40 transition-all hover:from-gold-400 hover:to-gold-500">
-                    {!student ? "הירשם וגלה תשובות" : Object.keys(dailyAnswers).length < dailyQs.length ? `ענה על ${dailyQs.length - Object.keys(dailyAnswers).length} שאלות נוספות` : "גלה תשובות"}
-                  </button>
-                ) : (
-                  <div className="flex-1 text-center">
-                    {(() => {
-                      const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
-                      return (
-                        <p className={`font-bold text-xl ${correct === dailyQs.length ? "text-gold-400" : correct >= 2 ? "text-green-400" : "text-red-400"}`}>
-                          {correct}/{dailyQs.length} נכון! {correct === dailyQs.length ? "🏆 מושלם!" : correct >= 2 ? "🌟 כמעט!" : "💪 נסה שוב מחר"}
-                        </p>
-                      );
-                    })()}
-                  </div>
-                )}
+              <div className="mt-6 text-center">
                 <button onClick={() => navigate(student ? "/daily" : "/register")}
-                  className="text-gold-400 text-sm hover:text-gold-300 transition-colors whitespace-nowrap">
-                  לאתגר המלא ←
+                  className="bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold px-8 py-3 rounded-xl hover:from-gold-400 hover:to-gold-500 transition-all">
+                  {student ? "ענה על האתגר ←" : "הירשם וענה ←"}
                 </button>
               </div>
             </motion.div>

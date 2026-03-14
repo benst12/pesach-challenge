@@ -33,10 +33,23 @@ export default function DailyChallenge() {
       setStreak(parseInt(localStorage.getItem(streakKey) || "0"));
     } catch {}
     if (student?.id) {
+      // בדוק אם כבר ענה היום בסופאבייס (הגנה מפני כניסה מדפדפן אחר)
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
       supabase.from("scores").select("correct_answers, total_questions, created_at")
         .eq("student_id", student.id).eq("stage_title", "אתגר יומי")
         .order("created_at", { ascending: false }).limit(30)
-        .then(({ data }) => setDbHistory(data || []));
+        .then(({ data }) => {
+          setDbHistory(data || []);
+          // בדוק אם יש תשובה מהיום
+          const todayAnswer = (data || []).find(s => 
+            new Date(s.created_at) >= todayStart
+          );
+          if (todayAnswer && !revealed) {
+            setRevealed(true);
+            toast("כבר ענית על האתגר היומי היום! 👍");
+          }
+        });
     }
   }, [student?.id, lsKey, streakKey]);
 
@@ -45,6 +58,16 @@ export default function DailyChallenge() {
       toast.error(`ענה על כל ${questions.length} השאלות`); return;
     }
     if (!student) { navigate("/register"); return; }
+    // בדוק שוב אם כבר ענה היום בסופאבייס
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const { data: todayCheck } = await supabase.from("scores").select("id")
+      .eq("student_id", student.id).eq("stage_title", "אתגר יומי")
+      .gte("created_at", todayStart.toISOString()).limit(1);
+    if (todayCheck && todayCheck.length > 0) {
+      toast.error("כבר ענית על האתגר היומי היום!");
+      setRevealed(true);
+      return;
+    }
     const correct = questions.filter((q: any) =>
       q.options.find((o: any) => o.key === answers[q.id])?.correct
     ).length;
