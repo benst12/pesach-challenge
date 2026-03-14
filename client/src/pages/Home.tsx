@@ -42,6 +42,7 @@ export default function Home() {
   const [dailyQs, setDailyQs] = useState<any[]>([]);
   const [dailyAnswers, setDailyAnswers] = useState<Record<number, string>>({});
   const [dailyRevealed, setDailyRevealed] = useState(false);
+  const [dailyLoaded, setDailyLoaded] = useState(false);
   const [hebrewDate, setHebrewDate] = useState("");
   const [daysToSeder, setDaysToSeder] = useState<number | null>(null);
 
@@ -63,7 +64,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // 3 שאלות יומיות מהמסלול הראשון (ללא קשר לרישום)
     const allQ = getQuestionsForTrack(TRACKS[0].id, 999);
     const d = new Date();
     const dayIdx = d.getFullYear() * 366 + d.getMonth() * 31 + d.getDate();
@@ -71,10 +71,22 @@ export default function Home() {
     const picked = [0,1,2].map(offset => {
       const q = allQ[(dayIdx + offset * 37) % allQ.length];
       if (!q) return null;
-      const shuffled = [...q.options].sort((a,b) => ((dayIdx + offset) % 3) - 1 > 0 ? 1 : -1);
+      const shuffled = [...q.options].sort((a,b) => ((dayIdx + offset + a.text.length) % 2) - 0.5);
       return { ...q, options: shuffled.map((o,i) => ({ ...o, key: keys[i] })) };
     }).filter(Boolean);
     setDailyQs(picked);
+
+    // טעינת תשובות שמורות מהיום
+    const todayKey = (() => { const t = new Date(); return `${t.getFullYear()}-${t.getMonth()+1}-${t.getDate()}`; })();
+    // student עשוי להיות null כאן — נשתמש ב-localStorage ישירות
+    try {
+      const keys2 = Object.keys(localStorage).filter(k => k.startsWith("pesach_daily_") && k.endsWith(todayKey));
+      if (keys2.length > 0) {
+        const saved = JSON.parse(localStorage.getItem(keys2[0]) || "{}");
+        if (saved.answers) { setDailyAnswers(saved.answers); setDailyRevealed(true); }
+      }
+    } catch {}
+    setDailyLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -300,76 +312,167 @@ export default function Home() {
         </div>
       </section>
 
+{/* ── אתגר יומי בדף הבית ── */}
+      <section className="py-16 bg-gradient-to-b from-[#0c1a33] to-[#0a1628]">
+        <div className="container max-w-3xl">
+          <motion.div className="text-center mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-4">
+              <span className="text-gold-400">⚡</span>
+              <span className="text-gold-300 font-bold">אתגר יומי</span>
+            </div>
+            <h2 className="font-display text-4xl text-white mb-2">3 שאלות של היום</h2>
+            <p className="text-gray-400">ענה על 3 שאלות יומיות בהלכות פסח</p>
+          </motion.div>
+
+          {dailyQs.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              className="bg-gradient-to-b from-[#12243f] to-[#0f1f3a] border border-royal-400/10 rounded-2xl p-6">
+
+              <div className="space-y-6">
+                {dailyQs.map((q: any, qi: number) => (
+                  <div key={qi} className={`${qi > 0 ? "pt-6 border-t border-royal-400/10" : ""}`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-7 h-7 rounded-lg bg-gold-500/20 text-gold-400 text-sm font-bold flex items-center justify-center">{qi + 1}</span>
+                      <span className="text-gray-500 text-xs">{q.chapter}</span>
+                    </div>
+                    <p className="text-white font-bold text-lg mb-4 leading-relaxed">{q.question}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {q.options.map((opt: any) => {
+                        const isSelected = dailyAnswers[q.id] === opt.key;
+                        const isCorrect = opt.correct;
+                        let cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-300 hover:border-gold-500/30";
+                        if (dailyRevealed) {
+                          if (isCorrect) cls = "border-green-500 bg-green-900/20 text-white";
+                          else if (isSelected) cls = "border-red-500 bg-red-900/20 text-gray-400";
+                          else cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-600 opacity-50";
+                        } else if (isSelected) cls = "border-gold-500 bg-gold-500/10 text-white";
+                        return (
+                          <button key={opt.key} disabled={dailyRevealed}
+                            onClick={() => !dailyRevealed && setDailyAnswers(prev => ({ ...prev, [q.id]: opt.key }))}
+                            className={`text-right p-3 rounded-xl border-2 transition-all flex items-center gap-2 ${cls}`}>
+                            <span className={`w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center flex-shrink-0 ${isSelected && !dailyRevealed ? "bg-gold-500 text-[#0c1a33]" : "bg-[#1a2f50] text-gray-500"}`}>
+                              {opt.key}
+                            </span>
+                            <span className="text-sm">{opt.text}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                {!dailyRevealed ? (
+                  <button
+                    onClick={() => {
+                      if (Object.keys(dailyAnswers).length < dailyQs.length) return;
+                      if (!student) { navigate("/register"); return; }
+                      setDailyRevealed(true);
+                      // שמור תשובות
+                      const todayKey = (() => { const t = new Date(); return `${t.getFullYear()}-${t.getMonth()+1}-${t.getDate()}`; })();
+                      const sKey = `pesach_daily_${student.id}_${todayKey}`;
+                      const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
+                      try { localStorage.setItem(sKey, JSON.stringify({ answers: dailyAnswers, correct, total: dailyQs.length })); } catch {}
+                    }}
+                    disabled={Object.keys(dailyAnswers).length < dailyQs.length}
+                    className="flex-1 bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold py-3 rounded-xl disabled:opacity-40 transition-all hover:from-gold-400 hover:to-gold-500">
+                    {!student ? "הירשם וגלה תשובות" : Object.keys(dailyAnswers).length < dailyQs.length ? `ענה על ${dailyQs.length - Object.keys(dailyAnswers).length} שאלות נוספות` : "גלה תשובות"}
+                  </button>
+                ) : (
+                  <div className="flex-1 text-center">
+                    {(() => {
+                      const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
+                      return (
+                        <p className={`font-bold text-xl ${correct === dailyQs.length ? "text-gold-400" : correct >= 2 ? "text-green-400" : "text-red-400"}`}>
+                          {correct}/{dailyQs.length} נכון! {correct === dailyQs.length ? "🏆 מושלם!" : correct >= 2 ? "🌟 כמעט!" : "💪 נסה שוב מחר"}
+                        </p>
+                      );
+                    })()}
+                  </div>
+                )}
+                <button onClick={() => navigate(student ? "/daily" : "/register")}
+                  className="text-gold-400 text-sm hover:text-gold-300 transition-colors whitespace-nowrap">
+                  לאתגר המלא ←
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </section>
+
       {/* ── סטטיסטיקות נרשמים ── */}
       {stats && stats.total > 0 && (
         <section className="py-12 bg-[#0a1628]">
           <div className="container">
             <motion.div className="bg-gradient-to-l from-[#12243f] to-[#0f1f3a] border border-gold-400/15 rounded-2xl p-6 md:p-8"
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <div className="flex flex-col md:flex-row items-center gap-8">
+              {/* שורה עליונה: מונה + מסלולים */}
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
                 {/* מונה כללי */}
-                <div className="text-center flex-shrink-0">
-                  <motion.div
-                    initial={{ scale: 0 }} whileInView={{ scale: 1 }}
-                    viewport={{ once: true }}
+                <div className="text-center bg-[#0c1a33] rounded-2xl p-6">
+                  <motion.div initial={{ scale: 0 }} whileInView={{ scale: 1 }} viewport={{ once: true }}
                     transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                    className="font-display text-6xl text-gold-400 mb-1">{stats.total}</motion.div>
-                  <p className="text-gray-400 text-sm">תלמידים נרשמו למבצע</p>
+                    className="font-display text-7xl text-gold-400 mb-2">{stats.total}</motion.div>
+                  <p className="text-gray-300 text-lg font-medium">תלמידים נרשמו למבצע</p>
                   <div className="flex items-center justify-center gap-1.5 mt-2">
                     <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                    <span className="text-green-400 text-xs">רישום פעיל</span>
+                    <span className="text-green-400 text-sm">רישום פעיל</span>
                   </div>
                 </div>
 
-                <div className="w-px h-16 bg-gold-400/20 hidden md:block" />
-
-                {/* טופ מוסדות */}
-                <div className="flex-1 w-full">
-                  <p className="text-gray-400 text-sm mb-3 text-center md:text-right">5 המוסדות המובילים</p>
-                  <div className="space-y-2">
-                    {stats.topSchools.map((school, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <span className="text-gold-400 font-bold text-sm w-5 text-center">{i + 1}</span>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-white text-sm">{school.name}</span>
-                            <span className="text-gray-400 text-xs">{school.count}</span>
-                          </div>
-                          <div className="h-1.5 bg-[#0c1a33] rounded-full overflow-hidden">
-                            <motion.div
-                              className="h-full bg-gradient-to-l from-gold-500 to-gold-400 rounded-full"
-                              initial={{ width: 0 }}
-                              whileInView={{ width: `${(school.count / stats.topSchools[0].count) * 100}%` }}
-                              viewport={{ once: true }}
-                              transition={{ duration: 0.8, delay: i * 0.1 }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                  {/* נרשמים לפי מסלול */}
-                  {stats.trackCounts && Object.keys(stats.trackCounts).length > 0 && (
-                    <div className="mt-5 pt-5 border-t border-white/5 w-full">
-                      <p className="text-gray-400 text-sm mb-3 text-center md:text-right">נרשמים לפי מסלול</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {TRACKS.map(track => {
-                          const count = stats.trackCounts[track.id] || 0;
-                          return (
-                            <div key={track.id} className="flex items-center gap-2 bg-[#0c1a33] rounded-xl px-3 py-2">
-                              <span className="text-lg">{track.icon}</span>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white text-xs font-medium truncate">{track.name}</p>
-                                <p className="text-gold-400 text-xs font-bold">{count} נרשמים</p>
+                {/* נרשמים לפי מסלול */}
+                {stats.trackCounts && (
+                  <div className="bg-[#0c1a33] rounded-2xl p-5">
+                    <p className="text-gray-400 text-sm font-medium mb-4">נרשמים לפי מסלול</p>
+                    <div className="space-y-3">
+                      {TRACKS.map(track => {
+                        const count = stats.trackCounts[track.id] || 0;
+                        const pct = stats.total > 0 ? (count / stats.total) * 100 : 0;
+                        return (
+                          <div key={track.id} className="flex items-center gap-3">
+                            <span className="text-xl w-7 text-center">{track.icon}</span>
+                            <div className="flex-1">
+                              <div className="flex justify-between mb-1">
+                                <span className="text-white text-sm font-medium">{track.name}</span>
+                                <span className="text-gold-400 text-sm font-bold">{count}</span>
+                              </div>
+                              <div className="h-2 bg-[#12243f] rounded-full overflow-hidden">
+                                <motion.div className="h-full bg-gradient-to-l from-gold-500 to-gold-400 rounded-full"
+                                  initial={{ width: 0 }} whileInView={{ width: `${pct}%` }}
+                                  viewport={{ once: true }} transition={{ duration: 0.8 }} />
                               </div>
                             </div>
-                          );
-                        })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* שורה תחתונה: מוסדות */}
+              <div className="bg-[#0c1a33] rounded-2xl p-5">
+                <p className="text-gray-400 text-sm font-medium mb-4">5 המוסדות המובילים</p>
+                <div className="space-y-3">
+                  {stats.topSchools.map((school, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <span className="text-gold-400 font-bold text-lg w-6 text-center">{i + 1}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-white text-base font-medium">{school.name}</span>
+                          <span className="text-gray-300 text-sm font-bold">{school.count}</span>
+                        </div>
+                        <div className="h-2 bg-[#12243f] rounded-full overflow-hidden">
+                          <motion.div className="h-full bg-gradient-to-l from-gold-500 to-gold-400 rounded-full"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: `${(school.count / stats.topSchools[0].count) * 100}%` }}
+                            viewport={{ once: true }} transition={{ duration: 0.8, delay: i * 0.1 }} />
+                        </div>
                       </div>
                     </div>
-                  )}
+                  ))}
+                </div>
               </div>
             </motion.div>
           </div>
@@ -506,90 +609,6 @@ export default function Home() {
               * תאריכי המבחנים בתשפ"ו – המבחן נפתח ביום הקבוע ונסגר לפי הנחיית המנהל
             </p>
           </motion.div>
-        </div>
-      </section>
-
-      {/* ── אתגר יומי בדף הבית ── */}
-      <section className="py-16 bg-gradient-to-b from-[#0c1a33] to-[#0a1628]">
-        <div className="container max-w-3xl">
-          <motion.div className="text-center mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-4">
-              <span className="text-gold-400">⚡</span>
-              <span className="text-gold-300 font-bold">אתגר יומי</span>
-            </div>
-            <h2 className="font-display text-4xl text-white mb-2">3 שאלות של היום</h2>
-            <p className="text-gray-400">ענה על 3 שאלות יומיות בהלכות פסח</p>
-          </motion.div>
-
-          {dailyQs.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              className="bg-gradient-to-b from-[#12243f] to-[#0f1f3a] border border-royal-400/10 rounded-2xl p-6">
-
-              <div className="space-y-6">
-                {dailyQs.map((q: any, qi: number) => (
-                  <div key={qi} className={`${qi > 0 ? "pt-6 border-t border-royal-400/10" : ""}`}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-7 h-7 rounded-lg bg-gold-500/20 text-gold-400 text-sm font-bold flex items-center justify-center">{qi + 1}</span>
-                      <span className="text-gray-500 text-xs">{q.chapter}</span>
-                    </div>
-                    <p className="text-white font-bold text-lg mb-4 leading-relaxed">{q.question}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {q.options.map((opt: any) => {
-                        const isSelected = dailyAnswers[q.id] === opt.key;
-                        const isCorrect = opt.correct;
-                        let cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-300 hover:border-gold-500/30";
-                        if (dailyRevealed) {
-                          if (isCorrect) cls = "border-green-500 bg-green-900/20 text-white";
-                          else if (isSelected) cls = "border-red-500 bg-red-900/20 text-gray-400";
-                          else cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-600 opacity-50";
-                        } else if (isSelected) cls = "border-gold-500 bg-gold-500/10 text-white";
-                        return (
-                          <button key={opt.key} disabled={dailyRevealed}
-                            onClick={() => !dailyRevealed && setDailyAnswers(prev => ({ ...prev, [q.id]: opt.key }))}
-                            className={`text-right p-3 rounded-xl border-2 transition-all flex items-center gap-2 ${cls}`}>
-                            <span className={`w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center flex-shrink-0 ${isSelected && !dailyRevealed ? "bg-gold-500 text-[#0c1a33]" : "bg-[#1a2f50] text-gray-500"}`}>
-                              {opt.key}
-                            </span>
-                            <span className="text-sm">{opt.text}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
-                {!dailyRevealed ? (
-                  <button
-                    onClick={() => {
-                      if (Object.keys(dailyAnswers).length < dailyQs.length) return;
-                      if (!student) { navigate("/register"); return; }
-                      setDailyRevealed(true);
-                    }}
-                    disabled={Object.keys(dailyAnswers).length < dailyQs.length}
-                    className="flex-1 bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold py-3 rounded-xl disabled:opacity-40 transition-all hover:from-gold-400 hover:to-gold-500">
-                    {!student ? "הירשם וגלה תשובות" : Object.keys(dailyAnswers).length < dailyQs.length ? `ענה על כל ${dailyQs.length} השאלות` : "גלה תשובות"}
-                  </button>
-                ) : (
-                  <div className="flex-1 text-center">
-                    {(() => {
-                      const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
-                      return (
-                        <p className={`font-bold text-lg ${correct === dailyQs.length ? "text-gold-400" : correct >= 2 ? "text-green-400" : "text-red-400"}`}>
-                          {correct}/{dailyQs.length} נכון! {correct === dailyQs.length ? "🏆 מושלם!" : correct >= 2 ? "🌟 כמעט!" : "💪 נסה שוב מחר"}
-                        </p>
-                      );
-                    })()}
-                  </div>
-                )}
-                <button onClick={() => navigate(student ? "/daily" : "/register")}
-                  className="text-gold-400 text-sm hover:text-gold-300 transition-colors whitespace-nowrap">
-                  לאתגר המלא ←
-                </button>
-              </div>
-            </motion.div>
-          )}
         </div>
       </section>
 
