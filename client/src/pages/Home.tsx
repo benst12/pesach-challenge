@@ -267,7 +267,7 @@ export default function Home() {
             {[
               { icon: <BookOpen className="h-7 w-7" />, title: "חומר לימוד מסודר", desc: "פרקים נבחרים מפניני הלכה של הרב אליעזר מלמד, עם קישורים ישירים לכל פרק", color: "text-royal-300" },
               { icon: <Trophy className="h-7 w-7" />, title: "מבחנים + תעודות", desc: "מבחן אמריקאי, 25 דקות, עובר 80% מקבל תעודת הצלחה, עובר 95% מקבל תעודת הצטיינות", color: "text-gold-400" },
-              { icon: <Star className="h-7 w-7" />, title: "4 מסלולים לפי כיתה", desc: "כל תלמיד בוחר מסלול המתאים לכיתה שלו – מכיתה ה' ועד י"ב, כולל מסלול זהב מורחב", color: "text-amber-400" },
+              { icon: <Star className="h-7 w-7" />, title: "4 מסלולים לפי כיתה", desc: "כל תלמיד בוחר מסלול המתאים לכיתה שלו – מכיתה ה׳ ועד י״ב, כולל מסלול זהב מורחב", color: "text-amber-400" },
             ].map((f, i) => (
               <motion.div key={i} className="bg-[#12243f] border border-royal-400/10 rounded-2xl p-6 text-center"
                 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
