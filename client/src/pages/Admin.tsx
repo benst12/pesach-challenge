@@ -364,19 +364,37 @@ export default function Admin() {
               rows={4}
               className="w-full bg-[#0c1a33] border border-green-500/20 rounded-xl p-3 text-white text-xs resize-none mb-3 focus:outline-none focus:border-green-400/50"
             />
-            <p className="text-gray-500 text-xs mb-3">יפתח WhatsApp עם ההודעה — שלח לכל נרשם בנפרד</p>
-            <div className="space-y-1 max-h-32 overflow-y-auto">
-              {students.slice(0,5).map(s => (
-                <a key={s.id}
-                  href={`https://wa.me/972${s.phone?.replace(/^0/,"").replace(/-/,"")}?text=${encodeURIComponent(waMessage)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-between bg-green-900/10 border border-green-500/10 rounded-lg px-3 py-1.5 hover:bg-green-900/20 transition-all">
-                  <span className="text-white text-xs">{s.first_name} {s.last_name}</span>
-                  <Send className="h-3 w-3 text-green-400" />
-                </a>
+
+            {/* סינון לפי מוסד */}
+            <select value={reportSchool} onChange={e => setReportSchool(e.target.value)}
+              className="w-full bg-[#0c1a33] border border-green-500/20 rounded-xl px-3 py-2 text-white text-xs mb-3 focus:outline-none">
+              <option value="">כל התלמידים ({students.length})</option>
+              {schoolStats.map(([school, count]) => (
+                <option key={school} value={school}>{school} ({count})</option>
               ))}
-              {students.length > 5 && <p className="text-gray-600 text-xs text-center">+{students.length - 5} נוספים — ייצא CSV ושלח ידנית</p>}
-            </div>
+            </select>
+
+            {/* רשימה לשליחה */}
+            {(() => {
+              const filtered = reportSchool ? students.filter(s => s.school_name === reportSchool) : students;
+              return (
+                <div className="space-y-1 max-h-52 overflow-y-auto">
+                  <p className="text-gray-500 text-xs mb-2">לחץ על שם לשליחה — {filtered.length} תלמידים</p>
+                  {filtered.map(s => (
+                    <a key={s.id}
+                      href={`https://wa.me/972${s.phone?.replace(/^0/,"").replace(/-/g,"")}?text=${encodeURIComponent(waMessage)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-between bg-green-900/10 border border-green-500/10 rounded-lg px-3 py-1.5 hover:bg-green-900/20 transition-all">
+                      <div>
+                        <span className="text-white text-xs">{s.first_name} {s.last_name}</span>
+                        <span className="text-gray-500 text-[10px] mr-2">{s.school_name}</span>
+                      </div>
+                      <Send className="h-3 w-3 text-green-400 flex-shrink-0" />
+                    </a>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* פתיחה אוטומטית */}
@@ -452,7 +470,7 @@ export default function Admin() {
               <Users className="h-4 w-4 text-royal-300" />
               <span className="text-white font-bold text-sm">נרשמים לפי מוסד</span>
             </div>
-            <div className="p-4 max-h-64 overflow-y-auto space-y-2">
+            <div className="p-4 space-y-2">
               {schoolStats.map(([school, count], i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="text-gray-500 text-xs w-4 text-center">{i + 1}</span>
