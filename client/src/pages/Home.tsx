@@ -404,7 +404,7 @@ export default function Home() {
               <LogoWithHalo src={IMAGES.vetenBelibenu} alt="ותן בליבנו" className="h-12 w-auto" />
             </div>
             <h2 className="font-display text-4xl sm:text-5xl text-white mb-4">
-              מוכנים לאתגר?
+              הצטרפו למבצע שאגת הארי!
             </h2>
             <p className="text-gray-400 text-lg mb-8">הצטרפו למאות תלמידים ברחבי הארץ</p>
 

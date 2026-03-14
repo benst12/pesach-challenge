@@ -34,13 +34,20 @@ export function getDailyQuestions() {
   return [idx0, finalIdx1, finalIdx2].map((qi, offset) => {
     const q = ALL_QUESTIONS[qi];
     if (!q) return null;
-    // ערבוב קבוע לפי יום — אותו ערבוב לכולם
-    const seed = dayIdx * 3 + offset;
-    const shuffled = [...q.options].sort((a, b) => {
-      const ha = (seed * 31 + a.text.charCodeAt(0) * 7) % 100;
-      const hb = (seed * 31 + b.text.charCodeAt(0) * 7) % 100;
-      return ha - hb;
-    });
+    // ערבוב Fisher-Yates עם seed קבוע לפי יום — אותו ערבוב לכולם
+    const seedVal = dayIdx * 7919 + offset * 2311 + 42;
+    let s = seedVal;
+    const rng = () => {
+      s = Math.imul(s ^ (s >>> 16), 0x45d9f3b);
+      s = Math.imul(s ^ (s >>> 16), 0x45d9f3b);
+      s = s ^ (s >>> 16);
+      return (s >>> 0) / 0x100000000;
+    };
+    const shuffled = [...q.options];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
     return { ...q, options: shuffled.map((o, i) => ({ ...o, key: KEYS[i] })) };
   }).filter(Boolean) as any[];
 }
