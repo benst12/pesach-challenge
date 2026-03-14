@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import {
   ArrowRight, BookOpen, ExternalLink, CheckCircle2,
   GraduationCap, Lock, CalendarDays, ChevronDown, ChevronUp,
+  Zap, BarChart2,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -56,11 +57,25 @@ export default function Materials() {
       </div>
 
       <div className="container max-w-3xl py-8 -mt-8 relative z-10 px-4">
-        <button onClick={() => navigate("/")}
-          className="flex items-center gap-2 text-gray-400 hover:text-gold-400 transition-colors mb-8 group">
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          <span>חזרה לדף הבית</span>
-        </button>
+        <div className="flex items-center justify-between mb-8">
+          <button onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-gray-400 hover:text-gold-400 transition-colors group">
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <span>חזרה לדף הבית</span>
+          </button>
+          <div className="flex gap-2">
+            <button onClick={() => navigate("/daily")}
+              className="flex items-center gap-1.5 bg-gold-500/10 border border-gold-400/25 rounded-xl px-3 py-2 text-gold-400 text-sm hover:bg-gold-500/20 transition-all">
+              <Zap className="h-4 w-4" />
+              <span className="hidden sm:block">אתגר יומי</span>
+            </button>
+            <button onClick={() => navigate("/progress")}
+              className="flex items-center gap-1.5 bg-royal-500/10 border border-royal-400/20 rounded-xl px-3 py-2 text-royal-300 text-sm hover:bg-royal-500/20 transition-all">
+              <BarChart2 className="h-4 w-4" />
+              <span className="hidden sm:block">ההתקדמות שלי</span>
+            </button>
+          </div>
+        </div>
 
         {/* Track banner */}
         <motion.div
