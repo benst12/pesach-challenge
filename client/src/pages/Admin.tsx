@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { ADMIN_PASSWORD, IMAGES, TRACKS } from "@/lib/data";
 import { EXAM_CONFIGS, isStageOpen, setStageOpen } from "@/lib/examConfig";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Lock, Users, Award, Star, Search, ArrowRight, ToggleLeft, ToggleRight, Download, Trash2, RefreshCw, AlertTriangle } from "lucide-react";
+import { Lock, Users, Award, Star, Search, ArrowRight, ToggleLeft, ToggleRight, Download, Trash2, RefreshCw, AlertTriangle, MessageCircle, Calendar, FileText, Send } from "lucide-react";
 
 interface StudentResult {
   id: string;
@@ -32,6 +33,9 @@ export default function Admin() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleteMultiple, setDeleteMultiple] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
+  const [autoSchedule, setAutoSchedule] = useState<Record<string, string>>({});
+  const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
+  const [reportSchool, setReportSchool] = useState("");
 
   const [examStates, setExamStates] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -42,6 +46,42 @@ export default function Admin() {
     }
     return init;
   });
+
+  // פתיחה אוטומטית לפי תאריך
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const allStages = EXAM_CONFIGS.flatMap(c => c.stages);
+      allStages.forEach(stage => {
+        const scheduled = autoSchedule[stage.storageKey];
+        if (!scheduled) return;
+        const openTime = new Date(scheduled).getTime();
+        if (Date.now() >= openTime && !examStates[stage.storageKey]) {
+          setStageOpen(stage, true);
+          setExamStates(prev => ({ ...prev, [stage.storageKey]: true }));
+          toast.success(`${stage.title} נפתח אוטומטית!`);
+        }
+      });
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [autoSchedule, examStates]);
+
+  // ייצוא דוח לפי מוסד
+  const exportSchoolReport = (schoolName: string) => {
+    const schoolStudents = (schoolName ? students.filter(s => s.school_name === schoolName) : students);
+    const header = "שם,טלפון,כיתה,מסלול,ציון,סטטוס";
+    const rows = schoolStudents.map(s => {
+      const best = s.results.reduce((b, r) => r.score > (b?.score || 0) ? r : b, null as any);
+      const status = best ? (best.score >= 95 ? "מצטיין" : best.passed ? "עבר" : "לא עבר") : "לא נבחן";
+      return `${s.first_name} ${s.last_name},${s.phone},${s.grade},${getTrackName(s.track_id)},${best?.score ?? ""},${status}`;
+    });
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${schoolName || "כל_המוסדות"}.csv`;
+    a.click();
+  };
 
   const toggleStage = (storageKey: string) => {
     const stage = EXAM_CONFIGS.flatMap(c => c.stages).find(s => s.storageKey === storageKey);
@@ -196,6 +236,22 @@ export default function Admin() {
   const passed = students.filter(s => s.results.some(r => r.passed)).length;
   const excellent = students.filter(s => s.results.some(r => r.score >= 95)).length;
 
+  // מונים לפי מוסד
+  const bySchool = students.reduce((acc, s) => {
+    const key = s.school_name || "לא ידוע";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const schoolStats = Object.entries(bySchool).sort((a, b) => b[1] - a[1]);
+
+  // מונים לפי מסלול
+  const byTrack = students.reduce((acc, s) => {
+    const name = getTrackName(s.track_id) || "לא נבחר";
+    acc[name] = (acc[name] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const trackStats = Object.entries(byTrack).sort((a, b) => b[1] - a[1]);
+
   const exportCSV = () => {
     const header = "שם,טלפון,מוסד,כיתה,מסלול,ציון,סטטוס";
     const rows = filteredStudents.map(s => {
@@ -293,6 +349,85 @@ export default function Admin() {
           </div>
         </div>
 
+        {/* ── WhatsApp + אוטומציה + דוחות ── */}
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
+
+          {/* שליחת WhatsApp */}
+          <div className="bg-[#0f1d36] border border-green-500/20 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <MessageCircle className="h-5 w-5 text-green-400" />
+              <h3 className="text-white font-bold text-sm">הודעת WhatsApp</h3>
+            </div>
+            <textarea
+              value={waMessage}
+              onChange={e => setWaMessage(e.target.value)}
+              rows={4}
+              className="w-full bg-[#0c1a33] border border-green-500/20 rounded-xl p-3 text-white text-xs resize-none mb-3 focus:outline-none focus:border-green-400/50"
+            />
+            <p className="text-gray-500 text-xs mb-3">יפתח WhatsApp עם ההודעה — שלח לכל נרשם בנפרד</p>
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {students.slice(0,5).map(s => (
+                <a key={s.id}
+                  href={`https://wa.me/972${s.phone?.replace(/^0/,"").replace(/-/,"")}?text=${encodeURIComponent(waMessage)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-between bg-green-900/10 border border-green-500/10 rounded-lg px-3 py-1.5 hover:bg-green-900/20 transition-all">
+                  <span className="text-white text-xs">{s.first_name} {s.last_name}</span>
+                  <Send className="h-3 w-3 text-green-400" />
+                </a>
+              ))}
+              {students.length > 5 && <p className="text-gray-600 text-xs text-center">+{students.length - 5} נוספים — ייצא CSV ושלח ידנית</p>}
+            </div>
+          </div>
+
+          {/* פתיחה אוטומטית */}
+          <div className="bg-[#0f1d36] border border-gold-400/15 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="h-5 w-5 text-gold-400" />
+              <h3 className="text-white font-bold text-sm">פתיחה אוטומטית</h3>
+            </div>
+            <p className="text-gray-500 text-xs mb-3">קבע תאריך ושעה לפתיחת מבחן — יפתח אוטומטית</p>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {EXAM_CONFIGS.flatMap(tc => tc.stages).map(stage => (
+                <div key={stage.storageKey} className="bg-[#0c1a33] rounded-xl p-2.5">
+                  <p className="text-white text-xs font-medium mb-1.5">{stage.title} – {stage.date.split(",")[0]}</p>
+                  <input
+                    type="datetime-local"
+                    value={autoSchedule[stage.storageKey] || ""}
+                    onChange={e => setAutoSchedule(prev => ({ ...prev, [stage.storageKey]: e.target.value }))}
+                    className="w-full bg-[#12243f] border border-royal-400/20 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-gold-400/50"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* דוחות לפי מוסד */}
+          <div className="bg-[#0f1d36] border border-royal-400/15 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <FileText className="h-5 w-5 text-royal-300" />
+              <h3 className="text-white font-bold text-sm">דוחות לפי מוסד</h3>
+            </div>
+            <p className="text-gray-500 text-xs mb-3">ייצא CSV עם נרשמים וציונים לכל מוסד</p>
+            <div className="space-y-1.5 max-h-52 overflow-y-auto">
+              <button onClick={() => exportSchoolReport("")}
+                className="w-full flex items-center justify-between bg-royal-600/20 border border-royal-400/20 rounded-xl px-3 py-2 hover:bg-royal-600/30 transition-all">
+                <span className="text-white text-xs font-bold">כל המוסדות</span>
+                <Download className="h-3.5 w-3.5 text-royal-300" />
+              </button>
+              {schoolStats.map(([school, count]) => (
+                <button key={school} onClick={() => exportSchoolReport(school)}
+                  className="w-full flex items-center justify-between bg-[#0c1a33] border border-royal-400/10 rounded-xl px-3 py-2 hover:bg-[#12243f] transition-all">
+                  <div className="text-right">
+                    <p className="text-white text-xs">{school}</p>
+                    <p className="text-gray-500 text-[10px]">{count} נרשמים</p>
+                  </div>
+                  <Download className="h-3.5 w-3.5 text-gray-500" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* סטטיסטיקות */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
@@ -307,6 +442,64 @@ export default function Admin() {
               <div className="text-gray-500 text-sm">{stat.label}</div>
             </div>
           ))}
+        </div>
+
+        {/* מונים לפי מוסד ומסלול */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {/* לפי מוסד */}
+          <div className="bg-[#12243f] border border-royal-400/10 rounded-xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-royal-400/10 flex items-center gap-2">
+              <Users className="h-4 w-4 text-royal-300" />
+              <span className="text-white font-bold text-sm">נרשמים לפי מוסד</span>
+            </div>
+            <div className="p-4 max-h-64 overflow-y-auto space-y-2">
+              {schoolStats.map(([school, count], i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="text-gray-500 text-xs w-4 text-center">{i + 1}</span>
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-0.5">
+                      <span className="text-white text-xs">{school}</span>
+                      <span className="text-gold-400 text-xs font-bold">{count}</span>
+                    </div>
+                    <div className="h-1 bg-[#0c1a33] rounded-full overflow-hidden">
+                      <div className="h-full bg-royal-400/60 rounded-full"
+                        style={{ width: `${(count / (schoolStats[0]?.[1] || 1)) * 100}%` }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {schoolStats.length === 0 && <p className="text-gray-600 text-sm text-center py-4">אין נתונים</p>}
+            </div>
+          </div>
+
+          {/* לפי מסלול */}
+          <div className="bg-[#12243f] border border-royal-400/10 rounded-xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-royal-400/10 flex items-center gap-2">
+              <Award className="h-4 w-4 text-gold-400" />
+              <span className="text-white font-bold text-sm">נרשמים לפי מסלול</span>
+            </div>
+            <div className="p-4 space-y-3">
+              {trackStats.map(([track, count], i) => {
+                const t = TRACKS.find(tr => tr.name === track);
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-xl">{t?.icon || "📚"}</span>
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-0.5">
+                        <span className="text-white text-xs">{track}</span>
+                        <span className="text-gold-400 text-xs font-bold">{count}</span>
+                      </div>
+                      <div className="h-1.5 bg-[#0c1a33] rounded-full overflow-hidden">
+                        <div className="h-full bg-gold-500/60 rounded-full"
+                          style={{ width: `${(count / (trackStats[0]?.[1] || 1)) * 100}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {trackStats.length === 0 && <p className="text-gray-600 text-sm text-center py-4">אין נתונים</p>}
+            </div>
+          </div>
         </div>
 
         {/* כלי חיפוש ופעולות */}
