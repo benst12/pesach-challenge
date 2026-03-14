@@ -10,13 +10,22 @@ import { motion } from "framer-motion";
 import {
   ArrowRight, BookOpen, ExternalLink, CheckCircle2,
   GraduationCap, Lock, CalendarDays, ChevronDown, ChevronUp,
-  Zap, BarChart2,
+  Zap, BarChart2, LogOut,
 } from "lucide-react";
 import { useState } from "react";
 
 export default function Materials() {
   const [, navigate] = useLocation();
-  const { student, selectedTrack, setStudyCompleted } = useStudent();
+  const { student, selectedTrack, setStudyCompleted, setStudent, setSelectedTrack } = useStudent();
+
+  const handleLogout = () => {
+    setStudent(null);
+    setSelectedTrack(null);
+    localStorage.removeItem("pesach_student");
+    localStorage.removeItem("pesach_track");
+    localStorage.removeItem("pesach_study_completed");
+    navigate("/");
+  };
   const [openStage, setOpenStage] = useState<number | null>(0);
   const [checkedMap, setCheckedMap] = useState<Record<number, boolean>>({});
 
@@ -73,6 +82,11 @@ export default function Materials() {
               className="flex items-center gap-1.5 bg-royal-500/10 border border-royal-400/20 rounded-xl px-3 py-2 text-royal-300 text-sm hover:bg-royal-500/20 transition-all">
               <BarChart2 className="h-4 w-4" />
               <span className="hidden sm:block">ההתקדמות שלי</span>
+            </button>
+            <button onClick={handleLogout}
+              className="flex items-center gap-1.5 bg-red-900/20 border border-red-500/20 rounded-xl px-3 py-2 text-red-400 text-sm hover:bg-red-900/30 transition-all">
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:block">התנתק</span>
             </button>
           </div>
         </div>
