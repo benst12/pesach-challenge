@@ -38,23 +38,26 @@ export default function Register() {
     if (!loginPhone.trim()) { toast.error("נא להזין מספר טלפון"); return; }
     setLoginLoading(true);
     try {
-      // נקה את הטלפון — הסר מקפים ורווחים
-      const cleanPhone = loginPhone.trim().replace(/[-\s]/g, "");
+      // נרמל טלפון — הסר מקפים, רווחים, מקפים
+      const normalizePhone = (p: string) => p.trim().replace(/[-\s]/g, "");
+      const cleanPhone = normalizePhone(loginPhone);
+      // נסה כל צורות אפשריות: 0521234567, 052-1234567, 052 1234567
+      const withDash = cleanPhone.slice(0,3) + "-" + cleanPhone.slice(3);
 
-      // חפש עם וגם בלי מקפים
       let { data, error } = await supabase
         .from("students")
         .select("*")
-        .or(`phone.eq.${loginPhone.trim()},phone.eq.${cleanPhone}`)
+        .or(`phone.eq.${cleanPhone},phone.eq.${withDash},phone.eq.${loginPhone.trim()}`)
         .limit(1)
         .single();
 
-      // אם לא נמצא — נסה חיפוש חלקי (ilike)
+      // אם לא נמצא — חיפוש לפי 8 ספרות אחרונות
       if (error || !data) {
+        const last8 = cleanPhone.slice(-8);
         const res2 = await supabase
           .from("students")
           .select("*")
-          .ilike("phone", `%${cleanPhone.slice(-8)}%`)
+          .ilike("phone", `%${last8}%`)
           .limit(1)
           .single();
         data = res2.data;
