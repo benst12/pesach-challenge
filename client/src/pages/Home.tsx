@@ -59,12 +59,27 @@ export default function Home() {
     const hebrewMonths = ["תשרי","חשון","כסלו","טבת","שבט","אדר","ניסן","אייר","סיון","תמוז","אב","אלול"];
     const hebrewDays = ["","א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ז׳","ח׳","ט׳","י׳","י״א","י״ב","י״ג","י״ד","ט״ו","ט״ז","י״ז","י״ח","י״ט","כ׳","כ״א","כ״ב","כ״ג","כ״ד","כ״ה","כ״ו","כ״ז","כ״ח","כ״ט","ל׳"];
     try {
-      const fmt = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", { day: "numeric", month: "long", year: "numeric" });
+      // פורמט: כ"ה אדר תשפ"ו
+      const hebrewMonths = ["","ניסן","אייר","סיון","תמוז","אב","אלול","תשרי","חשון","כסלו","טבת","שבט","אדר","אדר ב"];
+      const hebrewYears: Record<number,string> = { 5785: 'תשפ"ה', 5786: 'תשפ"ו', 5787: 'תשפ"ז', 5788: 'תשפ"ח' };
+      const hebrewDayStr = (n: number) => {
+        const units = ["","א","ב","ג","ד","ה","ו","ז","ח","ט"];
+        const tens  = ["","י","כ","ל"];
+        if (n <= 9) return units[n] + "׳";
+        if (n === 15) return 'ט"ו';
+        if (n === 16) return 'ט"ז';
+        if (n < 20) return "י" + '"' + units[n-10];
+        const t = Math.floor(n/10), u = n%10;
+        return u === 0 ? tens[t]+"׳" : tens[t]+'"'+units[u];
+      };
+      const fmt = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", { day: "numeric", month: "numeric", year: "numeric" });
       const parts = fmt.formatToParts(today);
-      const heDay = parts.find(p => p.type === "day")?.value || "";
-      const heMonth = parts.find(p => p.type === "month")?.value || "";
-      const heYear = parts.find(p => p.type === "year")?.value || "";
-      if (heDay && heMonth) setHebrewDate(`${heDay} ${heMonth} ${heYear}`);
+      const heDay = parseInt(parts.find(p => p.type==="day")?.value||"1");
+      const heMon = parseInt(parts.find(p => p.type==="month")?.value||"1");
+      const heYr  = parseInt(parts.find(p => p.type==="year")?.value||"5786");
+      const monthName = hebrewMonths[heMon] || "";
+      const yearName  = hebrewYears[heYr] || "";
+      if (monthName && yearName) setHebrewDate(`${hebrewDayStr(heDay)} ${monthName} ${yearName}`);
     } catch {
       setHebrewDate("");
     }
