@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { IMAGES, TRACKS } from "@/lib/data";
 import { useStudent } from "@/contexts/StudentContext";
 import { motion } from "framer-motion";
-import { BookOpen, Trophy, ChevronLeft, Star, Shield, Zap, GraduationCap, Users, LogIn, ArrowLeft, Calendar, BookMarked } from "lucide-react";
+import { BookOpen, Trophy, ChevronLeft, Star, Shield, Zap, GraduationCap, Users, LogIn, ArrowLeft, Calendar, BookMarked, LogOut } from "lucide-react";
 import { EXAM_CONFIGS } from "@/lib/examConfig";
+import { supabase } from "@/lib/supabase";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 
 function getChapterNum(name: string): string {
@@ -35,7 +37,53 @@ function LogoWithHalo({ src, alt, className }: { src: string; alt: string; class
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const { student, selectedTrack } = useStudent();
+  const { student, selectedTrack, setStudent, setSelectedTrack } = useStudent();
+  const [stats, setStats] = useState<{ total: number; topSchools: { name: string; count: number }[] } | null>(null);
+  const [hebrewDate, setHebrewDate] = useState("");
+  const [daysToSeder, setDaysToSeder] = useState<number | null>(null);
+
+  useEffect(() => {
+    // ליל הסדר תשפ"ו = 12 באפריל 2026
+    const seder = new Date("2026-04-12T00:00:00");
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const diff = Math.ceil((seder.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    setDaysToSeder(diff > 0 ? diff : 0);
+
+    // תאריך עברי דרך API
+    const pad = (n: number) => String(n).padStart(2,"0");
+    const y = today.getFullYear(), m = pad(today.getMonth()+1), d = pad(today.getDate());
+    fetch(`https://www.hebcal.com/converter?cfg=json&gy=${y}&gm=${m}&gd=${d}&g2h=1`)
+      .then(r => r.json())
+      .then(data => { if (data.hdate) setHebrewDate(data.hdate); })
+      .catch(() => setHebrewDate(""));
+  }, []);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const { data } = await supabase.from("students").select("school_name");
+        if (!data) return;
+        const total = data.length;
+        const counts: Record<string, number> = {};
+        data.forEach((s: any) => { if (s.school_name) counts[s.school_name] = (counts[s.school_name] || 0) + 1; });
+        const topSchools = Object.entries(counts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([name, count]) => ({ name, count }));
+        setStats({ total, topSchools });
+      } catch {}
+    };
+    loadStats();
+  }, []);
+
+  const handleLogout = () => {
+    setStudent(null);
+    setSelectedTrack(null);
+    localStorage.removeItem("pesach_student");
+    localStorage.removeItem("pesach_track");
+    localStorage.removeItem("pesach_study_completed");
+  };
 
   // כפתור חכם — אם מחובר מציג המשך, אחרת הרשמה
   const MainCTA = () => {
@@ -106,12 +154,45 @@ export default function Home() {
                 <span>כניסה</span>
               </button>
             )}
+            {student && (
+              <button onClick={handleLogout}
+                className="flex items-center gap-2 bg-red-900/20 border border-red-500/20 rounded-xl px-3 py-2 text-red-400 text-xs hover:bg-red-900/30 transition-all">
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="hidden sm:block">התנתק</span>
+              </button>
+            )}
             <button onClick={() => navigate("/admin")}
               className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-gray-500 text-xs hover:bg-white/10 hover:text-gray-300 transition-all">
               <Shield className="h-3.5 w-3.5" />
               <span className="hidden sm:block">מנהל</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* ── תאריך עברי + ספירה לאחור ── */}
+      <div className="bg-[#080f1e] border-b border-gold-400/10 py-2">
+        <div className="container flex items-center justify-center gap-6 flex-wrap">
+          {hebrewDate && (
+            <div className="flex items-center gap-2 text-gray-400 text-sm">
+              <span className="text-gold-400/60 text-xs">📅</span>
+              <span>{hebrewDate}</span>
+            </div>
+          )}
+          {hebrewDate && daysToSeder !== null && <div className="w-px h-4 bg-gold-400/20" />}
+          {daysToSeder !== null && (
+            <div className="flex items-center gap-2">
+              {daysToSeder === 0 ? (
+                <span className="text-gold-400 font-bold text-sm animate-pulse">🎉 הלילה ליל הסדר!</span>
+              ) : (
+                <>
+                  <span className="text-gray-500 text-xs">עד ליל הסדר:</span>
+                  <span className="text-gold-400 font-bold text-sm">{daysToSeder} ימים</span>
+                  <span className="text-gray-600 text-xs hidden sm:inline">• י"ד ניסן תשפ"ו</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -178,15 +259,15 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-b from-[#0c1a33] to-[#0a1628]">
         <div className="container">
           <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="font-display text-4xl text-white mb-4">למה להשתתף?</h2>
-            <p className="text-gray-400 text-lg">מבצע הלכות פסח ברחבי רשת נעם צביה</p>
+            <h2 className="font-display text-4xl text-white mb-4">מה מקבלים במבצע?</h2>
+            <p className="text-gray-400 text-lg">כל מה שצריך ללמוד, להתאמן ולהצליח בהלכות פסח</p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: <BookOpen className="h-7 w-7" />, title: "חומר מסודר", desc: "פרקים מתוך פניני הלכה של הרב אליעזר מלמד", color: "text-royal-300" },
-              { icon: <Trophy className="h-7 w-7" />, title: "מבחנים מרובים", desc: "כל מסלול מחולק לכמה מבחנים לאורך התקופה", color: "text-gold-400" },
-              { icon: <Star className="h-7 w-7" />, title: "הצטיינות", desc: "ציון 95% ומעלה מקנה תעודת הצטיינות", color: "text-amber-400" },
+              { icon: <BookOpen className="h-7 w-7" />, title: "חומר לימוד מסודר", desc: "פרקים נבחרים מפניני הלכה של הרב אליעזר מלמד, עם קישורים ישירים לכל פרק", color: "text-royal-300" },
+              { icon: <Trophy className="h-7 w-7" />, title: "מבחנים + תעודות", desc: "מבחן אמריקאי, 25 דקות, עובר 80% מקבל תעודת הצלחה, עובר 95% מקבל תעודת הצטיינות", color: "text-gold-400" },
+              { icon: <Star className="h-7 w-7" />, title: "4 מסלולים לפי כיתה", desc: "כל תלמיד בוחר מסלול המתאים לכיתה שלו – מכיתה ה' ועד י"ב, כולל מסלול זהב מורחב", color: "text-amber-400" },
             ].map((f, i) => (
               <motion.div key={i} className="bg-[#12243f] border border-royal-400/10 rounded-2xl p-6 text-center"
                 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
@@ -199,7 +280,62 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Tracks ── */}
+      {/* ── סטטיסטיקות נרשמים ── */}
+      {stats && stats.total > 0 && (
+        <section className="py-12 bg-[#0a1628]">
+          <div className="container">
+            <motion.div className="bg-gradient-to-l from-[#12243f] to-[#0f1f3a] border border-gold-400/15 rounded-2xl p-6 md:p-8"
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                {/* מונה כללי */}
+                <div className="text-center flex-shrink-0">
+                  <motion.div
+                    initial={{ scale: 0 }} whileInView={{ scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                    className="font-display text-6xl text-gold-400 mb-1">{stats.total}</motion.div>
+                  <p className="text-gray-400 text-sm">תלמידים נרשמו למבצע</p>
+                  <div className="flex items-center justify-center gap-1.5 mt-2">
+                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    <span className="text-green-400 text-xs">רישום פעיל</span>
+                  </div>
+                </div>
+
+                <div className="w-px h-16 bg-gold-400/20 hidden md:block" />
+
+                {/* טופ מוסדות */}
+                <div className="flex-1 w-full">
+                  <p className="text-gray-400 text-sm mb-3 text-center md:text-right">5 המוסדות המובילים</p>
+                  <div className="space-y-2">
+                    {stats.topSchools.map((school, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="text-gold-400 font-bold text-sm w-5 text-center">{i + 1}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-white text-sm">{school.name}</span>
+                            <span className="text-gray-400 text-xs">{school.count}</span>
+                          </div>
+                          <div className="h-1.5 bg-[#0c1a33] rounded-full overflow-hidden">
+                            <motion.div
+                              className="h-full bg-gradient-to-l from-gold-500 to-gold-400 rounded-full"
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${(school.count / stats.topSchools[0].count) * 100}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 0.8, delay: i * 0.1 }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+            {/* ── Tracks ── */}
       <section className="py-20 bg-[#0a1628]">
         <div className="container">
           <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
