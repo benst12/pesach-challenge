@@ -1,45 +1,56 @@
 // כלי עזר לאתגר יומי — שאלות אחידות לכולם, מתחלפות בחצות
 
-import { getQuestionsForTrack, TRACKS } from "@/lib/data";
+import { ALL_QUESTIONS } from "@/lib/data";
 
 const KEYS = ["א","ב","ג","ד"];
 
-// מפתח יומי — מספר הימים מאז epoch, כך שמתחלף בחצות
+// מפתח יומי — מספר הימים מאז epoch, כך שמתחלף בחצות ישראל
 export function getDayIndex(): number {
-  const now = new Date();
-  // אפס שעה לחצות UTC+2 (ישראל)
-  const israelOffset = 2 * 60 * 60 * 1000;
-  return Math.floor((now.getTime() + israelOffset) / (24 * 60 * 60 * 1000));
+  const israelOffset = 2 * 60 * 60 * 1000; // UTC+2
+  return Math.floor((Date.now() + israelOffset) / (24 * 60 * 60 * 1000));
 }
 
 export function getTodayKeyFromDayIndex(): string {
   return `day_${getDayIndex()}`;
 }
 
-// 3 שאלות יומיות אחידות — אותן שאלות לכולם
+// 3 שאלות יומיות אחידות — אותן שאלות לכולם, מחושבות לפי יום בלבד
 export function getDailyQuestions() {
-  // השתמש במסלול הראשון כבסיס לשאלות (שאלות כלליות)
-  const all = getQuestionsForTrack(TRACKS[0].id, 999);
-  if (!all.length) return [];
+  if (!ALL_QUESTIONS.length) return [];
+  const total = ALL_QUESTIONS.length;
   const dayIdx = getDayIndex();
-  return Array.from({ length: 3 }, (_, offset) => {
-    const q = all[(dayIdx * 3 + offset * 47) % all.length];
+
+  // 3 אינדקסים שונים, קבועים לפי יום
+  // משתמשים בנוסחה שמבטיחה שאלות שונות
+  const idx0 = (dayIdx * 7 + 13) % total;
+  const idx1 = (dayIdx * 11 + 71) % total;
+  const idx2 = (dayIdx * 17 + 131) % total;
+
+  // וודא שהאינדקסים שונים
+  const finalIdx1 = idx1 === idx0 ? (idx1 + 1) % total : idx1;
+  const finalIdx2 = (idx2 === idx0 || idx2 === finalIdx1)
+    ? (idx2 + 2) % total : idx2;
+
+  return [idx0, finalIdx1, finalIdx2].map((qi, offset) => {
+    const q = ALL_QUESTIONS[qi];
     if (!q) return null;
     // ערבוב קבוע לפי יום — אותו ערבוב לכולם
-    const seed = dayIdx + offset;
+    const seed = dayIdx * 3 + offset;
     const shuffled = [...q.options].sort((a, b) => {
-      const ha = (seed * 31 + a.text.charCodeAt(0)) % 4;
-      const hb = (seed * 31 + b.text.charCodeAt(0)) % 4;
+      const ha = (seed * 31 + a.text.charCodeAt(0) * 7) % 100;
+      const hb = (seed * 31 + b.text.charCodeAt(0) * 7) % 100;
       return ha - hb;
     });
     return { ...q, options: shuffled.map((o, i) => ({ ...o, key: KEYS[i] })) };
   }).filter(Boolean) as any[];
 }
 
-// המרת תאריך גרגוריאני לעברי
+// המרת תאריך גרגוריאני לעברי בפורמט כ"ה אדר תשפ"ו
 export function toHebrewDate(date: Date): string {
   try {
-    const fmt = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", { day: "numeric", month: "long", year: "numeric" });
+    const fmt = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", {
+      day: "numeric", month: "long", year: "numeric"
+    });
     const parts = fmt.formatToParts(date);
     const heDay = parseInt(parts.find(p => p.type === "day")?.value || "1");
     const heMonth = parts.find(p => p.type === "month")?.value || "";
@@ -53,11 +64,11 @@ export function toHebrewDate(date: Date): string {
       if (n <= 9) return units[n] + "׳";
       if (n === 15) return 'ט"ו';
       if (n === 16) return 'ט"ז';
-      if (n < 20) return "י\"" + units[n-10];
-      const t = Math.floor(n/10), u = n%10;
-      return u === 0 ? tens[t]+"׳" : tens[t]+"\""+units[u];
+      if (n < 20) return 'י"' + units[n - 10];
+      const t = Math.floor(n / 10), u = n % 10;
+      return u === 0 ? tens[t] + "׳" : tens[t] + '"' + units[u];
     };
-    const yearStr = hebrewYears[heYearNum] || "";
+    const yearStr = hebrewYears[heYearNum] || String(heYearNum);
     if (heMonth && yearStr) return `${dayStr(heDay)} ${heMonth} ${yearStr}`;
     return "";
   } catch { return ""; }
