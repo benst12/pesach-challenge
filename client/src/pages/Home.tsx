@@ -361,6 +361,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+      )}
 
       {/* ── אתגר יומי בדף הבית ── */}
       <section className="py-16 bg-gradient-to-b from-[#0c1a33] to-[#0a1628]">
