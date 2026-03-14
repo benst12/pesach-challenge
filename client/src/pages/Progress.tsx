@@ -51,6 +51,7 @@ export default function Progress() {
   const { student, selectedTrack } = useStudent();
   const [scores, setScores] = useState<ScoreRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dailyHistory, setDailyHistory] = useState<any[]>([]);
 
   useEffect(() => {
     if (!student?.id) return;
@@ -60,7 +61,9 @@ export default function Progress() {
       .eq("student_id", student.id)
       .order("created_at", { ascending: true })
       .then(({ data }) => {
-        setScores(data || []);
+        const all = data || [];
+        setScores(all.filter(s => s.stage_title !== "אתגר יומי"));
+        setDailyHistory(all.filter(s => s.stage_title === "אתגר יומי"));
         setLoading(false);
       });
   }, [student?.id]);
@@ -229,6 +232,29 @@ export default function Progress() {
                   className="bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold">
                   לחומר הלימוד
                 </Button>
+              </motion.div>
+            )}
+
+            {/* אתגר יומי */}
+            {dailyHistory.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
+                className="bg-[#12243f] border border-gold-400/15 rounded-2xl p-6 mb-6">
+                <h3 className="font-display text-lg text-white mb-1 flex items-center gap-2">
+                  <span className="text-xl">⚡</span>אתגר יומי
+                </h3>
+                <p className="text-gray-500 text-sm mb-4">
+                  סה״כ {dailyHistory.reduce((a, s) => a + (s.correct_answers || 0), 0)} תשובות נכונות מצטברות
+                </p>
+                <div className="space-y-2">
+                  {dailyHistory.slice(-10).reverse().map((s, i) => (
+                    <div key={i} className="flex items-center justify-between bg-[#0c1a33] rounded-xl px-4 py-3">
+                      <span className="text-gray-400 text-sm">{new Date(s.created_at).toLocaleDateString("he-IL")}</span>
+                      <span className={`font-bold text-sm ${s.correct_answers === s.total_questions ? "text-gold-400" : s.correct_answers >= 2 ? "text-green-400" : "text-red-400"}`}>
+                        {s.correct_answers}/{s.total_questions} ✓
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </motion.div>
             )}
 
