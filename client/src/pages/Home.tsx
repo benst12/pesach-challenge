@@ -316,94 +316,92 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
-
-{/* ── אתגר יומי בדף הבית ── */}
-      <section className="py-16 bg-gradient-to-b from-[#0c1a33] to-[#0a1628]">
-        <div className="container max-w-3xl">
-          <motion.div className="text-center mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-4">
-              <span className="text-gold-400">⚡</span>
-              <span className="text-gold-300 font-bold">אתגר יומי</span>
-            </div>
-            <h2 className="font-display text-4xl text-white mb-2">3 שאלות של היום</h2>
-            <p className="text-gray-400">ענה על 3 שאלות יומיות בהלכות פסח</p>
-          </motion.div>
-
-          {dailyQs.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              className="bg-gradient-to-b from-[#12243f] to-[#0f1f3a] border border-royal-400/10 rounded-2xl p-6">
-
-              <div className="space-y-6">
-                {dailyQs.map((q: any, qi: number) => (
-                  <div key={qi} className={`${qi > 0 ? "pt-6 border-t border-royal-400/10" : ""}`}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-7 h-7 rounded-lg bg-gold-500/20 text-gold-400 text-sm font-bold flex items-center justify-center">{qi + 1}</span>
-                      <span className="text-gray-500 text-xs">{q.chapter}</span>
-                    </div>
-                    <p className="text-white font-bold text-lg mb-4 leading-relaxed">{q.question}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {q.options.map((opt: any) => {
-                        const isSelected = dailyAnswers[q.id] === opt.key;
-                        const isCorrect = opt.correct;
-                        let cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-300 hover:border-gold-500/30";
-                        if (dailyRevealed) {
-                          if (isCorrect) cls = "border-green-500 bg-green-900/20 text-white";
-                          else if (isSelected) cls = "border-red-500 bg-red-900/20 text-gray-400";
-                          else cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-600 opacity-50";
-                        } else if (isSelected) cls = "border-gold-500 bg-gold-500/10 text-white";
-                        return (
-                          <button key={opt.key} disabled={dailyRevealed}
-                            onClick={() => !dailyRevealed && setDailyAnswers(prev => ({ ...prev, [q.id]: opt.key }))}
-                            className={`text-right p-3 rounded-xl border-2 transition-all flex items-center gap-2 ${cls}`}>
-                            <span className={`w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center flex-shrink-0 ${isSelected && !dailyRevealed ? "bg-gold-500 text-[#0c1a33]" : "bg-[#1a2f50] text-gray-500"}`}>
-                              {opt.key}
-                            </span>
-                            <span className="text-sm">{opt.text}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+      </section>{/* ── לוח מובילים אתגר יומי ── */}
+      {leaderboard.length > 0 && (
+        <section className="py-16 bg-[#0a1628]">
+          <div className="container max-w-2xl">
+            <motion.div className="text-center mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-4">
+                <Trophy className="h-4 w-4 text-gold-400" />
+                <span className="text-gold-300 font-bold">לוח המובילים</span>
               </div>
-
-              <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
-                {!dailyRevealed ? (
-                  <button
-                    onClick={() => {
-                      if (Object.keys(dailyAnswers).length < dailyQs.length) return;
-                      if (!student) { navigate("/register"); return; }
-                      setDailyRevealed(true);
-                      // שמור תשובות
-                      const todayDayKey2 = getTodayKeyFromDayIndex();
-                      const sKey = `pesach_daily_${student.id}_${todayDayKey2}`;
-                      const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
-                      try { localStorage.setItem(sKey, JSON.stringify({ answers: dailyAnswers, correct, total: dailyQs.length })); } catch {}
-                    }}
-                    disabled={Object.keys(dailyAnswers).length < dailyQs.length}
-                    className="flex-1 bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold py-3 rounded-xl disabled:opacity-40 transition-all hover:from-gold-400 hover:to-gold-500">
-                    {!student ? "הירשם וגלה תשובות" : Object.keys(dailyAnswers).length < dailyQs.length ? `ענה על ${dailyQs.length - Object.keys(dailyAnswers).length} שאלות נוספות` : "גלה תשובות"}
-                  </button>
-                ) : (
-                  <div className="flex-1 text-center">
-                    {(() => {
-                      const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
-                      return (
-                        <p className={`font-bold text-xl ${correct === dailyQs.length ? "text-gold-400" : correct >= 2 ? "text-green-400" : "text-red-400"}`}>
-                          {correct}/{dailyQs.length} נכון! {correct === dailyQs.length ? "🏆 מושלם!" : correct >= 2 ? "🌟 כמעט!" : "💪 נסה שוב מחר"}
-                        </p>
-                      );
-                    })()}
-                  </div>
-                )}
-                <button onClick={() => navigate(student ? "/daily" : "/register")}
-                  className="text-gold-400 text-sm hover:text-gold-300 transition-colors whitespace-nowrap">
-                  לאתגר המלא ←
-                </button>
-              </div>
+              <h2 className="font-display text-3xl text-white mb-2">מצטייני האתגר היומי</h2>
+              <p className="text-gray-400 text-sm">10 התלמידים עם הכי הרבה תשובות נכונות מצטברות</p>
             </motion.div>
-          )}
+            <div className="space-y-2">
+              {leaderboard.map((s, i) => (
+                <motion.div key={s.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }} transition={{ delay: i * 0.06 }}
+                  className={`flex items-center gap-4 rounded-2xl px-5 py-4 border ${
+                    i === 0 ? "bg-gold-500/10 border-gold-400/40" :
+                    i === 1 ? "bg-gray-400/5 border-gray-400/20" :
+                    i === 2 ? "bg-amber-700/10 border-amber-600/20" :
+                    "bg-[#12243f] border-royal-400/10"
+                  }`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-display text-xl font-bold flex-shrink-0 ${
+                    i === 0 ? "bg-gold-500 text-[#0c1a33]" :
+                    i === 1 ? "bg-gray-400 text-[#0c1a33]" :
+                    i === 2 ? "bg-amber-600 text-white" :
+                    "bg-[#0c1a33] text-gray-400"
+                  }`}>
+                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-bold text-base truncate">{s.first_name} {s.last_name}</p>
+                    <p className="text-gray-400 text-sm truncate">{s.school_name} • {s.grade}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className={`font-display text-2xl font-bold ${i < 3 ? "text-gold-400" : "text-gray-300"}`}>{s.total}</p>
+                    <p className="text-gray-500 text-xs">תשובות נכונות</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+            {/* ── Bottom CTA ── */}
+      <section className="relative py-24 overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={IMAGES.heroBg} alt="" className="w-full h-full object-cover opacity-15" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c1a33] via-[#0c1a33]/80 to-[#0c1a33]" />
+        </div>
+        <div className="relative z-10 container text-center">
+          <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <LogoWithHalo src={IMAGES.logo} alt="רשת נעם צביה" className="h-16 w-auto" />
+              <div className="w-px h-12 bg-gold-400/25" />
+              <LogoWithHalo src={IMAGES.vetenBelibenu} alt="ותן בליבנו" className="h-12 w-auto" />
+            </div>
+            <h2 className="font-display text-4xl sm:text-5xl text-white mb-4">
+              מוכנים לאתגר?
+            </h2>
+            <p className="text-gray-400 text-lg mb-8">הצטרפו למאות תלמידים ברחבי הארץ</p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {student ? (
+                <Button size="lg" onClick={() => navigate("/materials")}
+                  className="bg-gradient-to-l from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-[#0c1a33] font-bold text-xl px-10 py-7 rounded-xl glow-gold">
+                  <ArrowLeft className="ml-2 h-6 w-6" />
+                  המשך ל{selectedTrack?.name ?? "המסלול שלי"}
+                </Button>
+              ) : (
+                <>
+                  <Button size="lg" onClick={() => navigate("/register")}
+                    className="bg-gradient-to-l from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-[#0c1a33] font-bold text-xl px-10 py-7 rounded-xl glow-gold">
+                    <GraduationCap className="ml-2 h-6 w-6" />
+                    הרשמה עכשיו!
+                  </Button>
+                  <Button size="lg" variant="outline" onClick={() => navigate("/register")}
+                    className="border-gold-400/30 text-gold-400 hover:bg-gold-400/10 px-10 py-7 rounded-xl text-xl">
+                    <LogIn className="ml-2 h-6 w-6" />
+                    כבר נרשמתי
+                  </Button>
+                </>
+              )}
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -616,94 +614,92 @@ export default function Home() {
             </p>
           </motion.div>
         </div>
-      </section>
-
-            {/* ── לוח מובילים אתגר יומי ── */}
-      {leaderboard.length > 0 && (
-        <section className="py-16 bg-[#0a1628]">
-          <div className="container max-w-2xl">
-            <motion.div className="text-center mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-4">
-                <Trophy className="h-4 w-4 text-gold-400" />
-                <span className="text-gold-300 font-bold">לוח המובילים</span>
-              </div>
-              <h2 className="font-display text-3xl text-white mb-2">מצטייני האתגר היומי</h2>
-              <p className="text-gray-400 text-sm">10 התלמידים עם הכי הרבה תשובות נכונות מצטברות</p>
-            </motion.div>
-            <div className="space-y-2">
-              {leaderboard.map((s, i) => (
-                <motion.div key={s.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }} transition={{ delay: i * 0.06 }}
-                  className={`flex items-center gap-4 rounded-2xl px-5 py-4 border ${
-                    i === 0 ? "bg-gold-500/10 border-gold-400/40" :
-                    i === 1 ? "bg-gray-400/5 border-gray-400/20" :
-                    i === 2 ? "bg-amber-700/10 border-amber-600/20" :
-                    "bg-[#12243f] border-royal-400/10"
-                  }`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-display text-xl font-bold flex-shrink-0 ${
-                    i === 0 ? "bg-gold-500 text-[#0c1a33]" :
-                    i === 1 ? "bg-gray-400 text-[#0c1a33]" :
-                    i === 2 ? "bg-amber-600 text-white" :
-                    "bg-[#0c1a33] text-gray-400"
-                  }`}>
-                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-bold text-base truncate">{s.first_name} {s.last_name}</p>
-                    <p className="text-gray-400 text-sm truncate">{s.school_name} • {s.grade}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className={`font-display text-2xl font-bold ${i < 3 ? "text-gold-400" : "text-gray-300"}`}>{s.total}</p>
-                    <p className="text-gray-500 text-xs">תשובות נכונות</p>
-                  </div>
-                </motion.div>
-              ))}
+      </section>{/* ── אתגר יומי בדף הבית ── */}
+      <section className="py-16 bg-gradient-to-b from-[#0c1a33] to-[#0a1628]">
+        <div className="container max-w-3xl">
+          <motion.div className="text-center mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-4">
+              <span className="text-gold-400">⚡</span>
+              <span className="text-gold-300 font-bold">אתגר יומי</span>
             </div>
-          </div>
-        </section>
-      )}
-
-            {/* ── Bottom CTA ── */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={IMAGES.heroBg} alt="" className="w-full h-full object-cover opacity-15" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0c1a33] via-[#0c1a33]/80 to-[#0c1a33]" />
-        </div>
-        <div className="relative z-10 container text-center">
-          <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <LogoWithHalo src={IMAGES.logo} alt="רשת נעם צביה" className="h-16 w-auto" />
-              <div className="w-px h-12 bg-gold-400/25" />
-              <LogoWithHalo src={IMAGES.vetenBelibenu} alt="ותן בליבנו" className="h-12 w-auto" />
-            </div>
-            <h2 className="font-display text-4xl sm:text-5xl text-white mb-4">
-              מוכנים לאתגר?
-            </h2>
-            <p className="text-gray-400 text-lg mb-8">הצטרפו למאות תלמידים ברחבי הארץ</p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {student ? (
-                <Button size="lg" onClick={() => navigate("/materials")}
-                  className="bg-gradient-to-l from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-[#0c1a33] font-bold text-xl px-10 py-7 rounded-xl glow-gold">
-                  <ArrowLeft className="ml-2 h-6 w-6" />
-                  המשך ל{selectedTrack?.name ?? "המסלול שלי"}
-                </Button>
-              ) : (
-                <>
-                  <Button size="lg" onClick={() => navigate("/register")}
-                    className="bg-gradient-to-l from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-[#0c1a33] font-bold text-xl px-10 py-7 rounded-xl glow-gold">
-                    <GraduationCap className="ml-2 h-6 w-6" />
-                    הרשמה עכשיו!
-                  </Button>
-                  <Button size="lg" variant="outline" onClick={() => navigate("/register")}
-                    className="border-gold-400/30 text-gold-400 hover:bg-gold-400/10 px-10 py-7 rounded-xl text-xl">
-                    <LogIn className="ml-2 h-6 w-6" />
-                    כבר נרשמתי
-                  </Button>
-                </>
-              )}
-            </div>
+            <h2 className="font-display text-4xl text-white mb-2">3 שאלות של היום</h2>
+            <p className="text-gray-400">ענה על 3 שאלות יומיות בהלכות פסח</p>
           </motion.div>
+
+          {dailyQs.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              className="bg-gradient-to-b from-[#12243f] to-[#0f1f3a] border border-royal-400/10 rounded-2xl p-6">
+
+              <div className="space-y-6">
+                {dailyQs.map((q: any, qi: number) => (
+                  <div key={qi} className={`${qi > 0 ? "pt-6 border-t border-royal-400/10" : ""}`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-7 h-7 rounded-lg bg-gold-500/20 text-gold-400 text-sm font-bold flex items-center justify-center">{qi + 1}</span>
+                      <span className="text-gray-500 text-xs">{q.chapter}</span>
+                    </div>
+                    <p className="text-white font-bold text-lg mb-4 leading-relaxed">{q.question}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {q.options.map((opt: any) => {
+                        const isSelected = dailyAnswers[q.id] === opt.key;
+                        const isCorrect = opt.correct;
+                        let cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-300 hover:border-gold-500/30";
+                        if (dailyRevealed) {
+                          if (isCorrect) cls = "border-green-500 bg-green-900/20 text-white";
+                          else if (isSelected) cls = "border-red-500 bg-red-900/20 text-gray-400";
+                          else cls = "border-[#1a2f50] bg-[#0c1a33] text-gray-600 opacity-50";
+                        } else if (isSelected) cls = "border-gold-500 bg-gold-500/10 text-white";
+                        return (
+                          <button key={opt.key} disabled={dailyRevealed}
+                            onClick={() => !dailyRevealed && setDailyAnswers(prev => ({ ...prev, [q.id]: opt.key }))}
+                            className={`text-right p-3 rounded-xl border-2 transition-all flex items-center gap-2 ${cls}`}>
+                            <span className={`w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center flex-shrink-0 ${isSelected && !dailyRevealed ? "bg-gold-500 text-[#0c1a33]" : "bg-[#1a2f50] text-gray-500"}`}>
+                              {opt.key}
+                            </span>
+                            <span className="text-sm">{opt.text}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                {!dailyRevealed ? (
+                  <button
+                    onClick={() => {
+                      if (Object.keys(dailyAnswers).length < dailyQs.length) return;
+                      if (!student) { navigate("/register"); return; }
+                      setDailyRevealed(true);
+                      // שמור תשובות
+                      const todayDayKey2 = getTodayKeyFromDayIndex();
+                      const sKey = `pesach_daily_${student.id}_${todayDayKey2}`;
+                      const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
+                      try { localStorage.setItem(sKey, JSON.stringify({ answers: dailyAnswers, correct, total: dailyQs.length })); } catch {}
+                    }}
+                    disabled={Object.keys(dailyAnswers).length < dailyQs.length}
+                    className="flex-1 bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold py-3 rounded-xl disabled:opacity-40 transition-all hover:from-gold-400 hover:to-gold-500">
+                    {!student ? "הירשם וגלה תשובות" : Object.keys(dailyAnswers).length < dailyQs.length ? `ענה על ${dailyQs.length - Object.keys(dailyAnswers).length} שאלות נוספות` : "גלה תשובות"}
+                  </button>
+                ) : (
+                  <div className="flex-1 text-center">
+                    {(() => {
+                      const correct = dailyQs.filter((q:any) => q.options.find((o:any) => o.key === dailyAnswers[q.id])?.correct).length;
+                      return (
+                        <p className={`font-bold text-xl ${correct === dailyQs.length ? "text-gold-400" : correct >= 2 ? "text-green-400" : "text-red-400"}`}>
+                          {correct}/{dailyQs.length} נכון! {correct === dailyQs.length ? "🏆 מושלם!" : correct >= 2 ? "🌟 כמעט!" : "💪 נסה שוב מחר"}
+                        </p>
+                      );
+                    })()}
+                  </div>
+                )}
+                <button onClick={() => navigate(student ? "/daily" : "/register")}
+                  className="text-gold-400 text-sm hover:text-gold-300 transition-colors whitespace-nowrap">
+                  לאתגר המלא ←
+                </button>
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
 
