@@ -5,7 +5,7 @@ import { IMAGES, TRACKS } from "@/lib/data";
 import { getDailyQuestions, getTodayKeyFromDayIndex, toHebrewDate } from "@/lib/dailyUtils";
 import { useStudent } from "@/contexts/StudentContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Trophy, ChevronLeft, Star, Shield, Zap, GraduationCap, Users, LogIn, ArrowLeft, Calendar, BookMarked, LogOut } from "lucide-react";
+import { BookOpen, Trophy, ChevronLeft, Star, Shield, Zap, GraduationCap, Users, LogIn, ArrowLeft, Calendar, BookMarked, LogOut, BookUser } from "lucide-react";
 import { EXAM_CONFIGS } from "@/lib/examConfig";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";

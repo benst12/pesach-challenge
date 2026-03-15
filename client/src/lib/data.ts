@@ -471,6 +471,7 @@ export const QUESTIONS_HE_VAV = ALL_QUESTIONS.filter(q =>
 );
 
 export const ADMIN_PASSWORD = "1967";
+export const COORDINATOR_PASSWORD = "יתגבר כארי";
 
 export const IMAGES = {
   heroLion: "https://d2xsxph8kpxj0f.cloudfront.net/310519663368814931/2BoQ6VXxhE4awMaEseKDF7/hero-lion-iethWpX4jKuLsCmxLpSTWA.webp",

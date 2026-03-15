@@ -1,10 +1,9 @@
-/* Admin dashboard */
+/* Coordinator dashboard */
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ADMIN_PASSWORD, IMAGES, TRACKS } from "@/lib/data";
-import { EXAM_CONFIGS, isStageOpen, setStageOpen } from "@/lib/examConfig";
+import { COORDINATOR_PASSWORD, IMAGES, TRACKS } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -22,7 +21,7 @@ interface StudentResult {
   results: { score: number; passed: boolean; exam_number?: number; stage_title?: string }[];
 }
 
-export default function Admin() {
+export default function Coordinator() {
   const [, navigate] = useLocation();
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
@@ -34,17 +33,13 @@ export default function Admin() {
   const [coordDeleteConfirm, setCoordDeleteConfirm] = useState<string | null>(null);
   const [deleteMultiple, setDeleteMultiple] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
-  const [autoSchedule, setAutoSchedule] = useState<Record<string, string>>({});
   const [waSearch, setWaSearch] = useState("");
   const [personalMsg, setPersonalMsg] = useState(true);
   const [dailyLeaders, setDailyLeaders] = useState<any[]>([]);
-  const [previewWinners, setPreviewWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
-  const [previewCountdown, setPreviewCountdown] = useState("");
+  const [winners, setWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
+  const [drawCountdown, setDrawCountdown] = useState("");
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
   const [reportSchool, setReportSchool] = useState("");
-
-  const [examStates, setExamStates] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {};
     for (const tc of EXAM_CONFIGS) {
       for (const stage of tc.stages) {
         init[stage.storageKey] = isStageOpen(stage);
@@ -189,15 +184,8 @@ export default function Admin() {
     a.click();
   };
 
-  const toggleStage = (storageKey: string) => {
-    const stage = EXAM_CONFIGS.flatMap(c => c.stages).find(s => s.storageKey === storageKey);
-    if (!stage) return;
-    const newVal = !examStates[storageKey];
-    setStageOpen(stage, newVal);
-    setExamStates(prev => ({ ...prev, [storageKey]: newVal }));
-  };
-
-  const calcPreviewWinners = async () => {
+  // גרלה אוטומטית בשעה 20:00
+  const runDraw = async () => {
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);
     const { data: todayScores } = await supabase
       .from("scores")
@@ -212,36 +200,48 @@ export default function Admin() {
       .select("id, first_name, last_name, school_name, grade")
       .in("id", ids);
     if (!studs?.length) return;
-    const pick = (arr: any[]) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
-    setPreviewWinners({
-      elementary: pick(studs.filter((s:any) => s.school_name?.startsWith("נעם"))),
-      yeshiva: pick(studs.filter((s:any) => s.school_name?.includes("ישיבת"))),
-      ulpana: pick(studs.filter((s:any) => s.school_name?.includes("אולפנת"))),
+    const pick = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
+    const elementary = studs.filter((s:any) => s.school_name?.startsWith("נעם"));
+    const yeshiva = studs.filter((s:any) => s.school_name?.includes("ישיבת"));
+    const ulpana = studs.filter((s:any) => s.school_name?.includes("אולפנת"));
+    setWinners({
+      elementary: elementary.length ? pick(elementary) : null,
+      yeshiva: yeshiva.length ? pick(yeshiva) : null,
+      ulpana: ulpana.length ? pick(ulpana) : null,
     });
+    // שמור בסופאבייס
+    const today = new Date().toISOString().split("T")[0];
+    await supabase.from("scores").upsert({
+      student_id: "00000000-0000-0000-0000-000000000000",
+      quiz_id: "daily_winners_" + today,
+      score: 0, total_questions: 0, correct_answers: 0,
+      stage_title: "זוכי יום " + today,
+    }).select();
   };
 
   useEffect(() => {
     if (!authenticated) return;
-    const check = () => {
+    const checkDraw = () => {
       const now = new Date();
       const h = now.getHours(), m = now.getMinutes();
-      if (h >= 18) calcPreviewWinners();
-      // ספירה לאחור ל-20:00
-      const next20 = new Date(now); next20.setHours(20,0,0,0);
+      if (h === 20 && m === 0) runDraw();
+      // ספירה לאחור
+      const next20 = new Date(now);
+      next20.setHours(20,0,0,0);
       if (now >= next20) next20.setDate(next20.getDate()+1);
       const diff = Math.max(0, next20.getTime() - now.getTime());
       const hh = Math.floor(diff/3600000);
       const mm = Math.floor((diff%3600000)/60000);
       const ss = Math.floor((diff%60000)/1000);
-      setPreviewCountdown(`${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`);
+      setDrawCountdown(`${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`);
     };
-    check();
-    const timer = setInterval(check, 60000); // כל דקה
+    checkDraw();
+    const timer = setInterval(checkDraw, 1000);
     return () => clearInterval(timer);
   }, [authenticated]);
 
   const handleLogin = () => {
-    if (password === ADMIN_PASSWORD) {
+    if (password === COORDINATOR_PASSWORD) {
       setAuthenticated(true);
       loadStudents();
     } else {
@@ -465,7 +465,7 @@ export default function Admin() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-br from-royal-500/30 to-gold-500/20 flex items-center justify-center">
               <Lock className="h-8 w-8 text-gold-400" />
             </div>
-            <h1 className="font-display text-2xl text-white mb-6">כניסת מנהל</h1>
+            <h1 className="font-display text-2xl text-white mb-6">כניסת רכז</h1>
             <Input type="password" value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleLogin()}
@@ -496,93 +496,51 @@ export default function Admin() {
           </div>
         </div>
 
-        <h1 className="font-display text-3xl text-white mb-8">לוח בקרה – מבצע שאגת הארי</h1>
+        <h1 className="font-display text-3xl text-white mb-8">לוח רכזים – מבצע שאגת הארי</h1>
 
-        {/* פתיחת מבחנים */}
-        <div className="mb-8">
-          <h2 className="font-display text-xl text-white mb-4">פתיחת מבחנים</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {EXAM_CONFIGS.map(tc => {
-              const track = TRACKS.find(t => t.id === tc.trackId);
-              return (
-                <div key={tc.trackId} className="bg-[#0f1d36] border border-royal-400/15 rounded-2xl overflow-hidden">
-                  <div className="px-4 py-3 border-b border-royal-400/10 flex items-center gap-3">
-                    <span className="text-xl">{track?.icon}</span>
-                    <span className="text-white font-bold text-sm">{track?.name}</span>
-                  </div>
-                  <div className="divide-y divide-royal-400/10">
-                    {tc.stages.map(stage => {
-                      const open = examStates[stage.storageKey] ?? false;
-                      return (
-                        <div key={stage.storageKey} className={`flex items-center justify-between px-4 py-3 transition-colors ${open ? "bg-green-900/10" : ""}`}>
-                          <div>
-                            <p className="text-white text-sm font-medium">{stage.title}</p>
-                            <p className="text-gray-500 text-xs">{stage.date}</p>
-                          </div>
-                          <Button onClick={() => toggleStage(stage.storageKey)} size="sm"
-                            className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 h-auto rounded-lg transition-all ${
-                              open ? "bg-red-600/80 hover:bg-red-500 text-white" : "bg-green-700/80 hover:bg-green-600 text-white"
-                            }`}>
-                            {open ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
-                            {open ? "סגור" : "פתח"}
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── תצוגה מקדימה זוכי האתגר היומי ── */}
-        {new Date().getHours() >= 18 && (
-          <div className="bg-gradient-to-l from-[#12243f] to-[#0f1f3a] border border-gold-400/25 rounded-2xl p-5 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🎲</span>
-                <div>
-                  <h3 className="text-white font-bold text-sm">תצוגה מקדימה — זוכי 20:00</h3>
-                  <p className="text-gray-500 text-xs">לאימות לפני הפרסום</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-gray-500 text-xs">פרסום בעוד</p>
-                <p className="text-gold-400 font-mono font-bold text-sm">{previewCountdown}</p>
+        {/* ── גרלת זוכי האתגר היומי ── */}
+        <div className="bg-gradient-to-l from-[#12243f] to-[#0f1f3a] border border-gold-400/25 rounded-2xl p-6 mb-8">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🏆</span>
+              <div>
+                <h3 className="text-white font-bold">גרלת זוכי האתגר היומי</h3>
+                <p className="text-gray-500 text-xs">מי שענה נכון על כל 3 השאלות</p>
               </div>
             </div>
-
-            {previewWinners ? (
-              <div className="grid grid-cols-3 gap-3 mb-3">
-                {[
-                  { label: "🏫 יסודי נעם", winner: previewWinners.elementary },
-                  { label: "📖 ישיבה",     winner: previewWinners.yeshiva },
-                  { label: "✨ אולפנה",    winner: previewWinners.ulpana },
-                ].map((w, i) => (
-                  <div key={i} className={`rounded-xl border p-3 text-center ${w.winner ? "border-gold-400/30 bg-gold-500/8" : "border-gray-700/40 bg-gray-800/20"}`}>
-                    <p className="text-gray-400 text-[10px] font-bold mb-2">{w.label}</p>
-                    {w.winner ? (
-                      <>
-                        <p className="text-white text-xs font-bold">{w.winner.first_name} {w.winner.last_name}</p>
-                        <p className="text-gray-500 text-[10px]">{w.winner.school_name}</p>
-                        <p className="text-gray-600 text-[10px]">{w.winner.grade}</p>
-                      </>
-                    ) : (
-                      <p className="text-gray-600 text-xs">אין מועמדים</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-sm text-center py-3">טוען נתונים...</p>
-            )}
-            <Button onClick={calcPreviewWinners} variant="outline" size="sm"
-              className="w-full border-gold-400/20 text-gold-400 hover:bg-gold-400/10 text-xs h-8">
-              רענן
-            </Button>
+            <div className="text-right">
+              <p className="text-gray-500 text-xs mb-1">גרלה אוטומטית בשעה 20:00</p>
+              <p className="text-gold-400 font-mono font-bold">{drawCountdown}</p>
+            </div>
           </div>
-        )}
+
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {[
+              { key: "elementary", label: "יסודי נעם", icon: "🏫", winner: winners?.elementary },
+              { key: "yeshiva",    label: "ישיבה",     icon: "📖", winner: winners?.yeshiva },
+              { key: "ulpana",     label: "אולפנה",    icon: "✨", winner: winners?.ulpana },
+            ].map(w => (
+              <div key={w.key} className={`rounded-xl border-2 p-4 text-center transition-all ${w.winner ? "border-gold-400/50 bg-gold-500/10" : "border-dashed border-gold-400/20 bg-white/3"}`}>
+                <div className="text-2xl mb-2">{w.winner ? "🥇" : w.icon}</div>
+                <p className="text-gold-400 text-xs font-bold mb-1">{w.label}</p>
+                {w.winner ? (
+                  <>
+                    <p className="text-white text-sm font-bold">{w.winner.first_name} {w.winner.last_name}</p>
+                    <p className="text-gray-500 text-[10px] mt-0.5">{w.winner.school_name}</p>
+                    <p className="text-gray-600 text-[10px]">{w.winner.grade}</p>
+                  </>
+                ) : (
+                  <p className="text-gray-600 text-xs">יפורסם ב-20:00</p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <Button onClick={runDraw}
+            className="w-full bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold h-11 gap-2">
+            🎲 הגרל עכשיו
+          </Button>
+        </div>
 
         {/* ── WhatsApp + אוטומציה + דוחות ── */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
