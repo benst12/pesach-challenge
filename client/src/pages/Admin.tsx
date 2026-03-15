@@ -86,6 +86,23 @@ export default function Admin() {
     a.click();
   };
 
+  // ייצוא רשימת טלפונים ל-WA Sender (עמודה אחת של מספרים בלבד)
+  const exportWASender = (schoolName: string) => {
+    const schoolStudents = schoolName ? students.filter(s => s.school_name === schoolName) : students;
+    // נרמל מספרי טלפון לפורמט בינלאומי 972XXXXXXXXX
+    const phones = schoolStudents.map(s => {
+      const clean = (s.phone || "").replace(/[-\s]/g, "");
+      return clean.startsWith("0") ? "972" + clean.slice(1) : clean;
+    }).filter(Boolean);
+    const csv = "Phone\n" + phones.join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `wa_${schoolName || "כולם"}.csv`;
+    a.click();
+  };
+
   const toggleStage = (storageKey: string) => {
     const stage = EXAM_CONFIGS.flatMap(c => c.stages).find(s => s.storageKey === storageKey);
     if (!stage) return;
@@ -467,21 +484,48 @@ ${waMessage}` : waMessage;
               <h3 className="text-white font-bold text-sm">דוחות לפי מוסד</h3>
             </div>
             <p className="text-gray-500 text-xs mb-3">ייצא CSV עם נרשמים וציונים לכל מוסד</p>
+            {/* הוראות WA Sender */}
+            <div className="bg-green-900/10 border border-green-500/20 rounded-xl p-3 mb-3">
+              <p className="text-green-400 text-xs font-bold mb-1">📱 שליחה המונית ב-WA Sender</p>
+              <ol className="text-gray-400 text-[10px] space-y-0.5 list-decimal list-inside">
+                <li>הורד קובץ טלפונים (WA)</li>
+                <li>כנס ל-<a href="https://wa-sender.com" target="_blank" rel="noopener noreferrer" className="text-green-400 underline">wa-sender.com</a></li>
+                <li>העלה את הקובץ ושלח לכולם</li>
+              </ol>
+            </div>
+
             <div className="space-y-1.5 max-h-52 overflow-y-auto">
-              <button onClick={() => exportSchoolReport("")}
-                className="w-full flex items-center justify-between bg-royal-600/20 border border-royal-400/20 rounded-xl px-3 py-2 hover:bg-royal-600/30 transition-all">
-                <span className="text-white text-xs font-bold">כל המוסדות</span>
-                <Download className="h-3.5 w-3.5 text-royal-300" />
-              </button>
+              {/* כל המוסדות */}
+              <div className="flex gap-1.5 mb-1">
+                <button onClick={() => exportSchoolReport("")}
+                  className="flex-1 flex items-center justify-center gap-1 bg-royal-600/20 border border-royal-400/20 rounded-xl px-2 py-2 hover:bg-royal-600/30 transition-all">
+                  <Download className="h-3 w-3 text-royal-300" />
+                  <span className="text-white text-[10px] font-bold">כולם — דוח</span>
+                </button>
+                <button onClick={() => exportWASender("")}
+                  className="flex-1 flex items-center justify-center gap-1 bg-green-900/20 border border-green-500/20 rounded-xl px-2 py-2 hover:bg-green-900/30 transition-all">
+                  <MessageCircle className="h-3 w-3 text-green-400" />
+                  <span className="text-green-400 text-[10px] font-bold">כולם — WA</span>
+                </button>
+              </div>
+
               {schoolStats.map(([school, count]) => (
-                <button key={school} onClick={() => exportSchoolReport(school)}
-                  className="w-full flex items-center justify-between bg-[#0c1a33] border border-royal-400/10 rounded-xl px-3 py-2 hover:bg-[#12243f] transition-all">
-                  <div className="text-right">
-                    <p className="text-white text-xs">{school}</p>
+                <div key={school} className="flex items-center gap-1.5 bg-[#0c1a33] border border-royal-400/10 rounded-xl px-2 py-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-[10px] font-medium truncate">{school}</p>
                     <p className="text-gray-500 text-[10px]">{count} נרשמים</p>
                   </div>
-                  <Download className="h-3.5 w-3.5 text-gray-500" />
-                </button>
+                  <button onClick={() => exportSchoolReport(school)}
+                    className="flex items-center gap-0.5 bg-royal-600/20 border border-royal-400/20 rounded-lg px-2 py-1 hover:bg-royal-600/30 transition-all flex-shrink-0">
+                    <Download className="h-3 w-3 text-royal-300" />
+                    <span className="text-royal-300 text-[10px]">דוח</span>
+                  </button>
+                  <button onClick={() => exportWASender(school)}
+                    className="flex items-center gap-0.5 bg-green-900/20 border border-green-500/20 rounded-lg px-2 py-1 hover:bg-green-900/30 transition-all flex-shrink-0">
+                    <MessageCircle className="h-3 w-3 text-green-400" />
+                    <span className="text-green-400 text-[10px]">WA</span>
+                  </button>
+                </div>
               ))}
             </div>
           </div>
