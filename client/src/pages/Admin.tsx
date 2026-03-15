@@ -197,7 +197,18 @@ export default function Admin() {
     setExamStates(prev => ({ ...prev, [storageKey]: newVal }));
   };
 
-  const calcPreviewWinners = async () => {
+  const calcPreviewWinners = async (force = false) => {
+    const today = new Date().toISOString().split("T")[0];
+    const cacheKey = "pesach_winners_" + today;
+
+    // אם לא force — השתמש בתוצאות שמורות מאותו יום
+    if (!force) {
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) { setPreviewWinners(JSON.parse(cached)); return; }
+      } catch {}
+    }
+
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);
     const { data: todayScores } = await supabase
       .from("scores")
@@ -205,21 +216,22 @@ export default function Admin() {
       .eq("stage_title", "אתגר יומי")
       .eq("correct_answers", 3)
       .gte("created_at", todayStart.toISOString());
-    if (!todayScores?.length) return;
+    if (!todayScores?.length) { toast("אין עדיין תלמידים שענו נכון על כל השאלות היום"); return; }
     const ids = [...new Set(todayScores.map((s:any) => s.student_id))];
     const { data: studs } = await supabase
       .from("students")
       .select("id, first_name, last_name, school_name, grade")
       .in("id", ids);
     if (!studs?.length) return;
-    // הסר רכזים מהגרלה
     const eligible = studs.filter((s:any) => s.grade !== "רכז מוסדי");
     const pick = (arr: any[]) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
-    setPreviewWinners({
+    const result = {
       elementary: pick(eligible.filter((s:any) => s.school_name?.startsWith("נעם"))),
       yeshiva: pick(eligible.filter((s:any) => s.school_name?.includes("ישיבת"))),
       ulpana: pick(eligible.filter((s:any) => s.school_name?.includes("אולפנת"))),
-    });
+    };
+    setPreviewWinners(result);
+    try { localStorage.setItem(cacheKey, JSON.stringify(result)); } catch {}
   };
 
   useEffect(() => {
@@ -545,8 +557,8 @@ export default function Admin() {
               <div className="flex items-center gap-2">
                 <span className="text-xl">🎲</span>
                 <div>
-                  <h3 className="text-white font-bold text-sm">תצוגה מקדימה — זוכי 20:00</h3>
-                  <p className="text-gray-500 text-xs">לאימות לפני הפרסום</p>
+                  <h3 className="text-white font-bold text-sm">🎉 זוכי האתגר היומי — 20:00</h3>
+                  <p className="text-green-400 text-xs font-medium">🍕 כל זוכה מקבל שובר למגש פיצה!</p>
                 </div>
               </div>
               <div className="text-right">
@@ -569,6 +581,7 @@ export default function Admin() {
                         <p className="text-white text-xs font-bold">{w.winner.first_name} {w.winner.last_name}</p>
                         <p className="text-gray-500 text-[10px]">{w.winner.school_name}</p>
                         <p className="text-gray-600 text-[10px]">{w.winner.grade}</p>
+                        <p className="text-green-400 text-[10px] font-bold mt-1">🍕 זוכה בשובר פיצה!</p>
                       </>
                     ) : (
                       <p className="text-gray-600 text-xs">אין מועמדים</p>
@@ -579,7 +592,7 @@ export default function Admin() {
             ) : (
               <p className="text-gray-500 text-sm text-center py-3">טוען נתונים...</p>
             )}
-            <Button onClick={calcPreviewWinners} variant="outline" size="sm"
+            <Button onClick={() => calcPreviewWinners(true)} variant="outline" size="sm"
               className="w-full border-gold-400/20 text-gold-400 hover:bg-gold-400/10 text-xs h-8">
               רענן
             </Button>
