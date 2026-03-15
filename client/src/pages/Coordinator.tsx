@@ -38,8 +38,6 @@ export default function Coordinator() {
   const [dailyLeaders, setDailyLeaders] = useState<any[]>([]);
   const [previewWinners, setPreviewWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
   const [previewCountdown, setPreviewCountdown] = useState("");
-  const [previewWinners, setPreviewWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
-  const [previewCountdown, setPreviewCountdown] = useState("");
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
   const [reportSchool, setReportSchool] = useState("");
 
@@ -204,44 +202,6 @@ export default function Coordinator() {
     };
     check();
     const timer = setInterval(check, 60000); // כל דקה
-    return () => clearInterval(timer);
-  }, [authenticated]);
-
-  const calcPreviewWinners = async () => {
-    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-    const { data: todayScores } = await supabase
-      .from("scores").select("student_id, correct_answers")
-      .eq("stage_title", "אתגר יומי").eq("correct_answers", 3)
-      .gte("created_at", todayStart.toISOString());
-    if (!todayScores?.length) { toast("אין עדיין מועמדים"); return; }
-    const ids = [...new Set(todayScores.map((s:any) => s.student_id))];
-    const { data: studs } = await supabase.from("students")
-      .select("id, first_name, last_name, school_name, grade").in("id", ids);
-    if (!studs?.length) return;
-    const pick = (arr: any[]) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
-    setPreviewWinners({
-      elementary: pick(studs.filter((s:any) => s.school_name?.startsWith("נעם"))),
-      yeshiva: pick(studs.filter((s:any) => s.school_name?.includes("ישיבת"))),
-      ulpana: pick(studs.filter((s:any) => s.school_name?.includes("אולפנת"))),
-    });
-  };
-
-  useEffect(() => {
-    if (!authenticated) return;
-    const check = () => {
-      const now = new Date();
-      if (now.getHours() >= 18) calcPreviewWinners();
-      const next20 = new Date(now); next20.setHours(20,0,0,0);
-      if (now >= next20) next20.setDate(next20.getDate()+1);
-      const diff = Math.max(0, next20.getTime() - now.getTime());
-      setPreviewCountdown(
-        String(Math.floor(diff/3600000)).padStart(2,"0") + ":" +
-        String(Math.floor((diff%3600000)/60000)).padStart(2,"0") + ":" +
-        String(Math.floor((diff%60000)/1000)).padStart(2,"0")
-      );
-    };
-    check();
-    const timer = setInterval(check, 60000);
     return () => clearInterval(timer);
   }, [authenticated]);
 
