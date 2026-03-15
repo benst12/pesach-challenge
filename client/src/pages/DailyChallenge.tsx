@@ -64,11 +64,14 @@ export default function DailyChallenge() {
     if (!student) { navigate("/register"); return; }
     // בדוק שוב אם כבר ענה היום בסופאבייס
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    // בדוק כפילות לפי quiz_id שמכיל את מזהי השאלות
+    const questionsId = questions.map((q: any) => q.id).join("_");
     const { data: todayCheck } = await supabase.from("scores").select("id")
       .eq("student_id", student.id).eq("stage_title", "אתגר יומי")
-      .gte("created_at", todayStart.toISOString()).limit(1);
+      .eq("quiz_id", "daily_" + questionsId)
+      .limit(1);
     if (todayCheck && todayCheck.length > 0) {
-      toast.error("כבר ענית על האתגר היומי היום!");
+      toast.error("כבר ענית על שאלות אלו!");
       setRevealed(true);
       return;
     }
@@ -87,8 +90,9 @@ export default function DailyChallenge() {
     setStreak(newStreak);
     setSaving(true);
     try {
+      const qId = questions.map((q: any) => q.id).join("_");
       await supabase.from("scores").insert({
-        student_id: student.id, quiz_id: "daily",
+        student_id: student.id, quiz_id: "daily_" + qId,
         score: Math.round((correct / questions.length) * 100),
         total_questions: questions.length, correct_answers: correct,
         stage_title: "אתגר יומי",
