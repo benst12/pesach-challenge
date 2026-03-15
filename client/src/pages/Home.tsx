@@ -43,6 +43,8 @@ export default function Home() {
   const [dailyQs, setDailyQs] = useState<any[]>([]);
   const [dailyLoaded, setDailyLoaded] = useState(false);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [todayAnswerers, setTodayAnswerers] = useState<any[]>([]);
+  const [tickerIndex, setTickerIndex] = useState(0);
   const [hebrewDate, setHebrewDate] = useState("");
   const [daysToSeder, setDaysToSeder] = useState<number | null>(null);
 
@@ -79,6 +81,28 @@ export default function Home() {
         data.forEach((s: any) => { if (s.track_id) trackCounts[s.track_id] = (trackCounts[s.track_id] || 0) + 1; });
         setStats({ total, topSchools, trackCounts });
 
+        // עונים של היום
+        const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+        const { data: todayData } = await supabase
+          .from("scores")
+          .select("student_id, correct_answers")
+          .eq("stage_title", "אתגר יומי")
+          .gte("created_at", todayStart.toISOString());
+        if (todayData && todayData.length > 0) {
+          const ids = [...new Set(todayData.map((s: any) => s.student_id))];
+          const { data: todayStudents } = await supabase
+            .from("students")
+            .select("id, first_name, last_name, school_name")
+            .in("id", ids);
+          if (todayStudents) {
+            const withScore = todayStudents.map((s: any) => {
+              const score = todayData.find((r: any) => r.student_id === s.id);
+              return { ...s, correct: score?.correct_answers || 0 };
+            });
+            setTodayAnswerers(withScore);
+          }
+        }
+
         // לוח מובילים אתגר יומי — מסופאבייס
         const { data: scoreData } = await supabase
           .from("scores")
@@ -103,6 +127,15 @@ export default function Home() {
     };
     loadStats();
   }, []);
+
+  // ticker — מחליף זוג שמות כל 3 שניות
+  useEffect(() => {
+    if (todayAnswerers.length < 2) return;
+    const interval = setInterval(() => {
+      setTickerIndex(prev => (prev + 2) % Math.max(todayAnswerers.length, 1));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [todayAnswerers]);
 
   const handleLogout = () => {
     setStudent(null);
@@ -304,6 +337,132 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+            {/* ── Ticker עונים היום ── */}
+      {todayAnswerers.length > 0 && (
+        <section className="py-8 bg-[#0a1628]">
+          <div className="container max-w-3xl">
+            <div className="bg-gradient-to-l from-[#12243f] to-[#0f1f3a] border border-gold-400/20 rounded-2xl p-6 relative overflow-hidden">
+              {/* רקע דקורטיבי */}
+              <div className="absolute inset-0 opacity-5">
+                <div className="absolute top-2 right-4 text-6xl">🦁</div>
+                <div className="absolute bottom-2 left-4 text-6xl">⚡</div>
+              </div>
+
+              <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6">
+                {/* כיתוב שמאל */}
+                <div className="flex-shrink-0 text-center sm:text-right">
+                  <p className="text-gold-400 font-bold text-lg">ענו היום!</p>
+                  <p className="text-gray-500 text-sm">{todayAnswerers.length} לומדים</p>
+                  <div className="flex items-center gap-1.5 mt-2 justify-center sm:justify-start">
+                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    <span className="text-green-400 text-xs font-medium">פעיל עכשיו</span>
+                  </div>
+                </div>
+
+                <div className="w-px h-12 bg-gold-400/20 hidden sm:block flex-shrink-0" />
+
+                {/* Ticker */}
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={tickerIndex}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.5, ease: "easeInOut" }}
+                      className="flex flex-wrap gap-3 justify-center sm:justify-start"
+                    >
+                      {todayAnswerers.slice(tickerIndex, tickerIndex + 2).map((s, i) => (
+                        <div key={s.id} className="flex items-center gap-2 bg-white/5 border border-gold-400/15 rounded-xl px-4 py-2.5">
+                          <div className="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center text-base flex-shrink-0">
+                            ⚡
+                          </div>
+                          <div>
+                            <p className="text-white font-bold text-sm">{s.first_name} {s.last_name}</p>
+                            <p className="text-gray-500 text-xs truncate max-w-[150px]">{s.school_name}{s.grade && s.grade !== "רכז מוסדי" ? ` • ${s.grade}` : ""}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* נקודות ניווט */}
+                  <div className="flex gap-1 mt-3 justify-center sm:justify-start">
+                    {Array.from({ length: Math.ceil(todayAnswerers.length / 2) }).map((_, i) => (
+                      <button key={i} onClick={() => setTickerIndex(i * 2)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all ${
+                          Math.floor(tickerIndex / 2) === i ? "bg-gold-400 w-3" : "bg-gray-600"
+                        }`} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* מסר מעודד */}
+                <div className="flex-shrink-0 text-center bg-gold-500/10 border border-gold-400/20 rounded-xl px-4 py-3 hidden lg:block">
+                  <p className="text-gold-300 text-xs font-medium leading-relaxed max-w-[120px]">
+                    {todayAnswerers.length >= 10 ? "🔥 יום שיא!" :
+                     todayAnswerers.length >= 5 ? "💪 ממשיכים!" :
+                     "⚡ היו הראשונים!"}
+                  </p>
+                  <p className="text-gray-600 text-[10px] mt-1">שאלות חדשות מחר בחצות</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── זוכי האתגר היומי ── */}
+      <section className="py-6 bg-[#0a1628]">
+        <div className="container max-w-3xl">
+          <motion.div
+            className="relative overflow-hidden rounded-2xl border border-gold-400/30 bg-gradient-to-br from-[#1a2f4a] via-[#0f1f3a] to-[#0c1a33]"
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+
+            {/* קישוטים */}
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-l from-transparent via-gold-400/60 to-transparent" />
+            <div className="absolute -top-6 -right-6 w-24 h-24 bg-gold-500/10 rounded-full blur-2xl" />
+            <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gold-500/10 rounded-full blur-2xl" />
+
+            <div className="relative z-10 p-6 flex flex-col sm:flex-row items-center gap-6">
+              {/* כוכבים */}
+              <div className="flex-shrink-0 text-center">
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  className="text-5xl mb-2">🏆</motion.div>
+                <p className="text-gold-400 font-bold text-sm">זוכי היום</p>
+              </div>
+
+              <div className="w-px h-16 bg-gold-400/20 hidden sm:block flex-shrink-0" />
+
+              {/* תוכן */}
+              <div className="flex-1 text-center sm:text-right">
+                <h3 className="font-display text-2xl text-white mb-2">זוכי האתגר היומי</h3>
+                <div className="flex items-center gap-2 justify-center sm:justify-start mb-3">
+                  <div className="w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
+                  <span className="text-gold-400 text-sm font-medium">יפורסמו היום בשעה 20:00</span>
+                </div>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  כל יום בשעה 20:00 נחשוף את שמות שני הלומדים שענו נכון על כל השאלות —
+                  ענה עכשיו ואולי תהיה הזוכה של היום! 🦁
+                </p>
+              </div>
+
+              {/* כרטיסי ריק */}
+              <div className="flex gap-3 flex-shrink-0">
+                {[1, 2].map(n => (
+                  <div key={n} className="w-20 h-24 rounded-xl border-2 border-dashed border-gold-400/30 flex flex-col items-center justify-center gap-1 bg-gold-500/5">
+                    <span className="text-2xl">{n === 1 ? "🥇" : "🥈"}</span>
+                    <span className="text-gray-600 text-[10px]">?</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
