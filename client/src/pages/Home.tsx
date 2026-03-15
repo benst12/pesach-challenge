@@ -447,17 +447,22 @@ export default function Home() {
                   <span className="text-gold-400 text-sm font-medium">יפורסמו היום בשעה 20:00</span>
                 </div>
                 <p className="text-gray-400 text-sm leading-relaxed">
-                  כל יום בשעה 20:00 נחשוף את שמות שני הלומדים שענו נכון על כל השאלות —
-                  ענה עכשיו ואולי תהיה הזוכה של היום! 🦁
+                  כל יום בשעה 20:00 נגריל זוכה מהיסודי, מהישיבות ומהאולפנות —
+                  בין כל מי שענה נכון על כל השאלות! 🦁
                 </p>
               </div>
 
-              {/* כרטיסי ריק */}
-              <div className="flex gap-3 flex-shrink-0">
-                {[1, 2].map(n => (
-                  <div key={n} className="w-20 h-24 rounded-xl border-2 border-dashed border-gold-400/30 flex flex-col items-center justify-center gap-1 bg-gold-500/5">
-                    <span className="text-2xl">{n === 1 ? "🥇" : "🥈"}</span>
-                    <span className="text-gray-600 text-[10px]">?</span>
+              {/* 3 כרטיסי זוכים */}
+              <div className="flex gap-2 flex-shrink-0">
+                {[
+                  { medal: "🥇", label: "יסודי" },
+                  { medal: "🥇", label: "ישיבה" },
+                  { medal: "🥇", label: "אולפנה" },
+                ].map((w, n) => (
+                  <div key={n} className="w-[68px] rounded-xl border-2 border-dashed border-gold-400/25 flex flex-col items-center justify-center gap-1 bg-gold-500/5 py-3 px-1">
+                    <span className="text-xl">{w.medal}</span>
+                    <span className="text-gold-400/60 text-[9px] font-medium">{w.label}</span>
+                    <span className="text-gray-600 text-[9px]">20:00</span>
                   </div>
                 ))}
               </div>

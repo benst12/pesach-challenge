@@ -83,6 +83,7 @@ export default function Admin() {
       <td style="padding:8px 12px;border:1px solid #2a3f5f">מוסד</td>
       <td style="padding:8px 12px;border:1px solid #2a3f5f">רכז מוסדי</td>
       <td style="padding:8px 12px;border:1px solid #2a3f5f">שם תלמיד</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">טלפון</td>
       <td style="padding:8px 12px;border:1px solid #2a3f5f">כיתה</td>
       <td style="padding:8px 12px;border:1px solid #2a3f5f">מסלול</td>
       <td style="padding:8px 12px;border:1px solid #2a3f5f">מבחן א</td>
@@ -97,7 +98,7 @@ export default function Admin() {
     Object.entries(bySchoolMap).sort((a,b) => a[0].localeCompare(b[0], "he")).forEach(([school, slist]) => {
       const coord = coordinatorBySchool[school] || "—";
       rows += `<tr style="background:#1a2f50;color:#ffffff;font-weight:bold">
-        <td colspan="12" style="padding:7px 12px;border:1px solid #2a3f5f;font-size:13px">
+        <td colspan="13" style="padding:7px 12px;border:1px solid #2a3f5f;font-size:13px">
           🏫 ${school} &nbsp;|&nbsp; רכז: ${coord} &nbsp;|&nbsp; ${slist.length} תלמידים
         </td>
       </tr>`;
@@ -119,6 +120,7 @@ export default function Admin() {
           <td style="padding:6px 12px;border:1px solid #e0e0e0">${school}</td>
           <td style="padding:6px 12px;border:1px solid #e0e0e0;color:#7c6f9e">${coord}</td>
           <td style="padding:6px 12px;border:1px solid #e0e0e0;font-weight:bold">${s.first_name} ${s.last_name}</td>
+          <td style="padding:6px 12px;border:1px solid #e0e0e0;direction:ltr;text-align:left">${s.phone || ""}</td>
           <td style="padding:6px 12px;border:1px solid #e0e0e0;text-align:center">${s.grade}</td>
           <td style="padding:6px 12px;border:1px solid #e0e0e0">${getTrackName(s.track_id)}</td>
           ${examCells}

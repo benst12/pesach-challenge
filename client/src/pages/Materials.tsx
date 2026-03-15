@@ -13,6 +13,7 @@ import {
   Zap, BarChart2, LogOut,
 } from "lucide-react";
 import { useState } from "react";
+import ClassUpdateModal from "@/components/ClassUpdateModal";
 
 export default function Materials() {
   const [, navigate] = useLocation();
@@ -49,6 +50,7 @@ export default function Materials() {
 
   return (
     <div className="min-h-screen bg-[#0c1a33]" dir="rtl">
+      <ClassUpdateModal />
       {/* Header */}
       <div className="relative h-52 overflow-hidden">
         <img src={IMAGES.books} alt="" className="w-full h-full object-cover opacity-25" />
