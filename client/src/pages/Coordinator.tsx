@@ -906,4 +906,3 @@ ${waMessage}` : waMessage;
       </div>
     </div>
   );
-}
