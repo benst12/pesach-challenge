@@ -128,19 +128,76 @@ export default function Coordinator() {
 
   // ייצוא דוח לפי מוסד
   const exportSchoolReport = (schoolName: string) => {
-    const schoolStudents = (schoolName ? students.filter(s => s.school_name === schoolName) : students);
-    const header = "שם,טלפון,כיתה,מסלול,ציון,סטטוס";
-    const rows = schoolStudents.map(s => {
-      const best = s.results.reduce((b, r) => r.score > (b?.score || 0) ? r : b, null as any);
-      const status = best ? (best.score >= 95 ? "מצטיין" : best.passed ? "עבר" : "לא עבר") : "לא נבחן";
-      return `${s.first_name} ${s.last_name},${s.phone},${s.grade},${getTrackName(s.track_id)},${best?.score ?? ""},${status}`;
+    const schoolStudents = schoolName
+      ? students.filter(s => s.school_name === schoolName && s.grade !== "רכז מוסדי")
+      : students.filter(s => s.grade !== "רכז מוסדי");
+    const coord = coordinatorBySchool[schoolName] || "—";
+
+    let rows = `<tr style="background:#0c1a33;color:#d4a017;font-weight:bold;font-size:13px;text-align:right">
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">#</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">שם תלמיד</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">טלפון</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">כיתה</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">מסלול</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">מבחן א</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">מבחן ב</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">מבחן ג</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">מבחן ד</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">ציון גבוה</td>
+      <td style="padding:8px 12px;border:1px solid #2a3f5f">סטטוס</td>
+    </tr>`;
+
+    if (schoolName) {
+      rows += `<tr style="background:#1a2f50;color:#ffffff;font-weight:bold">
+        <td colspan="11" style="padding:7px 12px;border:1px solid #2a3f5f;font-size:13px">
+          🏫 ${schoolName} &nbsp;|&nbsp; רכז: ${coord} &nbsp;|&nbsp; ${schoolStudents.length} תלמידים
+        </td>
+      </tr>`;
+    }
+
+    schoolStudents.forEach((s, idx) => {
+      const scores = s.results.map((r: any) => r.score);
+      const best = scores.length ? Math.max(...scores) : null;
+      const status = best !== null ? (best >= 95 ? "⭐ מצטיין" : best >= 80 ? "✅ עבר" : "❌ לא עבר") : "—";
+      const rowBg = (idx % 2 === 0) ? "#ffffff" : "#f5f8ff";
+      const examCells = [0,1,2,3].map(i => {
+        const sc = (scores as number[])[i];
+        const bg = sc !== undefined ? (sc >= 95 ? "#d1fae5" : sc >= 80 ? "#dcfce7" : "#fee2e2") : "transparent";
+        const color = sc !== undefined ? (sc >= 80 ? "#166534" : "#991b1b") : "#aaa";
+        return `<td style="padding:6px 12px;border:1px solid #e0e0e0;background:${bg};color:${color};text-align:center;font-weight:bold">${sc !== undefined ? sc + "%" : "—"}</td>`;
+      }).join("");
+      const bestColor = best !== null ? (best >= 80 ? "#166534" : "#991b1b") : "#888";
+      rows += `<tr style="background:${rowBg};color:#111;font-size:12px;text-align:right">
+        <td style="padding:6px 12px;border:1px solid #e0e0e0;color:#aaa;text-align:center">${idx + 1}</td>
+        <td style="padding:6px 12px;border:1px solid #e0e0e0;font-weight:bold">${s.first_name} ${s.last_name}</td>
+        <td style="padding:6px 12px;border:1px solid #e0e0e0;direction:ltr;text-align:left">${s.phone || ""}</td>
+        <td style="padding:6px 12px;border:1px solid #e0e0e0;text-align:center">${s.grade}</td>
+        <td style="padding:6px 12px;border:1px solid #e0e0e0">${getTrackName(s.track_id)}</td>
+        ${examCells}
+        <td style="padding:6px 12px;border:1px solid #e0e0e0;font-weight:bold;text-align:center;color:${bestColor}">${best !== null ? best + "%" : "—"}</td>
+        <td style="padding:6px 12px;border:1px solid #e0e0e0">${status}</td>
+      </tr>`;
     });
-    const csv = [header, ...rows].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+
+    const title = schoolName || "כל המוסדות";
+    const html = `<html dir="rtl" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+<head><meta charset="UTF-8"><style>
+  body{font-family:Arial,sans-serif;direction:rtl}
+  table{border-collapse:collapse;width:100%}
+  h2{color:#0c1a33;font-size:18px;margin:0 0 4px}
+  p{color:#666;font-size:12px;margin:0 0 16px}
+</style></head>
+<body>
+<h2>🦁 מבצע שאגת הארי — ${title}</h2>
+<p>רשת נעם צביה &nbsp;|&nbsp; ${schoolStudents.length} תלמידים &nbsp;|&nbsp; ${new Date().toLocaleDateString("he-IL")}</p>
+<table>${rows}</table>
+</body></html>`;
+
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${schoolName || "כל_המוסדות"}.csv`;
+    a.download = (schoolName || "כל_המוסדות") + ".xls";
     a.click();
   };
 
