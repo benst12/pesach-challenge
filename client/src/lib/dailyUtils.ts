@@ -14,8 +14,45 @@ export function getTodayKeyFromDayIndex(): string {
   return `day_${getDayIndex()}`;
 }
 
+// שאלות קבועות ידניות — מוחלפות לפי הנחיה
+// כל שאלה: { id, chapter, question, options: [{text, correct, key}] }
+const MANUAL_QUESTIONS: any[] | null = [
+  {
+    id: 116, chapter: "פרק ה",
+    question: 'מתי אומרים את נוסח הביטול הראשון (ביטול לאחר בדיקה)?',
+    options: [
+      { text: 'בליל י"ד אחרי הבדיקה', correct: true,  key: "א" },
+      { text: 'בבוקר י"ד לפני השריפה', correct: false, key: "ב" },
+      { text: 'בחצות ליל י"ד',         correct: false, key: "ג" },
+      { text: 'ממש לפני כניסת פסח',    correct: false, key: "ד" },
+    ]
+  },
+  {
+    id: 143, chapter: "פרק יא",
+    question: "כיצד מכשירים את הכיריים לפסח?",
+    options: [
+      { text: "ניקוי יסודי ואז הדלקת האש לזמן מה",     correct: true,  key: "א" },
+      { text: "שטיפה קרה בלבד",                         correct: false, key: "ב" },
+      { text: "ניקוי ואז כיסוי בנייר כסף בלבד",         correct: false, key: "ג" },
+      { text: "הזמנת מגעיל מקצועי בלבד",                correct: false, key: "ד" },
+    ]
+  },
+  {
+    id: 40, chapter: "פרק טז",
+    question: 'מה פירוש "קדש"?',
+    options: [
+      { text: "קידוש על הכוס – כוס ראשונה", correct: true,  key: "א" },
+      { text: "לקדש את השולחן",              correct: false, key: "ב" },
+      { text: "להתפלל תפילת ערבית",           correct: false, key: "ג" },
+      { text: "לשיר שיר קדוש",               correct: false, key: "ד" },
+    ]
+  },
+];
+
 // 3 שאלות יומיות אחידות — אותן שאלות לכולם, מחושבות לפי יום בלבד
 export function getDailyQuestions() {
+  // אם יש שאלות ידניות — השתמש בהן
+  if (MANUAL_QUESTIONS) return MANUAL_QUESTIONS;
   if (!ALL_QUESTIONS.length) return [];
   const total = ALL_QUESTIONS.length;
   const dayIdx = getDayIndex();
