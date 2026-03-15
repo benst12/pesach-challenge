@@ -509,8 +509,7 @@ export default function Coordinator() {
                 <div className="space-y-1 max-h-52 overflow-y-auto">
                   <p className="text-gray-500 text-xs mb-2">{filtered.length} תלמידים</p>
                   {filtered.map(s => {
-                    const msg = personalMsg ? `שלום ${s.first_name}! 👋
-${waMessage}` : waMessage;
+                    const msg = personalMsg ? `שלום ${s.first_name}! 👋\n${waMessage}` : waMessage;
                     return (
                       <a key={s.id}
                         href={`https://wa.me/972${s.phone?.replace(/^0/,"").replace(/-/g,"")}?text=${encodeURIComponent(msg)}`}
