@@ -279,6 +279,10 @@ export default function Admin() {
     return acc;
   }, {} as Record<string, number>);
   const schoolStats = Object.entries(bySchool).sort((a, b) => b[1] - a[1]);
+  // מוסדות נעם בלבד
+  const noamStats = Object.entries(bySchool)
+    .filter(([name]) => name.includes("נעם") || name.includes("צביה"))
+    .sort((a, b) => b[1] - a[1]);
 
   // מונים לפי מסלול
   const byTrack = students.reduce((acc, s) => {
@@ -546,6 +550,36 @@ ${waMessage}` : waMessage;
             </div>
           ))}
         </div>
+
+        {/* טבלת מוסדות נעם */}
+        {noamStats.length > 0 && (
+          <div className="bg-[#12243f] border border-gold-400/15 rounded-2xl overflow-hidden mb-8">
+            <div className="px-5 py-3 border-b border-royal-400/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🦁</span>
+                <span className="text-white font-bold text-sm">מוסדות רשת נעם צביה — נרשמים</span>
+              </div>
+              <span className="text-gray-400 text-xs">סה״כ: {noamStats.reduce((a,b) => a + b[1], 0)}</span>
+            </div>
+            <div className="divide-y divide-[#1a2f50]">
+              {noamStats.map(([school, count], i) => (
+                <div key={school} className="flex items-center gap-3 px-5 py-3 hover:bg-[#152a48] transition-colors">
+                  <span className={`w-6 text-center font-bold text-sm flex-shrink-0 ${i === 0 ? "text-gold-400" : i === 1 ? "text-gray-300" : i === 2 ? "text-amber-600" : "text-gray-500"}`}>
+                    {i + 1}
+                  </span>
+                  <span className="text-white text-sm flex-1">{school}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 h-1.5 bg-[#0c1a33] rounded-full overflow-hidden hidden sm:block">
+                      <div className="h-full bg-gradient-to-l from-gold-500 to-gold-400 rounded-full"
+                        style={{ width: `${(count / noamStats[0][1]) * 100}%` }} />
+                    </div>
+                    <span className="text-gold-400 font-bold text-sm w-6 text-left">{count}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* מונים לפי מוסד ומסלול */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
