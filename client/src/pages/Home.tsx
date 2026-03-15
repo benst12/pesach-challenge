@@ -67,46 +67,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const loadWinners = async () => {
-      const now = new Date();
-      const today = now.toISOString().split("T")[0];
-      const cacheKey = "pesach_winners_published_" + today;
-
-      // בדוק cache קודם
-      try {
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) { setPublishedWinners(JSON.parse(cached)); return; }
-      } catch {}
-
-      // קרא מסופאבייס
-      const { data: winnerRows } = await supabase
-        .from("scores")
-        .select("student_id, stage_title")
-        .like("stage_title", "winners_" + today + "_%")
-        .eq("quiz_id", "daily_winners");
-      if (!winnerRows?.length) return;
-      const ids = winnerRows.map((r: any) => r.student_id);
-      const { data: studs } = await supabase
-        .from("students")
-        .select("id, first_name, last_name, school_name, grade")
-        .in("id", ids);
-      if (!studs?.length) return;
-      const get = (key: string) => {
-        const row = winnerRows.find((r: any) => r.stage_title.endsWith("_" + key));
-        return row ? studs.find((s: any) => s.id === row.student_id) || null : null;
-      };
-      const result = {
-        elementary: get("elementary"),
-        yeshiva: get("yeshiva"),
-        ulpana: get("ulpana"),
-      };
-      setPublishedWinners(result);
-      // שמור cache — לא ישתנה עד מחרת
-      try { localStorage.setItem(cacheKey, JSON.stringify(result)); } catch {}
-    };
-    loadWinners();
-    const interval = setInterval(loadWinners, 300000); // כל 5 דקות בלבד
-    return () => clearInterval(interval);
+    // זוכי האתגר היומי — קבועים
+    setPublishedWinners({
+      elementary: { first_name: "חנה", last_name: "יצחקי", school_name: "נעם נצרים בנות", grade: "כיתה ח" },
+      yeshiva:    { first_name: "משה", last_name: "כהן",    school_name: "ישיבת צביה לוד",  grade: "כיתה י" },
+      ulpana:     { first_name: "טליה", last_name: "פרג'ון", school_name: "אולפנת צביה אשקלון", grade: "כיתה ט" },
+    });
   }, []);
 
   useEffect(() => {
