@@ -31,6 +31,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "school" | "score">("name");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [coordDeleteConfirm, setCoordDeleteConfirm] = useState<string | null>(null);
   const [deleteMultiple, setDeleteMultiple] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [autoSchedule, setAutoSchedule] = useState<Record<string, string>>({});
@@ -67,6 +68,47 @@ export default function Admin() {
     }, 30000);
     return () => clearInterval(interval);
   }, [autoSchedule, examStates]);
+
+  // ייצוא Excel מפורט — מוסד, רכז, תלמידים, ציונים
+  const exportFullExcel = () => {
+    const rows: string[] = [];
+    // כותרות
+    rows.push("מוסד,רכז מוסדי,שם תלמיד,כיתה,מסלול,מבחן 1,מבחן 2,מבחן 3,מבחן 4,ציון גבוה ביותר,סטטוס");
+
+    // קבץ לפי מוסד
+    const bySchoolMap: Record<string, typeof students> = {};
+    students.filter(s => s.grade !== "רכז מוסדי").forEach(s => {
+      const key = s.school_name || "לא ידוע";
+      if (!bySchoolMap[key]) bySchoolMap[key] = [];
+      bySchoolMap[key].push(s);
+    });
+
+    Object.entries(bySchoolMap).sort((a,b) => a[0].localeCompare(b[0], "he")).forEach(([school, slist]) => {
+      const coord = coordinatorBySchool[school] || "";
+      slist.forEach(s => {
+        const scores = s.results.map(r => r.score);
+        const best = scores.length ? Math.max(...scores) : null;
+        const status = best !== null ? (best >= 95 ? "מצטיין" : best >= 80 ? "עבר" : "לא עבר") : "לא נבחן";
+        const examScores = [0,1,2,3].map(i => scores[i] ?? "");
+        rows.push([
+          school, coord,
+          `${s.first_name} ${s.last_name}`,
+          s.grade, getTrackName(s.track_id),
+          ...examScores,
+          best ?? "", status
+        ].join(","));
+      });
+    });
+
+    const csv = rows.join("
+");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "דוח_מלא_מבצע_שאגת_הארי.csv";
+    a.click();
+  };
 
   // ייצוא דוח לפי מוסד
   const exportSchoolReport = (schoolName: string) => {
@@ -171,6 +213,18 @@ export default function Admin() {
       console.error("Error loading students:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // מחיקת רכז
+  const deleteCoordinator = async (id: string) => {
+    try {
+      await supabase.from("students").delete().eq("id", id);
+      setStudents(prev => prev.filter(s => s.id !== id));
+      setCoordDeleteConfirm(null);
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("שגיאה במחיקה");
     }
   };
 
@@ -280,6 +334,11 @@ export default function Admin() {
     return acc;
   }, {} as Record<string, number>);
   const schoolStats = Object.entries(bySchool).sort((a, b) => b[1] - a[1]);
+  // רכז לפי מוסד
+  const coordinatorBySchool: Record<string, string> = {};
+  students.filter(s => s.grade === "רכז מוסדי").forEach(s => {
+    coordinatorBySchool[s.school_name] = `${s.first_name} ${s.last_name}`;
+  });
   // מוסדות נעם בלבד
   const noamStats = Object.entries(bySchool)
     .filter(([name]) => name.startsWith("נעם"))
@@ -568,8 +627,13 @@ ${waMessage}` : waMessage;
                   <span className="text-gray-500 text-xs w-4 text-center">{i + 1}</span>
                   <div className="flex-1">
                     <div className="flex justify-between mb-0.5">
-                      <span className="text-white text-xs">{school}</span>
-                      <span className="text-gold-400 text-xs font-bold">{count}</span>
+                      <div>
+                        <span className="text-white text-xs">{school}</span>
+                        {coordinatorBySchool[school] && (
+                          <span className="text-purple-400 text-[10px] mr-1.5">• {coordinatorBySchool[school]}</span>
+                        )}
+                      </div>
+                      <span className="text-gold-400 text-xs font-bold flex-shrink-0">{count}</span>
                     </div>
                     <div className="h-1 bg-[#0c1a33] rounded-full overflow-hidden">
                       <div className="h-full bg-royal-400/60 rounded-full"
@@ -681,6 +745,53 @@ ${waMessage}` : waMessage;
           </div>
         )}
 
+        {/* ── רשימת רכזים ── */}
+        {coordinators.length > 0 && (
+          <div className="bg-[#12243f] border border-purple-400/20 rounded-2xl overflow-hidden mb-8">
+            <div className="px-5 py-3 border-b border-purple-400/15 flex items-center gap-2">
+              <BookUser className="h-4 w-4 text-purple-400" />
+              <span className="text-white font-bold text-sm">רכזים מוסדיים</span>
+              <span className="text-gray-500 text-xs mr-auto">{coordinators.length} רכזים</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-purple-400/10">
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">שם</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">טלפון</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">מוסד</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">פעולות</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {coordinators.map(s => (
+                    <tr key={s.id} className="border-b border-[#1a2f50] hover:bg-[#152a48]">
+                      <td className="p-3 text-white font-medium text-sm">{s.first_name} {s.last_name}</td>
+                      <td className="p-3 text-gray-400 text-sm" dir="ltr">{s.phone}</td>
+                      <td className="p-3 text-purple-300 text-sm">{s.school_name}</td>
+                      <td className="p-3">
+                        {coordDeleteConfirm === s.id ? (
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => deleteCoordinator(s.id)}
+                              className="text-xs bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded">אשר</button>
+                            <button onClick={() => setCoordDeleteConfirm(null)}
+                              className="text-xs text-gray-400 hover:text-white px-2 py-1">ביטול</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setCoordDeleteConfirm(s.id)}
+                            className="text-gray-600 hover:text-red-400 transition-colors p-1 rounded">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* כלי חיפוש ופעולות */}
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="relative flex-1">
@@ -702,6 +813,10 @@ ${waMessage}` : waMessage;
           <Button onClick={exportCSV} variant="outline" className="border-gold-400/30 text-gold-400 hover:bg-gold-400/10 h-12 gap-2">
             <Download className="h-4 w-4" />
             ייצוא
+          </Button>
+          <Button onClick={exportFullExcel} variant="outline" className="border-green-400/30 text-green-400 hover:bg-green-400/10 h-12 gap-2">
+            <Download className="h-4 w-4" />
+            Excel מלא
           </Button>
           <Button onClick={() => { setSelectMode(!selectMode); setDeleteMultiple(new Set()); }}
             variant="outline"
