@@ -17,7 +17,9 @@ export default function DailyChallenge() {
 
   const questions = useMemo(() => getDailyQuestions(), []);
   const todayDayKey = getTodayKeyFromDayIndex();
-  const lsKey = `pesach_daily_${student?.id || "guest"}_${todayDayKey}`;
+  // הוסף hash של מזהי השאלות — כך כשמחליפים שאלות ה-cache מתאפס
+  const questionsHash = questions.map((q: any) => q.id).join("_");
+  const lsKey = `pesach_daily_${student?.id || "guest"}_${todayDayKey}_${questionsHash}`;
   const streakKey = `pesach_streak_${student?.id || "guest"}`;
 
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -42,12 +44,14 @@ export default function DailyChallenge() {
         .then(({ data }) => {
           setDbHistory(data || []);
           // בדוק אם יש תשובה מהיום
-          const todayAnswer = (data || []).find(s => 
+          const todayAnswer = (data || []).find((s: any) => 
             new Date(s.created_at) >= todayStart
           );
-          if (todayAnswer && !revealed) {
-            setRevealed(true);
-            toast("כבר ענית על האתגר היומי היום! 👍");
+          // הצג revealed רק אם יש גם תשובות שמורות ב-localStorage
+          const savedLocal = localStorage.getItem(lsKey);
+          if (todayAnswer && !revealed && savedLocal) {
+            const d = JSON.parse(savedLocal);
+            if (d.answers) { setAnswers(d.answers); setRevealed(true); }
           }
         });
     }
