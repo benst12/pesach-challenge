@@ -43,6 +43,7 @@ export default function Home() {
   const [dailyQs, setDailyQs] = useState<any[]>([]);
   const [dailyLoaded, setDailyLoaded] = useState(false);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [publishedWinners, setPublishedWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
   const [todayAnswerers, setTodayAnswerers] = useState<any[]>([]);
   const [tickerIndex, setTickerIndex] = useState(0);
   const [hebrewDate, setHebrewDate] = useState("");
@@ -63,6 +64,23 @@ export default function Home() {
     const picked = getDailyQuestions();
     setDailyQs(picked);
     setDailyLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    // טעינת זוכים מ-localStorage — קבועים ביום
+    const today = new Date().toISOString().split("T")[0];
+    try {
+      const cached = localStorage.getItem("pesach_winners_" + today);
+      if (cached) setPublishedWinners(JSON.parse(cached));
+    } catch {}
+    // בדוק שוב כל דקה (לאחר 20:00)
+    const winnersInterval = setInterval(() => {
+      try {
+        const cached = localStorage.getItem("pesach_winners_" + new Date().toISOString().split("T")[0]);
+        if (cached) setPublishedWinners(JSON.parse(cached));
+      } catch {}
+    }, 60000);
+    return () => clearInterval(winnersInterval);
   }, []);
 
   useEffect(() => {
@@ -427,50 +445,56 @@ export default function Home() {
             className="relative overflow-hidden rounded-2xl border border-gold-400/30 bg-gradient-to-br from-[#1a2f4a] via-[#0f1f3a] to-[#0c1a33]"
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
 
-            {/* קישוטים */}
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-l from-transparent via-gold-400/60 to-transparent" />
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-gold-500/10 rounded-full blur-2xl" />
             <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gold-500/10 rounded-full blur-2xl" />
 
-            <div className="relative z-10 p-6 flex flex-col sm:flex-row items-center gap-6">
-              {/* כוכבים */}
-              <div className="flex-shrink-0 text-center">
-                <motion.div
-                  animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
-                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                  className="text-5xl mb-2">🏆</motion.div>
-                <p className="text-gold-400 font-bold text-sm">זוכי היום</p>
-              </div>
-
-              <div className="w-px h-16 bg-gold-400/20 hidden sm:block flex-shrink-0" />
-
-              {/* תוכן */}
-              <div className="flex-1 text-center sm:text-right">
-                <h3 className="font-display text-2xl text-white mb-2">זוכי האתגר היומי</h3>
-                <div className="flex items-center gap-2 justify-center sm:justify-start mb-3">
-                  <div className="w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
-                  <span className="text-gold-400 text-sm font-medium">יפורסמו היום בשעה 20:00</span>
+            <div className="relative z-10 p-6">
+              <div className="flex items-center gap-4 mb-5">
+                <motion.div animate={{ rotate: [0,5,-5,0], scale: [1,1.05,1] }}
+                  transition={{ repeat: Infinity, duration: 4 }} className="text-4xl flex-shrink-0">🏆</motion.div>
+                <div>
+                  <h3 className="font-display text-2xl text-white mb-1">זוכי האתגר היומי</h3>
+                  {publishedWinners ? (
+                    <p className="text-green-400 text-sm font-medium">🎉 הכריזו הזוכים! כל זוכה מקבל 🍕 שובר למגש פיצה!</p>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
+                      <span className="text-gold-400 text-sm">יפורסמו היום בשעה 20:00 — כל זוכה מקבל 🍕 שובר פיצה!</span>
+                    </div>
+                  )}
                 </div>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  כל יום בשעה 20:00 נגריל זוכה מהיסודי, מהישיבות ומהאולפנות —
-                  בין כל מי שענה נכון על כל השאלות! 🦁
-                </p>
               </div>
 
               {/* 3 כרטיסי זוכים */}
-              <div className="flex gap-2 flex-shrink-0">
+              <div className="grid grid-cols-3 gap-3">
                 {[
-                  { medal: "🥇", label: "יסודי" },
-                  { medal: "🥇", label: "ישיבה" },
-                  { medal: "🥇", label: "אולפנה" },
+                  { label: "🏫 יסודי", winner: publishedWinners?.elementary },
+                  { label: "📖 ישיבה", winner: publishedWinners?.yeshiva },
+                  { label: "✨ אולפנה", winner: publishedWinners?.ulpana },
                 ].map((w, n) => (
-                  <div key={n} className="w-[68px] rounded-xl border-2 border-dashed border-gold-400/25 flex flex-col items-center justify-center gap-1 bg-gold-500/5 py-3 px-1">
-                    <span className="text-xl">{w.medal}</span>
-                    <span className="text-gold-400/60 text-[9px] font-medium">{w.label}</span>
-                    <span className="text-gray-600 text-[9px]">20:00</span>
+                  <div key={n} className={"rounded-xl border-2 flex flex-col items-center justify-center gap-1 py-4 px-2 text-center " +
+                    (w.winner ? "border-gold-400/50 bg-gold-500/10" : "border-dashed border-gold-400/20 bg-gold-500/5")}>
+                    <span className="text-2xl">{w.winner ? "🥇" : "🏆"}</span>
+                    <span className="text-gold-400/70 text-[10px] font-bold">{w.label}</span>
+                    {w.winner ? (
+                      <>
+                        <p className="text-white text-xs font-bold mt-1">{w.winner.first_name} {w.winner.last_name}</p>
+                        <p className="text-gray-500 text-[10px]">{w.winner.school_name}</p>
+                        <p className="text-green-400 text-[10px] font-bold">🍕 זוכה!</p>
+                      </>
+                    ) : (
+                      <p className="text-gray-600 text-[10px] mt-1">20:00</p>
+                    )}
                   </div>
                 ))}
               </div>
+
+              {!publishedWinners && (
+                <p className="text-gray-600 text-xs text-center mt-4">
+                  ענה נכון על כל 3 שאלות האתגר היומי ואולי תזכה! 🦁
+                </p>
+              )}
             </div>
           </motion.div>
         </div>

@@ -571,10 +571,7 @@ export default function Coordinator() {
                 ))}
               </div>
             ) : <p className="text-gray-500 text-sm text-center py-3">טוען...</p>}
-            <Button onClick={() => calcPreviewWinners(true)} variant="outline" size="sm"
-              className="w-full border-gold-400/20 text-gold-400 hover:bg-gold-400/10 text-xs h-8 mt-2">
-              רענן
-            </Button>
+
           </div>
         )}
 
