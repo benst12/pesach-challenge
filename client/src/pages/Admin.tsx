@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Lock, Users, Award, Star, Search, ArrowRight, ToggleLeft, ToggleRight, Download, Trash2, RefreshCw, AlertTriangle, MessageCircle, Calendar, FileText, Send } from "lucide-react";
+import { Lock, Users, Award, Star, Search, ArrowRight, ToggleLeft, ToggleRight, Download, Trash2, RefreshCw, AlertTriangle, MessageCircle, Calendar, FileText, Send, BookUser } from "lucide-react";
 
 interface StudentResult {
   id: string;
@@ -267,7 +267,8 @@ export default function Admin() {
       return 0;
     });
 
-  const totalRegistered = students.length;
+  const coordinators = students.filter(s => s.grade === "רכז מוסדי");
+  const totalRegistered = students.filter(s => s.grade !== "רכז מוסדי").length;
   const tookExam = students.filter(s => s.results.length > 0).length;
   const passed = students.filter(s => s.results.some(r => r.passed)).length;
   const excellent = students.filter(s => s.results.some(r => r.score >= 95)).length;
@@ -542,6 +543,7 @@ ${waMessage}` : waMessage;
             { icon: <Search className="h-6 w-6" />, label: "נבחנו", value: tookExam, color: "text-gold-400" },
             { icon: <Award className="h-6 w-6" />, label: "עברו (80%+)", value: passed, color: "text-green-400" },
             { icon: <Star className="h-6 w-6" />, label: "הצטיינו (95%+)", value: excellent, color: "text-gold-500" },
+          { icon: <BookUser className="h-6 w-6" />, label: "רכזים", value: coordinators.length, color: "text-purple-400" },
           ].map((stat, i) => (
             <div key={i} className="bg-[#12243f] border border-royal-400/10 rounded-xl p-5">
               <div className={`${stat.color} mb-2`}>{stat.icon}</div>

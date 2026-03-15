@@ -1,4 +1,4 @@
-/* Design: Royal Blue & Gold - Registration + returning student login */
+/* Design: Royal Blue & Gold - Registration + returning student login + coordinator */
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -10,15 +10,16 @@ import { supabase } from "@/lib/supabase";
 import { useStudent } from "@/contexts/StudentContext";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Loader2, UserPlus, Phone, LogIn } from "lucide-react";
+import { ArrowRight, Loader2, UserPlus, Phone, LogIn, BookUser } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Register() {
   const [, navigate] = useLocation();
   const { setStudent, setSelectedTrack } = useStudent();
 
-  // mode: "choose" | "login" | "register"
-  const [mode, setMode] = useState<"choose" | "login" | "register">("choose");
+  // mode: "choose" | "login" | "register" | "coordinator"
+  const [mode, setMode] = useState<"choose" | "login" | "register" | "coordinator">("choose");
+  const [isCoordinator, setIsCoordinator] = useState(false);
 
   // Login state
   const [loginPhone, setLoginPhone] = useState("");
@@ -38,10 +39,8 @@ export default function Register() {
     if (!loginPhone.trim()) { toast.error("נא להזין מספר טלפון"); return; }
     setLoginLoading(true);
     try {
-      // נרמל טלפון — הסר מקפים, רווחים, מקפים
       const normalizePhone = (p: string) => p.trim().replace(/[-\s]/g, "");
       const cleanPhone = normalizePhone(loginPhone);
-      // נסה כל צורות אפשריות: 0521234567, 052-1234567, 052 1234567
       const withDash = cleanPhone.slice(0,3) + "-" + cleanPhone.slice(3);
 
       let { data, error } = await supabase
@@ -51,7 +50,6 @@ export default function Register() {
         .limit(1)
         .single();
 
-      // אם לא נמצא — חיפוש לפי 8 ספרות אחרונות
       if (error || !data) {
         const last8 = cleanPhone.slice(-8);
         const res2 = await supabase
@@ -65,7 +63,7 @@ export default function Register() {
       }
 
       if (error || !data) {
-        toast.error("לא נמצא תלמיד עם מספר זה. בדקו שוב או הירשמו.");
+        toast.error("לא נמצא משתמש עם מספר זה. בדקו שוב או הירשמו.");
         setLoginLoading(false);
         return;
       }
@@ -79,6 +77,13 @@ export default function Register() {
         grade:     data.grade,
         trackId:   data.track_id,
       });
+
+      // רכז — ישירות לדף הבית
+      if (data.grade === "רכז מוסדי") {
+        toast.success(`ברוך הבא/ה, ${data.first_name}!`);
+        navigate("/");
+        return;
+      }
 
       if (data.track_id) {
         const track = TRACKS.find(t => t.id === data.track_id);
@@ -97,7 +102,7 @@ export default function Register() {
     }
   };
 
-  // ── הרשמה חדשה ──
+  // ── הרשמת תלמיד ──
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName || !lastName || !phone || !school || !grade) {
@@ -106,11 +111,10 @@ export default function Register() {
     }
     setRegLoading(true);
     try {
-      // בדוק אם כבר קיים תלמיד עם אותו טלפון
       const cleanPhone = phone.trim().replace(/[-\s]/g, "");
       const { data: existing } = await supabase
         .from("students")
-        .select("id, first_name, last_name, track_id")
+        .select("id")
         .or(`phone.eq.${phone.trim()},phone.eq.${cleanPhone}`)
         .limit(1)
         .single();
@@ -140,6 +144,114 @@ export default function Register() {
     }
   };
 
+  // ── הרשמת רכז ──
+  const handleCoordinatorRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firstName || !lastName || !phone || !school) {
+      toast.error("נא למלא את כל השדות");
+      return;
+    }
+    setRegLoading(true);
+    try {
+      const cleanPhone = phone.trim().replace(/[-\s]/g, "");
+      const { data: existing } = await supabase
+        .from("students")
+        .select("id")
+        .or(`phone.eq.${phone.trim()},phone.eq.${cleanPhone}`)
+        .limit(1)
+        .single();
+
+      if (existing) {
+        toast.error(`מספר הטלפון כבר רשום! אם זה אתה, השתמש ב"כבר נרשמתי" כדי להיכנס.`);
+        setRegLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("students")
+        .insert({
+          first_name: firstName,
+          last_name: lastName,
+          phone: phone.trim(),
+          school_name: school,
+          grade: "רכז מוסדי",  // מזהה רכז
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setStudent({ id: data.id, firstName, lastName, phone, school, grade: "רכז מוסדי" });
+      toast.success(`ברוך הבא/ה ${firstName}! נרשמת כרכז מוסדי`);
+      navigate("/");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("שגיאה בהרשמה, נסה שוב");
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
+  const formFields = (isCoord = false) => (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-gray-300">שם פרטי</Label>
+          <Input value={firstName} onChange={(e) => setFirstName(e.target.value)}
+            placeholder="שם פרטי"
+            className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 focus:border-gold-400/50 h-12" />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-gray-300">שם משפחה</Label>
+          <Input value={lastName} onChange={(e) => setLastName(e.target.value)}
+            placeholder="שם משפחה"
+            className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 focus:border-gold-400/50 h-12" />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-gray-300">טלפון</Label>
+        <Input value={phone} onChange={(e) => setPhone(e.target.value)}
+          placeholder="050-0000000" type="tel" dir="ltr"
+          className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 focus:border-gold-400/50 h-12 text-left" />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-gray-300">מוסד לימודים</Label>
+        <Select value={school} onValueChange={setSchool}>
+          <SelectTrigger className="bg-[#0c1a33] border-royal-400/20 text-white h-12 [&>span]:text-right">
+            <SelectValue placeholder="בחרו מוסד" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#12243f] border-royal-400/20 max-h-60">
+            {SCHOOLS.map((s) => (
+              <SelectItem key={s} value={s} className="text-white hover:bg-gold-500/10 focus:bg-gold-500/10 focus:text-white">
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {!isCoord && (
+        <div className="space-y-2">
+          <Label className="text-gray-300">כיתה</Label>
+          <Select value={grade} onValueChange={setGrade}>
+            <SelectTrigger className="bg-[#0c1a33] border-royal-400/20 text-white h-12 [&>span]:text-right">
+              <SelectValue placeholder="בחרו כיתה" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#12243f] border-royal-400/20">
+              {CLASSES.map((c) => (
+                <SelectItem key={c} value={c} className="text-white hover:bg-gold-500/10 focus:bg-gold-500/10 focus:text-white">
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-[#0c1a33] flex items-center justify-center py-12 px-4">
       <motion.div className="w-full max-w-md" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
@@ -162,9 +274,9 @@ export default function Register() {
             {/* ── בחירה ראשונית ── */}
             {mode === "choose" && (
               <motion.div key="choose" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="space-y-4">
+                className="space-y-3">
                 <button onClick={() => setMode("login")}
-                  className="w-full flex items-center gap-4 bg-gold-500/10 hover:bg-gold-500/20 border border-gold-400/30 rounded-xl p-5 transition-all group">
+                  className="w-full flex items-center gap-4 bg-gold-500/10 hover:bg-gold-500/20 border border-gold-400/30 rounded-xl p-5 transition-all">
                   <div className="w-11 h-11 rounded-xl bg-gold-500/20 flex items-center justify-center flex-shrink-0">
                     <Phone className="h-5 w-5 text-gold-400" />
                   </div>
@@ -174,14 +286,25 @@ export default function Register() {
                   </div>
                 </button>
 
-                <button onClick={() => setMode("register")}
-                  className="w-full flex items-center gap-4 bg-royal-600/10 hover:bg-royal-600/20 border border-royal-400/20 rounded-xl p-5 transition-all group">
+                <button onClick={() => { setIsCoordinator(false); setMode("register"); }}
+                  className="w-full flex items-center gap-4 bg-royal-600/10 hover:bg-royal-600/20 border border-royal-400/20 rounded-xl p-5 transition-all">
                   <div className="w-11 h-11 rounded-xl bg-royal-500/20 flex items-center justify-center flex-shrink-0">
                     <UserPlus className="h-5 w-5 text-royal-300" />
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-bold">הרשמה ראשונה</p>
-                    <p className="text-gray-400 text-sm">תלמיד/ה חדש/ה? הירשמו כאן</p>
+                    <p className="text-white font-bold">הרשמת תלמיד/ה</p>
+                    <p className="text-gray-400 text-sm">הרשמה ראשונה למבצע</p>
+                  </div>
+                </button>
+
+                <button onClick={() => { setIsCoordinator(true); setMode("register"); }}
+                  className="w-full flex items-center gap-4 bg-purple-600/10 hover:bg-purple-600/20 border border-purple-400/20 rounded-xl p-5 transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                    <BookUser className="h-5 w-5 text-purple-300" />
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white font-bold">רכז מוסדי</p>
+                    <p className="text-gray-400 text-sm">הרשמה כרכז/ת בית הספר</p>
                   </div>
                 </button>
               </motion.div>
@@ -193,99 +316,50 @@ export default function Register() {
                 <form onSubmit={handleLogin} className="space-y-5">
                   <div className="space-y-2">
                     <Label className="text-gray-300">מספר טלפון</Label>
-                    <Input
-                      value={loginPhone}
-                      onChange={(e) => setLoginPhone(e.target.value)}
-                      placeholder="050-0000000"
-                      type="tel"
-                      dir="ltr"
-                      className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 focus:border-gold-400/50 h-12 text-left"
-                    />
+                    <Input value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)}
+                      placeholder="050-0000000" type="tel" dir="ltr"
+                      className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 focus:border-gold-400/50 h-12 text-left" />
                     <p className="text-gray-500 text-xs">הזן/י את הטלפון שהזנת בהרשמה</p>
                   </div>
-
                   <Button type="submit" disabled={loginLoading}
                     className="w-full bg-gradient-to-l from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-[#0c1a33] font-bold text-lg h-14 rounded-xl glow-gold">
                     {loginLoading ? <Loader2 className="animate-spin h-5 w-5" /> : (
                       <><LogIn className="ml-2 h-5 w-5" />כניסה</>
                     )}
                   </Button>
-
                   <button type="button" onClick={() => setMode("choose")}
-                    className="w-full text-gray-500 hover:text-gray-300 text-sm transition-colors py-2">
-                    חזרה
-                  </button>
+                    className="w-full text-gray-500 hover:text-gray-300 text-sm transition-colors py-2">חזרה</button>
                 </form>
               </motion.div>
             )}
 
-            {/* ── הרשמה חדשה ── */}
+            {/* ── הרשמה (תלמיד / רכז) ── */}
             {mode === "register" && (
               <motion.div key="register" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-                <form onSubmit={handleRegister} className="space-y-5">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-gray-300">שם פרטי</Label>
-                      <Input value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="שם פרטי"
-                        className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 focus:border-gold-400/50 h-12" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-gray-300">שם משפחה</Label>
-                      <Input value={lastName} onChange={(e) => setLastName(e.target.value)}
-                        placeholder="שם משפחה"
-                        className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 focus:border-gold-400/50 h-12" />
+                {/* תגית רכז */}
+                {isCoordinator && (
+                  <div className="flex items-center gap-2 bg-purple-500/10 border border-purple-400/20 rounded-xl px-4 py-3 mb-5">
+                    <BookUser className="h-5 w-5 text-purple-300 flex-shrink-0" />
+                    <div>
+                      <p className="text-purple-300 font-bold text-sm">הרשמת רכז מוסדי</p>
+                      <p className="text-gray-500 text-xs">לא תידרש/י לבחור מסלול</p>
                     </div>
                   </div>
+                )}
 
-                  <div className="space-y-2">
-                    <Label className="text-gray-300">טלפון</Label>
-                    <Input value={phone} onChange={(e) => setPhone(e.target.value)}
-                      placeholder="050-0000000" type="tel" dir="ltr"
-                      className="bg-[#0c1a33] border-royal-400/20 text-white placeholder:text-gray-600 focus:border-gold-400/50 h-12 text-left" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-gray-300">מוסד לימודים</Label>
-                    <Select value={school} onValueChange={setSchool}>
-                      <SelectTrigger className="bg-[#0c1a33] border-royal-400/20 text-white h-12 [&>span]:text-right">
-                        <SelectValue placeholder="בחרו מוסד" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#12243f] border-royal-400/20 max-h-60">
-                        {SCHOOLS.map((s) => (
-                          <SelectItem key={s} value={s} className="text-white hover:bg-gold-500/10 focus:bg-gold-500/10 focus:text-white">
-                            {s}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-gray-300">כיתה</Label>
-                    <Select value={grade} onValueChange={setGrade}>
-                      <SelectTrigger className="bg-[#0c1a33] border-royal-400/20 text-white h-12 [&>span]:text-right">
-                        <SelectValue placeholder="בחרו כיתה" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#12243f] border-royal-400/20">
-                        {CLASSES.map((c) => (
-                          <SelectItem key={c} value={c} className="text-white hover:bg-gold-500/10 focus:bg-gold-500/10 focus:text-white">
-                            {c}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
+                <form onSubmit={isCoordinator ? handleCoordinatorRegister : handleRegister} className="space-y-5">
+                  {formFields(isCoordinator)}
                   <Button type="submit" disabled={regLoading}
-                    className="w-full bg-gradient-to-l from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-[#0c1a33] font-bold text-lg h-14 rounded-xl glow-gold">
-                    {regLoading ? <Loader2 className="animate-spin h-5 w-5" /> : "הרשמה"}
+                    className={`w-full font-bold text-lg h-14 rounded-xl ${isCoordinator
+                      ? "bg-gradient-to-l from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white"
+                      : "bg-gradient-to-l from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-[#0c1a33] glow-gold"
+                    }`}>
+                    {regLoading ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                      isCoordinator ? "הרשמה כרכז מוסדי" : "הרשמה"
+                    )}
                   </Button>
-
                   <button type="button" onClick={() => setMode("choose")}
-                    className="w-full text-gray-500 hover:text-gray-300 text-sm transition-colors py-2">
-                    חזרה
-                  </button>
+                    className="w-full text-gray-500 hover:text-gray-300 text-sm transition-colors py-2">חזרה</button>
                 </form>
               </motion.div>
             )}
