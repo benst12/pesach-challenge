@@ -70,9 +70,14 @@ export default function Home() {
     const loadWinners = async () => {
       const now = new Date();
       const today = now.toISOString().split("T")[0];
-      const hour = now.getHours();
-      // הצג רק אחרי 20:00
-      if (hour < 20) return;
+      const cacheKey = "pesach_winners_published_" + today;
+
+      // בדוק cache קודם
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) { setPublishedWinners(JSON.parse(cached)); return; }
+      } catch {}
+
       // קרא מסופאבייס
       const { data: winnerRows } = await supabase
         .from("scores")
@@ -90,15 +95,17 @@ export default function Home() {
         const row = winnerRows.find((r: any) => r.stage_title.endsWith("_" + key));
         return row ? studs.find((s: any) => s.id === row.student_id) || null : null;
       };
-      setPublishedWinners({
+      const result = {
         elementary: get("elementary"),
         yeshiva: get("yeshiva"),
         ulpana: get("ulpana"),
-      });
+      };
+      setPublishedWinners(result);
+      // שמור cache — לא ישתנה עד מחרת
+      try { localStorage.setItem(cacheKey, JSON.stringify(result)); } catch {}
     };
     loadWinners();
-    // בדוק כל דקה
-    const interval = setInterval(loadWinners, 60000);
+    const interval = setInterval(loadWinners, 300000); // כל 5 דקות בלבד
     return () => clearInterval(interval);
   }, []);
 
