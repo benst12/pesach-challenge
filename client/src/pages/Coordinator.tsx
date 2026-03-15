@@ -177,11 +177,13 @@ export default function Coordinator() {
       .select("id, first_name, last_name, school_name, grade")
       .in("id", ids);
     if (!studs?.length) return;
+    // הסר רכזים מהגרלה
+    const eligible = studs.filter((s:any) => s.grade !== "רכז מוסדי");
     const pick = (arr: any[]) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
     setPreviewWinners({
-      elementary: pick(studs.filter((s:any) => s.school_name?.startsWith("נעם"))),
-      yeshiva: pick(studs.filter((s:any) => s.school_name?.includes("ישיבת"))),
-      ulpana: pick(studs.filter((s:any) => s.school_name?.includes("אולפנת"))),
+      elementary: pick(eligible.filter((s:any) => s.school_name?.startsWith("נעם"))),
+      yeshiva: pick(eligible.filter((s:any) => s.school_name?.includes("ישיבת"))),
+      ulpana: pick(eligible.filter((s:any) => s.school_name?.includes("אולפנת"))),
     });
   };
 
