@@ -551,38 +551,9 @@ ${waMessage}` : waMessage;
           ))}
         </div>
 
-        {/* טבלת מוסדות נעם */}
-        {noamStats.length > 0 && (
-          <div className="bg-[#12243f] border border-gold-400/15 rounded-2xl overflow-hidden mb-8">
-            <div className="px-5 py-3 border-b border-royal-400/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🦁</span>
-                <span className="text-white font-bold text-sm">בתי ספר נעם — נרשמים</span>
-              </div>
-              <span className="text-gray-400 text-xs">סה״כ: {noamStats.reduce((a,b) => a + b[1], 0)}</span>
-            </div>
-            <div className="divide-y divide-[#1a2f50]">
-              {noamStats.map(([school, count], i) => (
-                <div key={school} className="flex items-center gap-3 px-5 py-3 hover:bg-[#152a48] transition-colors">
-                  <span className={`w-6 text-center font-bold text-sm flex-shrink-0 ${i === 0 ? "text-gold-400" : i === 1 ? "text-gray-300" : i === 2 ? "text-amber-600" : "text-gray-500"}`}>
-                    {i + 1}
-                  </span>
-                  <span className="text-white text-sm flex-1">{school}</span>
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 h-1.5 bg-[#0c1a33] rounded-full overflow-hidden hidden sm:block">
-                      <div className="h-full bg-gradient-to-l from-gold-500 to-gold-400 rounded-full"
-                        style={{ width: `${(count / noamStats[0][1]) * 100}%` }} />
-                    </div>
-                    <span className="text-gold-400 font-bold text-sm w-6 text-left">{count}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* מונים לפי מוסד ומסלול */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           {/* לפי מוסד */}
           <div className="bg-[#12243f] border border-royal-400/10 rounded-xl overflow-hidden">
             <div className="px-5 py-3 border-b border-royal-400/10 flex items-center gap-2">
@@ -635,6 +606,35 @@ ${waMessage}` : waMessage;
                 );
               })}
               {trackStats.length === 0 && <p className="text-gray-600 text-sm text-center py-4">אין נתונים</p>}
+            </div>
+          </div>
+
+          {/* בתי ספר נעם */}
+          <div className="bg-[#12243f] border border-royal-400/10 rounded-xl overflow-hidden">
+            <div className="px-5 py-3 border-b border-royal-400/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-base">🏫</span>
+                <span className="text-white font-bold text-sm">בתי ספר נעם</span>
+              </div>
+              <span className="text-gray-500 text-xs">{noamStats.reduce((a,b) => a + b[1], 0)} סה״כ</span>
+            </div>
+            <div className="p-4 space-y-2">
+              {noamStats.map(([school, count], i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className={`text-xs w-4 text-center font-bold ${i===0?"text-gold-400":i===1?"text-gray-300":i===2?"text-amber-600":"text-gray-500"}`}>{i + 1}</span>
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-0.5">
+                      <span className="text-white text-xs truncate">{school}</span>
+                      <span className="text-gold-400 text-xs font-bold">{count}</span>
+                    </div>
+                    <div className="h-1 bg-[#0c1a33] rounded-full overflow-hidden">
+                      <div className="h-full bg-gold-400/60 rounded-full"
+                        style={{ width: `${(count / (noamStats[0]?.[1] || 1)) * 100}%` }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {noamStats.length === 0 && <p className="text-gray-600 text-sm text-center py-4">אין נתונים</p>}
             </div>
           </div>
         </div>
