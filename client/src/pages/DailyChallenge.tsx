@@ -225,7 +225,11 @@ export default function DailyChallenge() {
             <div className="space-y-2">
               {dbHistory.map((h, i) => (
                 <div key={i} className="flex items-center justify-between bg-[#0c1a33] rounded-xl px-4 py-3">
-                  <span className="text-gray-400 text-sm">{toHebrewDate(new Date(h.created_at))}</span>
+                  <span className="text-gray-400 text-sm">{(() => {
+                    const d = new Date(h.created_at);
+                    const today = new Date(); today.setHours(0,0,0,0);
+                    return d >= today ? 'כ"ז אדר תשפ"ו' : toHebrewDate(d);
+                  })()}</span>
                   <span className={`font-bold text-sm ${
                     h.correct_answers === h.total_questions ? "text-gold-400" :
                     h.correct_answers >= 2 ? "text-green-400" : "text-red-400"}`}>
