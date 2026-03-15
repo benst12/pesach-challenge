@@ -36,39 +36,12 @@ export default function Coordinator() {
   const [waSearch, setWaSearch] = useState("");
   const [personalMsg, setPersonalMsg] = useState(true);
   const [dailyLeaders, setDailyLeaders] = useState<any[]>([]);
-  const [winners, setWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
-  const [drawCountdown, setDrawCountdown] = useState("");
+  const [previewWinners, setPreviewWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
+  const [previewCountdown, setPreviewCountdown] = useState("");
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
   const [reportSchool, setReportSchool] = useState("");
-    for (const tc of EXAM_CONFIGS) {
-      for (const stage of tc.stages) {
-        init[stage.storageKey] = isStageOpen(stage);
-      }
-    }
-    return init;
-  });
 
-  // פתיחה אוטומטית לפי תאריך
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const allStages = EXAM_CONFIGS.flatMap(c => c.stages);
-      allStages.forEach(stage => {
-        const scheduled = autoSchedule[stage.storageKey];
-        if (!scheduled) return;
-        const openTime = new Date(scheduled).getTime();
-        if (Date.now() >= openTime && !examStates[stage.storageKey]) {
-          setStageOpen(stage, true);
-          setExamStates(prev => ({ ...prev, [stage.storageKey]: true }));
-          toast.success(`${stage.title} נפתח אוטומטית!`);
-        }
-      });
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [autoSchedule, examStates]);
 
-  // ייצוא Excel מפורט — מוסד, רכז, תלמידים, ציונים
-    const exportFullExcel = () => {
-    const bySchoolMap: Record<string, typeof students> = {};
     students.filter(s => s.grade !== "רכז מוסדי").forEach(s => {
       const key = s.school_name || "לא ידוע";
       if (!bySchoolMap[key]) bySchoolMap[key] = [];
@@ -184,8 +157,8 @@ export default function Coordinator() {
     a.click();
   };
 
-  // גרלה אוטומטית בשעה 20:00
-  const runDraw = async () => {
+
+  const calcPreviewWinners = async () => {
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);
     const { data: todayScores } = await supabase
       .from("scores")
@@ -200,43 +173,31 @@ export default function Coordinator() {
       .select("id, first_name, last_name, school_name, grade")
       .in("id", ids);
     if (!studs?.length) return;
-    const pick = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
-    const elementary = studs.filter((s:any) => s.school_name?.startsWith("נעם"));
-    const yeshiva = studs.filter((s:any) => s.school_name?.includes("ישיבת"));
-    const ulpana = studs.filter((s:any) => s.school_name?.includes("אולפנת"));
-    setWinners({
-      elementary: elementary.length ? pick(elementary) : null,
-      yeshiva: yeshiva.length ? pick(yeshiva) : null,
-      ulpana: ulpana.length ? pick(ulpana) : null,
+    const pick = (arr: any[]) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
+    setPreviewWinners({
+      elementary: pick(studs.filter((s:any) => s.school_name?.startsWith("נעם"))),
+      yeshiva: pick(studs.filter((s:any) => s.school_name?.includes("ישיבת"))),
+      ulpana: pick(studs.filter((s:any) => s.school_name?.includes("אולפנת"))),
     });
-    // שמור בסופאבייס
-    const today = new Date().toISOString().split("T")[0];
-    await supabase.from("scores").upsert({
-      student_id: "00000000-0000-0000-0000-000000000000",
-      quiz_id: "daily_winners_" + today,
-      score: 0, total_questions: 0, correct_answers: 0,
-      stage_title: "זוכי יום " + today,
-    }).select();
   };
 
   useEffect(() => {
     if (!authenticated) return;
-    const checkDraw = () => {
+    const check = () => {
       const now = new Date();
       const h = now.getHours(), m = now.getMinutes();
-      if (h === 20 && m === 0) runDraw();
-      // ספירה לאחור
-      const next20 = new Date(now);
-      next20.setHours(20,0,0,0);
+      if (h >= 18) calcPreviewWinners();
+      // ספירה לאחור ל-20:00
+      const next20 = new Date(now); next20.setHours(20,0,0,0);
       if (now >= next20) next20.setDate(next20.getDate()+1);
       const diff = Math.max(0, next20.getTime() - now.getTime());
       const hh = Math.floor(diff/3600000);
       const mm = Math.floor((diff%3600000)/60000);
       const ss = Math.floor((diff%60000)/1000);
-      setDrawCountdown(`${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`);
+      setPreviewCountdown(`${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`);
     };
-    checkDraw();
-    const timer = setInterval(checkDraw, 1000);
+    check();
+    const timer = setInterval(check, 60000); // כל דקה
     return () => clearInterval(timer);
   }, [authenticated]);
 
@@ -498,50 +459,6 @@ export default function Coordinator() {
 
         <h1 className="font-display text-3xl text-white mb-8">לוח רכזים – מבצע שאגת הארי</h1>
 
-        {/* ── גרלת זוכי האתגר היומי ── */}
-        <div className="bg-gradient-to-l from-[#12243f] to-[#0f1f3a] border border-gold-400/25 rounded-2xl p-6 mb-8">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🏆</span>
-              <div>
-                <h3 className="text-white font-bold">גרלת זוכי האתגר היומי</h3>
-                <p className="text-gray-500 text-xs">מי שענה נכון על כל 3 השאלות</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-gray-500 text-xs mb-1">גרלה אוטומטית בשעה 20:00</p>
-              <p className="text-gold-400 font-mono font-bold">{drawCountdown}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            {[
-              { key: "elementary", label: "יסודי נעם", icon: "🏫", winner: winners?.elementary },
-              { key: "yeshiva",    label: "ישיבה",     icon: "📖", winner: winners?.yeshiva },
-              { key: "ulpana",     label: "אולפנה",    icon: "✨", winner: winners?.ulpana },
-            ].map(w => (
-              <div key={w.key} className={`rounded-xl border-2 p-4 text-center transition-all ${w.winner ? "border-gold-400/50 bg-gold-500/10" : "border-dashed border-gold-400/20 bg-white/3"}`}>
-                <div className="text-2xl mb-2">{w.winner ? "🥇" : w.icon}</div>
-                <p className="text-gold-400 text-xs font-bold mb-1">{w.label}</p>
-                {w.winner ? (
-                  <>
-                    <p className="text-white text-sm font-bold">{w.winner.first_name} {w.winner.last_name}</p>
-                    <p className="text-gray-500 text-[10px] mt-0.5">{w.winner.school_name}</p>
-                    <p className="text-gray-600 text-[10px]">{w.winner.grade}</p>
-                  </>
-                ) : (
-                  <p className="text-gray-600 text-xs">יפורסם ב-20:00</p>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <Button onClick={runDraw}
-            className="w-full bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold h-11 gap-2">
-            🎲 הגרל עכשיו
-          </Button>
-        </div>
-
         {/* ── WhatsApp + אוטומציה + דוחות ── */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
 
@@ -611,29 +528,6 @@ ${waMessage}` : waMessage;
               );
             })()}
           </div>
-
-          {/* פתיחה אוטומטית */}
-          <div className="bg-[#0f1d36] border border-gold-400/15 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-5 w-5 text-gold-400" />
-              <h3 className="text-white font-bold text-sm">פתיחה אוטומטית</h3>
-            </div>
-            <p className="text-gray-500 text-xs mb-3">קבע תאריך ושעה לפתיחת מבחן — יפתח אוטומטית</p>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {EXAM_CONFIGS.flatMap(tc => tc.stages).map(stage => (
-                <div key={stage.storageKey} className="bg-[#0c1a33] rounded-xl p-2.5">
-                  <p className="text-white text-xs font-medium mb-1.5">{stage.title} – {stage.date.split(",")[0]}</p>
-                  <input
-                    type="datetime-local"
-                    value={autoSchedule[stage.storageKey] || ""}
-                    onChange={e => setAutoSchedule(prev => ({ ...prev, [stage.storageKey]: e.target.value }))}
-                    className="w-full bg-[#12243f] border border-royal-400/20 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-gold-400/50"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* דוחות לפי מוסד */}
           <div className="bg-[#0f1d36] border border-royal-400/15 rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
