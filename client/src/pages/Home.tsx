@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { IMAGES, TRACKS } from "@/lib/data";
 import { getDailyQuestions, getTodayKeyFromDayIndex, toHebrewDate } from "@/lib/dailyUtils";
 import { useStudent } from "@/contexts/StudentContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Trophy, ChevronLeft, Star, Shield, Zap, GraduationCap, Users, LogIn, ArrowLeft, Calendar, BookMarked, LogOut } from "lucide-react";
 import { EXAM_CONFIGS } from "@/lib/examConfig";
 import { supabase } from "@/lib/supabase";
