@@ -281,7 +281,7 @@ export default function Admin() {
   const schoolStats = Object.entries(bySchool).sort((a, b) => b[1] - a[1]);
   // מוסדות נעם בלבד
   const noamStats = Object.entries(bySchool)
-    .filter(([name]) => name.includes("נעם") || name.includes("צביה"))
+    .filter(([name]) => name.startsWith("נעם"))
     .sort((a, b) => b[1] - a[1]);
 
   // מונים לפי מסלול
@@ -557,7 +557,7 @@ ${waMessage}` : waMessage;
             <div className="px-5 py-3 border-b border-royal-400/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-xl">🦁</span>
-                <span className="text-white font-bold text-sm">מוסדות רשת נעם צביה — נרשמים</span>
+                <span className="text-white font-bold text-sm">בתי ספר נעם — נרשמים</span>
               </div>
               <span className="text-gray-400 text-xs">סה״כ: {noamStats.reduce((a,b) => a + b[1], 0)}</span>
             </div>
