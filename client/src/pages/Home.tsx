@@ -57,7 +57,7 @@ export default function Home() {
     const diff = Math.ceil((seder.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     setDaysToSeder(diff > 0 ? diff : 0);
 
-    setHebrewDate(toHebrewDate(today));
+    setHebrewDate('כ"ז אדר תשפ"ו');
   }, []);
 
   useEffect(() => {

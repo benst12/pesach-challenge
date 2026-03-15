@@ -122,7 +122,7 @@ export default function DailyChallenge() {
             <h1 className="font-display text-3xl text-white mb-1 flex items-center gap-3 justify-center">
               <Zap className="h-8 w-8 text-gold-400" />אתגר יומי
             </h1>
-            <p className="text-gold-400 text-sm">{toHebrewDate(new Date())}</p>
+            <p className="text-gold-400 text-sm">'כ"ז אדר תשפ"ו'</p>
           </motion.div>
         </div>
       </div>

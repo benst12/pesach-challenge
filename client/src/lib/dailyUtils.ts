@@ -21,9 +21,9 @@ const MANUAL_QUESTIONS: any[] | null = [
     id: 116, chapter: "פרק ה",
     question: 'מתי אומרים את נוסח הביטול הראשון (ביטול לאחר בדיקה)?',
     options: [
-      { text: 'בליל י"ד אחרי הבדיקה', correct: true,  key: "א" },
-      { text: 'בבוקר י"ד לפני השריפה', correct: false, key: "ב" },
-      { text: 'בחצות ליל י"ד',         correct: false, key: "ג" },
+      { text: 'בבוקר י"ד לפני השריפה', correct: false, key: "א" },
+      { text: 'בחצות ליל י"ד',         correct: false, key: "ב" },
+      { text: 'בליל י"ד אחרי הבדיקה', correct: true,  key: "ג" },
       { text: 'ממש לפני כניסת פסח',    correct: false, key: "ד" },
     ]
   },
@@ -31,20 +31,20 @@ const MANUAL_QUESTIONS: any[] | null = [
     id: 143, chapter: "פרק יא",
     question: "כיצד מכשירים את הכיריים לפסח?",
     options: [
-      { text: "ניקוי יסודי ואז הדלקת האש לזמן מה",     correct: true,  key: "א" },
-      { text: "שטיפה קרה בלבד",                         correct: false, key: "ב" },
+      { text: "שטיפה קרה בלבד",                         correct: false, key: "א" },
+      { text: "הזמנת מגעיל מקצועי בלבד",                correct: false, key: "ב" },
       { text: "ניקוי ואז כיסוי בנייר כסף בלבד",         correct: false, key: "ג" },
-      { text: "הזמנת מגעיל מקצועי בלבד",                correct: false, key: "ד" },
+      { text: "ניקוי יסודי ואז הדלקת האש לזמן מה",     correct: true,  key: "ד" },
     ]
   },
   {
     id: 40, chapter: "פרק טז",
     question: 'מה פירוש "קדש"?',
     options: [
-      { text: "קידוש על הכוס – כוס ראשונה", correct: true,  key: "א" },
-      { text: "לקדש את השולחן",              correct: false, key: "ב" },
-      { text: "להתפלל תפילת ערבית",           correct: false, key: "ג" },
-      { text: "לשיר שיר קדוש",               correct: false, key: "ד" },
+      { text: "לקדש את השולחן",              correct: false, key: "א" },
+      { text: "קידוש על הכוס – כוס ראשונה", correct: true,  key: "ב" },
+      { text: "לשיר שיר קדוש",               correct: false, key: "ג" },
+      { text: "להתפלל תפילת ערבית",           correct: false, key: "ד" },
     ]
   },
 ];
