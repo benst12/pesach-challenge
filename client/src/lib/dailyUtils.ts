@@ -34,14 +34,16 @@ export function getDailyQuestions() {
   return [idx0, finalIdx1, finalIdx2].map((qi, offset) => {
     const q = ALL_QUESTIONS[qi];
     if (!q) return null;
-    // ערבוב Fisher-Yates עם seed קבוע לפי יום — אותו ערבוב לכולם
-    const seedVal = dayIdx * 7919 + offset * 2311 + 42;
-    let s = seedVal;
+    // ערבוב Fisher-Yates עם hash seed — התפלגות שווה לכל התשובות
+    const hashSeed = (str: string) => {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+      return Math.abs(h) || 1;
+    };
+    let s = hashSeed("day" + dayIdx + "q" + offset);
     const rng = () => {
-      s = Math.imul(s ^ (s >>> 16), 0x45d9f3b);
-      s = Math.imul(s ^ (s >>> 16), 0x45d9f3b);
-      s = s ^ (s >>> 16);
-      return (s >>> 0) / 0x100000000;
+      s = (s * 16807) % 2147483647;
+      return (s - 1) / 2147483646;
     };
     const shuffled = [...q.options];
     for (let i = shuffled.length - 1; i > 0; i--) {

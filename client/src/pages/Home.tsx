@@ -309,47 +309,39 @@ export default function Home() {
 
       {/* ── לוח מובילים אתגר יומי ── */}
       {leaderboard.length > 0 && (
-        <section className="py-16 bg-[#0a1628]">
-          <div className="container max-w-2xl">
-            <motion.div className="text-center mb-8" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-4">
+        <section className="py-10 bg-[#0a1628]">
+          <div className="container max-w-3xl">
+            <motion.div className="text-center mb-5" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <div className="inline-flex items-center gap-2 bg-gold-500/10 border border-gold-400/25 rounded-full px-4 py-1.5 mb-2">
                 <Trophy className="h-4 w-4 text-gold-400" />
-                <span className="text-gold-300 font-bold">לוח המובילים</span>
+                <span className="text-gold-300 font-bold text-sm">מצטייני האתגר היומי</span>
               </div>
-              <h2 className="font-display text-3xl text-white mb-2">מצטייני האתגר היומי</h2>
-              <p className="text-gray-400 text-sm">10 התלמידים עם הכי הרבה תשובות נכונות מצטברות</p>
+              <p className="text-gray-500 text-xs">הכי הרבה תשובות נכונות מצטברות</p>
             </motion.div>
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {leaderboard.map((s, i) => (
-                <motion.div key={s.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }} transition={{ delay: i * 0.06 }}
-                  className={`flex items-center gap-4 rounded-2xl px-5 py-4 border ${
-                    i === 0 ? "bg-gold-500/10 border-gold-400/40" :
-                    i === 1 ? "bg-gray-400/5 border-gray-400/20" :
-                    i === 2 ? "bg-amber-700/10 border-amber-600/20" :
+                <motion.div key={s.id} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }} transition={{ delay: i * 0.04 }}
+                  className={`flex items-center gap-2 rounded-xl px-3 py-2.5 border ${
+                    i === 0 ? "bg-gold-500/10 border-gold-400/30" :
+                    i === 1 ? "bg-gray-400/5 border-gray-400/15" :
+                    i === 2 ? "bg-amber-700/10 border-amber-600/15" :
                     "bg-[#12243f] border-royal-400/10"
                   }`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-display text-xl font-bold flex-shrink-0 ${
-                    i === 0 ? "bg-gold-500 text-[#0c1a33]" :
-                    i === 1 ? "bg-gray-400 text-[#0c1a33]" :
-                    i === 2 ? "bg-amber-600 text-white" :
-                    "bg-[#0c1a33] text-gray-400"
-                  }`}>
-                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
-                  </div>
+                  <span className="text-base flex-shrink-0">
+                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : <span className="text-gray-500 text-xs font-bold w-4 text-center">{i+1}</span>}
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-bold text-base truncate">{s.first_name} {s.last_name}</p>
-                    <p className="text-gray-400 text-sm truncate">{s.school_name} • {s.grade}</p>
+                    <p className="text-white text-xs font-bold truncate">{s.first_name} {s.last_name}</p>
+                    <p className="text-gray-500 text-[10px] truncate">{s.school_name} • {s.grade}</p>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className={`font-display text-2xl font-bold ${i < 3 ? "text-gold-400" : "text-gray-300"}`}>{s.total}</p>
-                    <p className="text-gray-500 text-xs">תשובות נכונות</p>
-                  </div>
+                  <span className={`font-bold text-sm flex-shrink-0 ${i < 3 ? "text-gold-400" : "text-gray-400"}`}>{s.total}</span>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
+      )}
       )}
 
       {/* ── אתגר יומי בדף הבית ── */}
