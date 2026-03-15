@@ -221,6 +221,11 @@ export default function Home() {
                 <span className="hidden sm:block">התנתק</span>
               </button>
             )}
+            <button onClick={() => navigate("/coordinator")}
+              className="flex items-center gap-2 bg-purple-900/20 border border-purple-400/20 rounded-xl px-3 py-2 text-purple-400 text-xs hover:bg-purple-900/30 transition-all">
+              <BookUser className="h-3.5 w-3.5" />
+              <span>רכז</span>
+            </button>
             <button onClick={() => navigate("/admin")}
               className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-gray-500 text-xs hover:bg-white/10 hover:text-gray-300 transition-all">
               <Shield className="h-3.5 w-3.5" />
