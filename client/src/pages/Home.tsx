@@ -67,20 +67,39 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // טעינת זוכים מ-localStorage — קבועים ביום
-    const today = new Date().toISOString().split("T")[0];
-    try {
-      const cached = localStorage.getItem("pesach_winners_" + today);
-      if (cached) setPublishedWinners(JSON.parse(cached));
-    } catch {}
-    // בדוק שוב כל דקה (לאחר 20:00)
-    const winnersInterval = setInterval(() => {
-      try {
-        const cached = localStorage.getItem("pesach_winners_" + new Date().toISOString().split("T")[0]);
-        if (cached) setPublishedWinners(JSON.parse(cached));
-      } catch {}
-    }, 60000);
-    return () => clearInterval(winnersInterval);
+    const loadWinners = async () => {
+      const now = new Date();
+      const today = now.toISOString().split("T")[0];
+      const hour = now.getHours();
+      // הצג רק אחרי 20:00
+      if (hour < 20) return;
+      // קרא מסופאבייס
+      const { data: winnerRows } = await supabase
+        .from("scores")
+        .select("student_id, stage_title")
+        .like("stage_title", "winners_" + today + "_%")
+        .eq("quiz_id", "daily_winners");
+      if (!winnerRows?.length) return;
+      const ids = winnerRows.map((r: any) => r.student_id);
+      const { data: studs } = await supabase
+        .from("students")
+        .select("id, first_name, last_name, school_name, grade")
+        .in("id", ids);
+      if (!studs?.length) return;
+      const get = (key: string) => {
+        const row = winnerRows.find((r: any) => r.stage_title.endsWith("_" + key));
+        return row ? studs.find((s: any) => s.id === row.student_id) || null : null;
+      };
+      setPublishedWinners({
+        elementary: get("elementary"),
+        yeshiva: get("yeshiva"),
+        ulpana: get("ulpana"),
+      });
+    };
+    loadWinners();
+    // בדוק כל דקה
+    const interval = setInterval(loadWinners, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -460,7 +479,7 @@ export default function Home() {
                   ) : (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
-                      <span className="text-gold-400 text-sm">יפורסמו היום בשעה 20:00 — כל זוכה מקבל 🍕 שובר פיצה!</span>
+                      <span className="text-gold-400 text-sm">יפורסמו היום בשעה 20:00 — ענה נכון על כל 3 השאלות ואולי תזכה ב-🍕 שובר פיצה!</span>
                     </div>
                   )}
                 </div>

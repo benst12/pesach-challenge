@@ -254,6 +254,20 @@ export default function Coordinator() {
     };
     setPreviewWinners(result);
     try { localStorage.setItem(cacheKey, JSON.stringify(result)); } catch {}
+    // שמור בסופאבייס — student_id של כל זוכה עם stage_title ייחודי
+    await supabase.from("scores").delete()
+      .like("stage_title", "winners_" + today + "_%");
+    const toInsert = [
+      { key: "elementary", data: result.elementary },
+      { key: "yeshiva",    data: result.yeshiva },
+      { key: "ulpana",     data: result.ulpana },
+    ].filter(w => w.data?.id).map(w => ({
+      student_id: w.data.id,
+      quiz_id: "daily_winners",
+      score: 0, total_questions: 0, correct_answers: 0,
+      stage_title: "winners_" + today + "_" + w.key,
+    }));
+    if (toInsert.length > 0) await supabase.from("scores").insert(toInsert);
   };
 
   useEffect(() => {
