@@ -36,8 +36,6 @@ export default function Coordinator() {
   const [waSearch, setWaSearch] = useState("");
   const [personalMsg, setPersonalMsg] = useState(true);
   const [dailyLeaders, setDailyLeaders] = useState<any[]>([]);
-  const [previewWinners, setPreviewWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
-  const [previewCountdown, setPreviewCountdown] = useState("");
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
   const [reportSchool, setReportSchool] = useState("");
 
@@ -219,76 +217,7 @@ export default function Coordinator() {
   };
 
 
-  const calcPreviewWinners = async (force = false) => {
-    const today = new Date().toISOString().split("T")[0];
-    const cacheKey = "pesach_winners_" + today;
 
-    // אם לא force — השתמש בתוצאות שמורות מאותו יום
-    if (!force) {
-      try {
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) { setPreviewWinners(JSON.parse(cached)); return; }
-      } catch {}
-    }
-
-    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-    const { data: todayScores } = await supabase
-      .from("scores")
-      .select("student_id, correct_answers")
-      .eq("stage_title", "אתגר יומי")
-      .eq("correct_answers", 3)
-      .gte("created_at", todayStart.toISOString());
-    if (!todayScores?.length) { toast("אין עדיין תלמידים שענו נכון על כל השאלות היום"); return; }
-    const ids = [...new Set(todayScores.map((s:any) => s.student_id))];
-    const { data: studs } = await supabase
-      .from("students")
-      .select("id, first_name, last_name, school_name, grade")
-      .in("id", ids);
-    if (!studs?.length) return;
-    const eligible = studs.filter((s:any) => s.grade !== "רכז מוסדי");
-    const pick = (arr: any[]) => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
-    const result = {
-      elementary: pick(eligible.filter((s:any) => s.school_name?.startsWith("נעם"))),
-      yeshiva: pick(eligible.filter((s:any) => s.school_name?.includes("ישיבת"))),
-      ulpana: pick(eligible.filter((s:any) => s.school_name?.includes("אולפנת"))),
-    };
-    setPreviewWinners(result);
-    try { localStorage.setItem(cacheKey, JSON.stringify(result)); } catch {}
-    // שמור בסופאבייס — student_id של כל זוכה עם stage_title ייחודי
-    await supabase.from("scores").delete()
-      .like("stage_title", "winners_" + today + "_%");
-    const toInsert = [
-      { key: "elementary", data: result.elementary },
-      { key: "yeshiva",    data: result.yeshiva },
-      { key: "ulpana",     data: result.ulpana },
-    ].filter(w => w.data?.id).map(w => ({
-      student_id: w.data.id,
-      quiz_id: "daily_winners",
-      score: 0, total_questions: 0, correct_answers: 0,
-      stage_title: "winners_" + today + "_" + w.key,
-    }));
-    if (toInsert.length > 0) await supabase.from("scores").insert(toInsert);
-  };
-
-  useEffect(() => {
-    if (!authenticated) return;
-    const check = () => {
-      const now = new Date();
-      const h = now.getHours(), m = now.getMinutes();
-      if (h >= 18) calcPreviewWinners();
-      // ספירה לאחור ל-20:00
-      const next20 = new Date(now); next20.setHours(20,0,0,0);
-      if (now >= next20) next20.setDate(next20.getDate()+1);
-      const diff = Math.max(0, next20.getTime() - now.getTime());
-      const hh = Math.floor(diff/3600000);
-      const mm = Math.floor((diff%3600000)/60000);
-      const ss = Math.floor((diff%60000)/1000);
-      setPreviewCountdown(`${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`);
-    };
-    check();
-    const timer = setInterval(check, 60000); // כל דקה
-    return () => clearInterval(timer);
-  }, [authenticated]);
 
   const handleLogin = () => {
     if (password === COORDINATOR_PASSWORD) {
@@ -547,47 +476,6 @@ export default function Coordinator() {
         </div>
 
         <h1 className="font-display text-3xl text-white mb-8">לוח רכזים – מבצע שאגת הארי</h1>
-
-        {/* ── גרלת זוכים ── */}
-        {new Date().getHours() >= 18 && (
-          <div className="bg-gradient-to-l from-[#12243f] to-[#0f1f3a] border border-gold-400/25 rounded-2xl p-5 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🎲</span>
-                <div>
-                  <h3 className="text-white font-bold text-sm">🎉 זוכי האתגר היומי — 20:00</h3>
-                  <p className="text-green-400 text-xs font-medium">🍕 כל זוכה מקבל שובר למגש פיצה!</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-gray-500 text-xs">פרסום בעוד</p>
-                <p className="text-gold-400 font-mono font-bold text-sm">{previewCountdown}</p>
-              </div>
-            </div>
-            {previewWinners ? (
-              <div className="grid grid-cols-3 gap-3 mb-3">
-                {[
-                  { label: "🏫 יסודי נעם", winner: previewWinners.elementary },
-                  { label: "📖 ישיבה",     winner: previewWinners.yeshiva },
-                  { label: "✨ אולפנה",    winner: previewWinners.ulpana },
-                ].map((w, i) => (
-                  <div key={i} className={"rounded-xl border p-3 text-center " + (w.winner ? "border-gold-400/30 bg-gold-500/8" : "border-gray-700/40 bg-gray-800/20")}>
-                    <p className="text-gray-400 text-[10px] font-bold mb-2">{w.label}</p>
-                    {w.winner ? (
-                      <>
-                        <p className="text-white text-xs font-bold">{w.winner.first_name} {w.winner.last_name}</p>
-                        <p className="text-gray-500 text-[10px]">{w.winner.school_name}</p>
-                        <p className="text-gray-600 text-[10px]">{w.winner.grade}</p>
-                        <p className="text-green-400 text-[10px] font-bold mt-1">🍕 זוכה בשובר פיצה!</p>
-                      </>
-                    ) : <p className="text-gray-600 text-xs">אין מועמדים</p>}
-                  </div>
-                ))}
-              </div>
-            ) : <p className="text-gray-500 text-sm text-center py-3">טוען...</p>}
-
-          </div>
-        )}
 
         {/* ── WhatsApp + אוטומציה + דוחות ── */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
