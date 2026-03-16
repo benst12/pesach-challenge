@@ -69,7 +69,7 @@ export default function Home() {
   useEffect(() => {
     // זוכי האתגר היומי — קבועים
     setPublishedWinners({
-      elementary: { first_name: "אלישי", last_name: "שמיר",    school_name: "נעם רחובות תתמ"ד",        grade: "כיתה ה2" },
+      elementary: { first_name: "אלישי", last_name: "שמיר",    school_name: "נעם רחובות תתמד",        grade: "כיתה ה2" },
       yeshiva:    { first_name: "ינון",  last_name: "יצחקי",  school_name: "ישיבת צביה פתח תקווה",    grade: "כיתה ט2" },
       ulpana:     { first_name: "הודיה", last_name: "כהן",    school_name: "אולפנת צביה בת ים",        grade: "כיתה יב1" },
     });
