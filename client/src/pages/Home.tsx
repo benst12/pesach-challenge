@@ -78,9 +78,18 @@ export default function Home() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const { data } = await supabase.from("students").select("school_name, track_id");
+        // שאילתת count נפרדת — ללא הגבלת 1000
+        const { count: totalCount } = await supabase
+          .from("students")
+          .select("*", { count: "exact", head: true });
+        
+        // נתונים לסטטיסטיקות (עם limit גבוה)
+        const { data } = await supabase
+          .from("students")
+          .select("school_name, track_id")
+          .limit(5000);
         if (!data) return;
-        const total = data.length;
+        const total = totalCount ?? data.length;
         const counts: Record<string, number> = {};
         data.forEach((s: any) => { if (s.school_name) counts[s.school_name] = (counts[s.school_name] || 0) + 1; });
         const topSchools = Object.entries(counts)
@@ -136,6 +145,8 @@ export default function Home() {
       } catch {}
     };
     loadStats();
+    const interval = setInterval(loadStats, 5 * 60 * 1000); // רענון כל 5 דקות
+    return () => clearInterval(interval);
   }, []);
 
   // ticker — מחליף זוג שמות כל 3 שניות
