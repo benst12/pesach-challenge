@@ -57,7 +57,7 @@ export default function Home() {
     const diff = Math.ceil((seder.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     setDaysToSeder(diff > 0 ? diff : 0);
 
-    setHebrewDate('כ"ח אדר תשפ"ו');
+    setHebrewDate('כ"ט אדר תשפ"ו');
   }, []);
 
   useEffect(() => {
@@ -69,9 +69,9 @@ export default function Home() {
   useEffect(() => {
     // זוכי האתגר היומי — קבועים
     setPublishedWinners({
-      elementary: { first_name: "אלישי", last_name: "שמיר",    school_name: "נעם רחובות תתמד",        grade: "כיתה ה2" },
-      yeshiva:    { first_name: "ינון",  last_name: "יצחקי",  school_name: "ישיבת צביה פתח תקווה",    grade: "כיתה ט2" },
-      ulpana:     { first_name: "הודיה", last_name: "כהן",    school_name: "אולפנת צביה בת ים",        grade: "כיתה יב1" },
+      elementary: { first_name: "סיני",  last_name: "גרינגליק", school_name: "נעם מעלה התורה בנים", grade: "כיתה ה1" },
+      yeshiva:    { first_name: "נועם",  last_name: "סבג",     school_name: "ישיבת צביה מע\"א",        grade: "כיתה ז2" },
+      ulpana:     { first_name: "ברקת",  last_name: "כהן",     school_name: "אולפנת צביה רחובות",       grade: "כיתה ז2" },
     });
   }, []);
 

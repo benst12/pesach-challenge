@@ -18,33 +18,33 @@ export function getTodayKeyFromDayIndex(): string {
 // כל שאלה: { id, chapter, question, options: [{text, correct, key}] }
 const MANUAL_QUESTIONS: any[] | null = [
   {
-    id: 116, chapter: "פרק ה",
-    question: 'מתי אומרים את נוסח הביטול הראשון (ביטול לאחר בדיקה)?',
+    id: 31, chapter: "פרק יג",
+    question: "מה הפתרון המקובל לבכורות שלא רוצים להתענות?",
     options: [
-      { text: 'בבוקר י"ד לפני השריפה', correct: false, key: "א" },
-      { text: 'בחצות ליל י"ד',         correct: false, key: "ב" },
-      { text: 'בליל י"ד אחרי הבדיקה', correct: true,  key: "ג" },
-      { text: 'ממש לפני כניסת פסח',    correct: false, key: "ד" },
+      { text: "לשלם כופר לצדקה",              correct: false, key: "א" },
+      { text: "לאכול מעט לחם ממש בבוקר",      correct: false, key: "ב" },
+      { text: "להשתתף בסיום מסכת",             correct: true,  key: "ג" },
+      { text: "לצום עד חצות היום בלבד",        correct: false, key: "ד" },
     ]
   },
   {
-    id: 143, chapter: "פרק יא",
-    question: "כיצד מכשירים את הכיריים לפסח?",
+    id: 149, chapter: "פרק יב",
+    question: 'מהי "מצה שמורה" ומדוע היא מיוחדת?',
     options: [
-      { text: "שטיפה קרה בלבד",                         correct: false, key: "א" },
-      { text: "הזמנת מגעיל מקצועי בלבד",                correct: false, key: "ב" },
-      { text: "ניקוי ואז כיסוי בנייר כסף בלבד",         correct: false, key: "ג" },
-      { text: "ניקוי יסודי ואז הדלקת האש לזמן מה",     correct: true,  key: "ד" },
+      { text: "מצה שמורה במקרר",                        correct: false, key: "א" },
+      { text: "מצה ששמרו אותה לשם מצוה מרגע הקצירה",   correct: true,  key: "ב" },
+      { text: "מצה שנשמרה על ידי הגוי",                 correct: false, key: "ג" },
+      { text: "מצה שהוכנה בפיקוח רב",                   correct: false, key: "ד" },
     ]
   },
   {
-    id: 40, chapter: "פרק טז",
-    question: 'מה פירוש "קדש"?',
+    id: 170, chapter: "פרק טו",
+    question: 'מה מיוחד ב"שפיכת כוס אליהו"?',
     options: [
-      { text: "לקדש את השולחן",              correct: false, key: "א" },
-      { text: "קידוש על הכוס – כוס ראשונה", correct: true,  key: "ב" },
-      { text: "לשיר שיר קדוש",               correct: false, key: "ג" },
-      { text: "להתפלל תפילת ערבית",           correct: false, key: "ד" },
+      { text: "כוס שאחד הילדים שופך",          correct: false, key: "א" },
+      { text: "כוס שאסור לשתות ממנה",           correct: false, key: "ב" },
+      { text: "כוס שמוסיפים לה יין בכל פרשה",  correct: false, key: "ג" },
+      { text: "כוס יין שמוזגים לאליהו הנביא",  correct: true,  key: "ד" },
     ]
   },
 ];
