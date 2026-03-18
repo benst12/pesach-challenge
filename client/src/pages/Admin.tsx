@@ -1085,7 +1085,8 @@ ${waMessage}` : waMessage;
                   <th className="text-right text-gray-400 text-sm font-medium p-4">מוסד</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">כיתה</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">מסלול</th>
-                  <th className="text-right text-gray-400 text-sm font-medium p-4">ציונים</th>
+                  <th className="text-right text-gray-400 text-sm font-medium p-4">ציוני מבחנים</th>
+                  <th className="text-right text-gray-400 text-sm font-medium p-4 text-royal-300">אתגר יומי</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">פעולות</th>
                 </tr>
               </thead>

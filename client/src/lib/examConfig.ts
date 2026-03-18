@@ -237,8 +237,27 @@ export function getTrackExamConfig(trackId: string): TrackExamConfig | undefined
   return EXAM_CONFIGS.find(c => c.trackId === trackId);
 }
 
+export const PREVIEW_CODE = "פסח כשר";
+
 export function isStageOpen(stage: ExamStage): boolean {
-  try { return localStorage.getItem(stage.storageKey) === "true"; } catch { return false; }
+  try {
+    if (localStorage.getItem(stage.storageKey) === "true") return true;
+    // preview mode — קוד גישה מיוחד
+    if (localStorage.getItem("pesach_preview_mode") === "true") return true;
+    return false;
+  } catch { return false; }
+}
+
+export function activatePreviewMode(code: string): boolean {
+  if (code === PREVIEW_CODE) {
+    localStorage.setItem("pesach_preview_mode", "true");
+    return true;
+  }
+  return false;
+}
+
+export function isPreviewMode(): boolean {
+  try { return localStorage.getItem("pesach_preview_mode") === "true"; } catch { return false; }
 }
 
 export function setStageOpen(stage: ExamStage, open: boolean): void {
