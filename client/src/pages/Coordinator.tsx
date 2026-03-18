@@ -231,17 +231,35 @@ export default function Coordinator() {
   const loadStudents = async () => {
     setLoading(true);
     try {
-      const { data: studentsData } = await supabase
-        .from("students")
-        .select("id, first_name, last_name, phone, school_name, grade, track_id")
-        .order("first_name", { ascending: true });
+      // טעינה בחלקים — עוקף מגבלת 1000
+      let studentsData: any[] = [];
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data: page } = await supabase
+          .from("students")
+          .select("id, first_name, last_name, phone, school_name, grade, track_id")
+          .order("first_name", { ascending: true })
+          .range(from, from + pageSize - 1);
+        if (!page || page.length === 0) break;
+        studentsData = [...studentsData, ...page];
+        if (page.length < pageSize) break;
+        from += pageSize;
+      }
 
-      // טעינת ציונים — רק עמודות שבטוח קיימות
-      const { data: scoresData, error: scoresError } = await supabase
-        .from("scores")
-        .select("student_id, score, quiz_id, created_at");
-
-      if (scoresError) console.error("Scores fetch error:", scoresError);
+      let scoresData: any[] = [];
+      let scoresFrom = 0;
+      while (true) {
+        const { data: scoresPage } = await supabase
+          .from("scores")
+          .select("student_id, score, quiz_id, created_at, stage_title")
+          .range(scoresFrom, scoresFrom + pageSize - 1);
+        if (!scoresPage || scoresPage.length === 0) break;
+        scoresData = [...scoresData, ...scoresPage];
+        if (scoresPage.length < pageSize) break;
+        scoresFrom += pageSize;
+      }
+      const scoresError = null;
 
       if (studentsData) {
         const merged = studentsData.map((s: any) => ({
