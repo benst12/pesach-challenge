@@ -292,7 +292,7 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
     question: 'מה מצוות "תשביתו" ומתי היא חלה?',
     options: [
       { text: "מצווה לשרוף את החמץ – חלה מתחילת ליל פסח", correct: false },
-      { text: "מצווה לבדוק את הבית – חלה מליל י"ד בניסן", correct: false },
+      { text: 'מצווה לבדוק את הבית – חלה מליל י"ד בניסן', correct: false },
       { text: 'מצווה לבער את החמץ מרשותנו – חלה עד חצות יום י"ד בניסן', correct: true },
       { text: "מצווה לבטל את החמץ בלב – חלה מתחילת חודש ניסן", correct: false },
     ]
