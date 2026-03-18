@@ -389,6 +389,7 @@ export default function Admin() {
                 score: r.score,
                 passed: r.score >= 80,
                 stage_title: r.stage_title || (trackName ? trackName : `מבחן ${idx + 1}`),
+                created_at: r.created_at,
               };
             }),
         }));
@@ -1268,17 +1269,26 @@ ${waMessage}` : waMessage;
                         {s.results.length === 0 ? (
                           <span className="text-gray-600 text-xs">לא נבחן</span>
                         ) : (
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-col gap-1.5">
                             {s.results.map((r, ri) => (
-                              <span key={ri} className={`text-sm font-bold px-2 py-0.5 rounded-lg w-fit ${
-                                r.score >= 95
-                                  ? "bg-gold-500/20 text-gold-400"
-                                  : r.passed
-                                  ? "bg-green-500/15 text-green-400"
-                                  : "bg-red-500/15 text-red-400"
-                              }`}>
-                                מבחן {ri + 1}: {r.score}%
-                              </span>
+                              <div key={ri} className="flex flex-col gap-0.5">
+                                <span className={`text-sm font-bold px-2 py-0.5 rounded-lg w-fit ${
+                                  r.score >= 95
+                                    ? "bg-gold-500/20 text-gold-400"
+                                    : r.passed
+                                    ? "bg-green-500/15 text-green-400"
+                                    : "bg-red-500/15 text-red-400"
+                                }`}>
+                                  מבחן {ri + 1}: {r.score}%
+                                </span>
+                                {(r as any).created_at && (
+                                  <span className="text-gray-600 text-[10px] px-1" dir="ltr">
+                                    {new Date((r as any).created_at).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
+                                    {" "}
+                                    {new Date((r as any).created_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+                                  </span>
+                                )}
+                              </div>
                             ))}
                           </div>
                         )}
