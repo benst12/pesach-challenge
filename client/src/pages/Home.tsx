@@ -57,7 +57,7 @@ export default function Home() {
     const diff = Math.ceil((seder.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     setDaysToSeder(diff > 0 ? diff : 0);
 
-    setHebrewDate('כ"ט אדר תשפ"ו');
+    setHebrewDate("א' ניסן תשפ\"ו");
   }, []);
 
   useEffect(() => {
@@ -69,9 +69,9 @@ export default function Home() {
   useEffect(() => {
     // זוכי האתגר היומי — קבועים
     setPublishedWinners({
-      elementary: { first_name: "סיני",  last_name: "גרינגליק", school_name: "נעם מעלה התורה בנים", grade: "כיתה ה1" },
-      yeshiva:    { first_name: "נועם",  last_name: "סבג",     school_name: "ישיבת צביה מע\"א",        grade: "כיתה ז2" },
-      ulpana:     { first_name: "ברקת",  last_name: "כהן",     school_name: "אולפנת צביה רחובות",       grade: "כיתה ז2" },
+      elementary: { first_name: "אליאב",  last_name: "קינסט",  school_name: "נעם בני דקלים בנים",       grade: "כיתה ה3" },
+      yeshiva:    { first_name: "שילה",   last_name: "שפיגל",  school_name: "ישיבת צביה הר ברכה",        grade: "כיתה ט" },
+      ulpana:     { first_name: "ציפורה", last_name: "רביבו",  school_name: "אולפנת צביה כוכב יעקב",     grade: "כיתה י2" },
     });
   }, []);
 
@@ -294,7 +294,7 @@ export default function Home() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <span className="bg-gold-500 text-[#0c1a33] text-xs font-black px-3 py-1 rounded-full">📢 הודעה חשובה</span>
-                <span className="text-gold-300 font-bold text-sm">יום רביעי כ"ט אדר תשפ"ו</span>
+                <span className="א' ניסן תשפ\"ו"ו</span>
               </div>
               <h2 className="font-display text-2xl sm:text-3xl text-white mb-3">🎯 המבחן הראשון — היום בע"ה!</h2>
               <div className="flex items-center gap-2 mb-4 bg-gold-500/15 border border-gold-400/30 rounded-xl px-4 py-2.5 w-fit">
