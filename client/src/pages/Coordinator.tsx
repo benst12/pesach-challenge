@@ -250,12 +250,16 @@ export default function Coordinator() {
         from += pageSize;
       }
 
+      // ציונים — כל ציוני מבחן מהיום (ללא אתגר יומי)
       let scoresData: any[] = [];
       let scoresFrom = 0;
       while (true) {
         const { data: scoresPage } = await supabase
           .from("scores")
           .select("student_id, score, quiz_id, created_at, stage_title")
+          .neq("stage_title", "אתגר יומי")
+          .gte("created_at", "2026-03-18T00:00:00Z")
+          .lte("created_at", "2026-03-18T23:59:59Z")
           .range(scoresFrom, scoresFrom + pageSize - 1);
         if (!scoresPage || scoresPage.length === 0) break;
         scoresData = [...scoresData, ...scoresPage];
@@ -268,16 +272,7 @@ export default function Coordinator() {
         const merged = studentsData.map((s: any) => ({
           ...s,
           results: (scoresData || [])
-            .filter((r: any) => {
-              if (r.student_id !== s.id) return false;
-              if (r.stage_title === "אתגר יומי") return false;
-              if (!r.stage_title || !r.stage_title.includes("מבחן")) return false;
-              // חלון זמן מבחן א: 18.3.2026 15:00–17:30 ישראל (UTC+2 = 13:00–15:30 UTC)
-              const t = new Date(r.created_at).getTime();
-              const open  = new Date("2026-03-18T13:00:00Z").getTime();
-              const close = new Date("2026-03-18T15:30:00Z").getTime();
-              return t >= open && t <= close;
-            })
+            .filter((r: any) => r.student_id === s.id)
             .map((r: any, idx: number) => {
               const trackName = TRACKS.find(t => t.id === r.quiz_id)?.name;
               return {
