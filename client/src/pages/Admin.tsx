@@ -360,7 +360,8 @@ export default function Admin() {
         from += pageSize;
       }
 
-      // ציונים — כל ציוני מבחן מ-18.3 (ללא אתגר יומי), נסנן בתצוגה לפי שעון ישראל
+      // ציונים — אותה שיטה כמו הטבלה המוסדית שעובדת
+      const todayStartScores = new Date(); todayStartScores.setHours(0, 0, 0, 0);
       let scoresData: any[] = [];
       let scoresFrom = 0;
       while (true) {
@@ -368,8 +369,7 @@ export default function Admin() {
           .from("scores")
           .select("student_id, score, quiz_id, created_at, stage_title")
           .neq("stage_title", "אתגר יומי")
-          .gte("created_at", "2026-03-17T22:00:00Z")
-          .lte("created_at", "2026-03-18T22:00:00Z")
+          .gte("created_at", todayStartScores.toISOString())
           .range(scoresFrom, scoresFrom + pageSize - 1);
         if (scoresError || !scoresPage || scoresPage.length === 0) break;
         scoresData = [...scoresData, ...scoresPage];
@@ -384,14 +384,7 @@ export default function Admin() {
         const merged = studentsData.map((s: any) => ({
           ...s,
           results: (scoresData || [])
-            .filter((r: any) => {
-              if (r.student_id !== s.id) return false;
-              // סנן לפי שעון ישראל: 14:45–18:15
-              const d = new Date(r.created_at);
-              const il = new Date(d.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" }));
-              const totalMin = il.getHours() * 60 + il.getMinutes();
-              return totalMin >= 14 * 60 + 45 && totalMin <= 18 * 60 + 15;
-            })
+            .filter((r: any) => r.student_id === s.id)
             .map((r: any, idx: number) => {
               const trackName = TRACKS.find(t => t.id === r.quiz_id)?.name;
               return {
