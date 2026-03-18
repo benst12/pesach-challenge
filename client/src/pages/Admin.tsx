@@ -402,6 +402,11 @@ export default function Admin() {
             .sort((a: any, b: any) => b.dailyTotal - a.dailyTotal);
           setDailyLeaders(leaders);
         }
+        // שלב dailyTotal לתוך רשימת התלמידים הראשית
+        setStudents(prev => prev.map(s => ({
+          ...s,
+          dailyTotal: totals[s.id] || 0,
+        })));
       }
     } catch (err) {
       console.error("Error loading students:", err);
@@ -1106,8 +1111,12 @@ ${waMessage}` : waMessage;
                   <th className="text-right text-gray-400 text-sm font-medium p-4">מוסד</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">כיתה</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">מסלול</th>
-                  <th className="text-right text-gray-400 text-sm font-medium p-4">ציוני מבחנים</th>
-                  <th className="text-right text-gray-400 text-sm font-medium p-4 text-royal-300">אתגר יומי</th>
+                  <th className="text-right text-sm font-bold p-4 text-gold-400 bg-gold-500/5 border-r border-gold-400/20">
+                    🏆 ציוני מבחנים
+                  </th>
+                  <th className="text-right text-sm font-bold p-4 text-royal-300 bg-royal-400/5 border-r border-royal-400/20">
+                    ⚡ אתגר יומי
+                  </th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">פעולות</th>
                 </tr>
               </thead>
@@ -1129,17 +1138,32 @@ ${waMessage}` : waMessage;
                       <td className="p-4 text-gray-400 text-sm">{s.school_name}</td>
                       <td className="p-4 text-gray-400">{s.grade}</td>
                       <td className="p-4 text-royal-300 text-sm">{getTrackName(s.track_id)}</td>
-                      <td className="p-4">
+                      <td className="p-4 bg-gold-500/3 border-r border-gold-400/10">
                         {s.results.length === 0 ? (
-                          <span className="text-gray-600 text-sm">לא נבחן</span>
+                          <span className="text-gray-600 text-xs">לא נבחן</span>
                         ) : (
                           <div className="flex flex-col gap-1">
                             {s.results.map((r, ri) => (
-                              <span key={ri} className={`text-sm font-medium ${r.score >= 95 ? "text-gold-400" : r.passed ? "text-green-400" : "text-red-400"}`}>
+                              <span key={ri} className={`text-sm font-bold px-2 py-0.5 rounded-lg w-fit ${
+                                r.score >= 95
+                                  ? "bg-gold-500/20 text-gold-400"
+                                  : r.passed
+                                  ? "bg-green-500/15 text-green-400"
+                                  : "bg-red-500/15 text-red-400"
+                              }`}>
                                 מבחן {ri + 1}: {r.score}%
                               </span>
                             ))}
                           </div>
+                        )}
+                      </td>
+                      <td className="p-4 bg-royal-400/3 border-r border-royal-400/10">
+                        {(s as any).dailyTotal > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 bg-royal-400/15 text-royal-300 font-bold text-sm px-3 py-1 rounded-lg">
+                            ⚡ {(s as any).dailyTotal}
+                          </span>
+                        ) : (
+                          <span className="text-gray-600 text-xs">—</span>
                         )}
                       </td>
                       <td className="p-4">
@@ -1160,6 +1184,7 @@ ${waMessage}` : waMessage;
                             <Trash2 className="h-4 w-4" />
                           </button>
                         )}
+                      </td>
                       </td>
                     </tr>
                   ))
