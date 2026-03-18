@@ -206,6 +206,65 @@ export default function Home() {
 
   return (
     <div className="min-h-screen overflow-hidden" dir="rtl">
+      {/* ── הודעת מבחן ── */}
+      <div className="bg-gradient-to-l from-[#1a0a00] via-[#2d1500] to-[#1a0a00] border-y-2 border-gold-400/60 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-l from-gold-500/5 via-gold-400/10 to-gold-500/5" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-l from-transparent via-gold-400/80 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-l from-transparent via-gold-400/80 to-transparent" />
+        <div className="container max-w-4xl py-6 px-4 relative z-10">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 mt-1">
+              <div className="w-12 h-12 rounded-xl bg-gold-500/20 border border-gold-400/40 flex items-center justify-center text-2xl">
+                🦁
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <span className="bg-gold-500 text-[#0c1a33] text-xs font-black px-3 py-1 rounded-full uppercase tracking-wide">📢 הודעה חשובה</span>
+                <span className="text-gold-300 font-bold text-sm">יום רביעי כ"ט אדר תשפ"ו</span>
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl text-white mb-3 leading-tight">
+                🎯 המבחן הראשון — היום בע"ה!
+              </h2>
+              <div className="flex items-center gap-2 mb-4 bg-gold-500/15 border border-gold-400/30 rounded-xl px-4 py-2.5 w-fit">
+                <span className="text-gold-400 text-lg">⏰</span>
+                <span className="text-white font-bold text-lg">14:30 — 16:00</span>
+                <span className="text-gold-300 text-sm">שעות המבחן</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                <div className="bg-[#0c1a33]/60 border border-gold-400/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">👑</span>
+                    <span className="text-gold-400 font-bold text-sm">מסלול זהב</span>
+                  </div>
+                  <p className="text-gray-300 text-sm">פרקים א׳–ד׳ פניני הלכה לפסח</p>
+                  <p className="text-gold-300 text-xs mt-1 font-medium">25 שאלות • 25 דקות</p>
+                </div>
+                <div className="bg-[#0c1a33]/60 border border-royal-400/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">📚</span>
+                    <span className="text-royal-300 font-bold text-sm">מסלולים א׳ ב׳ ג׳</span>
+                  </div>
+                  <p className="text-gray-300 text-sm">פרקים א׳–ח׳ פניני הלכה לפסח</p>
+                  <p className="text-royal-300 text-xs mt-1 font-medium">15 שאלות • 25 דקות</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                <div className="flex items-center gap-1.5 text-gray-300">
+                  <span>📱</span>
+                  <span>כניסה דרך האזור האישי עם מספר הטלפון</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-gray-300">
+                  <span>✅</span>
+                  <span>שאלות בחירה כמו באתגר היומי</span>
+                </div>
+              </div>
+              <p className="text-gold-400 font-bold text-lg mt-4">!בהצלחה לכולם 🌟</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
 
       {/* ── Top identity bar ── */}
       <div className="bg-gradient-to-l from-[#0a1628] to-[#0c1a33] border-b border-gold-400/20 py-3">
