@@ -268,7 +268,7 @@ export default function Coordinator() {
         const merged = studentsData.map((s: any) => ({
           ...s,
           results: (scoresData || [])
-            .filter((r: any) => r.student_id === s.id)
+            .filter((r: any) => r.student_id === s.id && r.stage_title !== "אתגר יומי")
             .map((r: any, idx: number) => {
               const trackName = TRACKS.find(t => t.id === r.quiz_id)?.name;
               return {
