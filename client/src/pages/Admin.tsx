@@ -173,6 +173,32 @@ export default function Admin() {
   };
 
   // ייצוא רשימת טלפונים ל-WA Sender (עמודה אחת של מספרים בלבד)
+  const exportAllStudentsPhones = () => {
+    const list = students.filter(s => s.grade !== "רכז מוסדי");
+    const phones = list.map(s => {
+      const clean = (s.phone || "").replace(/[-\s]/g, "");
+      return clean.startsWith("0") ? clean.slice(1) : clean;
+    }).filter(Boolean);
+    const csv = "Phone\n" + phones.join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "כל_התלמידים_טלפונים.csv"; a.click();
+  };
+
+  const exportCoordinatorsPhones = () => {
+    const phones = coordinators.map(s => {
+      const clean = (s.phone || "").replace(/[-\s]/g, "");
+      // הסר 0 מהתחלה — פורמט 524767232
+      return clean.startsWith("0") ? clean.slice(1) : clean;
+    }).filter(Boolean);
+    const csv = "Phone\n" + phones.join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "רכזים_טלפונים.csv"; a.click();
+  };
+
   const exportWASender = (schoolName: string) => {
     const schoolStudents = schoolName ? students.filter(s => s.school_name === schoolName) : students;
     // נרמל מספרי טלפון לפורמט בינלאומי 972XXXXXXXXX
@@ -916,6 +942,11 @@ ${waMessage}` : waMessage;
               <BookUser className="h-4 w-4 text-purple-400" />
               <span className="text-white font-bold text-sm">רכזים מוסדיים</span>
               <span className="text-gray-500 text-xs mr-auto">{coordinators.length} רכזים</span>
+              <button onClick={exportCoordinatorsPhones}
+                className="flex items-center gap-1 bg-green-900/20 border border-green-500/20 rounded-lg px-3 py-1.5 hover:bg-green-900/30 transition-all">
+                <Download className="h-3.5 w-3.5 text-green-400" />
+                <span className="text-green-400 text-xs font-medium">ייצוא טלפונים</span>
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -981,6 +1012,10 @@ ${waMessage}` : waMessage;
           <Button onClick={exportFullExcel} variant="outline" className="border-green-400/30 text-green-400 hover:bg-green-400/10 h-12 gap-2">
             <Download className="h-4 w-4" />
             Excel מלא
+          </Button>
+          <Button onClick={exportAllStudentsPhones} variant="outline" className="border-royal-400/30 text-royal-300 hover:bg-royal-400/10 h-12 gap-2">
+            <MessageCircle className="h-4 w-4" />
+            WA טלפונים
           </Button>
           <Button onClick={() => { setSelectMode(!selectMode); setDeleteMultiple(new Set()); }}
             variant="outline"
