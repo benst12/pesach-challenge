@@ -57,7 +57,7 @@ export default function Home() {
     const diff = Math.ceil((seder.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     setDaysToSeder(diff > 0 ? diff : 0);
 
-    setHebrewDate("א' ניסן תשפ\"ו");
+    setHebrewDate("א׳ ניסן תשפ״ו");
   }, []);
 
   useEffect(() => {
@@ -294,7 +294,7 @@ export default function Home() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <span className="bg-gold-500 text-[#0c1a33] text-xs font-black px-3 py-1 rounded-full">📢 הודעה חשובה</span>
-                <span className="א' ניסן תשפ\"ו"ו</span>
+                <span className="text-gold-300 font-bold text-sm">א׳ ניסן תשפ״ו</span>
               </div>
               <h2 className="font-display text-2xl sm:text-3xl text-white mb-3">🎯 המבחן הראשון — היום בע"ה!</h2>
               <div className="flex items-center gap-2 mb-4 bg-gold-500/15 border border-gold-400/30 rounded-xl px-4 py-2.5 w-fit">
