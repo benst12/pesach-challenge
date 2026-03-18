@@ -29,6 +29,8 @@ export default function Materials() {
   };
   const [openStage, setOpenStage] = useState<number | null>(0);
   const [checkedMap, setCheckedMap] = useState<Record<number, boolean>>({});
+  const [previewInput, setPreviewInput] = useState("");
+  const [previewError, setPreviewError] = useState(false);
 
   if (!student || !selectedTrack) {
     navigate("/register");
