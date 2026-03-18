@@ -247,12 +247,32 @@ const ALWAYS_OPEN_KEYS = new Set([
   sk(ID_ZAHAV,   1),
 ]);
 
+// חלונות זמן לכל מבחן: [פתיחה, סגירה] UTC
+const EXAM_TIME_WINDOWS: Record<string, [string, string]> = {
+  [sk(ID_HE_VAV,  1)]: ["2026-03-18T13:00:00Z", "2026-03-18T15:30:00Z"],
+  [sk(ID_ZET_HET, 1)]: ["2026-03-18T13:00:00Z", "2026-03-18T15:30:00Z"],
+  [sk(ID_TET_YOD, 1)]: ["2026-03-18T13:00:00Z", "2026-03-18T15:30:00Z"],
+  [sk(ID_ZAHAV,   1)]: ["2026-03-18T13:00:00Z", "2026-03-18T15:30:00Z"],
+};
+
 export function isStageOpen(stage: ExamStage): boolean {
   try {
-    if (ALWAYS_OPEN_KEYS.has(stage.storageKey)) return true;
-    if (localStorage.getItem(stage.storageKey) === "true") return true;
-    // preview mode — קוד גישה מיוחד
+    // preview mode — קוד גישה מיוחד, עוקף הכל
     if (localStorage.getItem("pesach_preview_mode") === "true") return true;
+    if (localStorage.getItem(stage.storageKey) === "true") return true;
+
+    // בדוק חלון זמן
+    if (ALWAYS_OPEN_KEYS.has(stage.storageKey)) {
+      const window = EXAM_TIME_WINDOWS[stage.storageKey];
+      if (window) {
+        const now = Date.now();
+        const open  = new Date(window[0]).getTime();
+        const close = new Date(window[1]).getTime();
+        return now >= open && now <= close;
+      }
+      return true;
+    }
+
     return false;
   } catch { return false; }
 }

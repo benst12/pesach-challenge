@@ -385,9 +385,12 @@ export default function Admin() {
             .filter((r: any) => {
               if (r.student_id !== s.id) return false;
               if (r.stage_title === "אתגר יומי") return false;
-              // רק ציונים מרגע פתיחת המבחן הרשמי (18.3.2026 15:00 ישראל = 13:00 UTC)
-              const examOpenDate = new Date("2026-03-18T13:00:00Z");
-              return new Date(r.created_at) >= examOpenDate;
+              if (!r.stage_title || !r.stage_title.includes("מבחן")) return false;
+              // חלון זמן מבחן א: 18.3.2026 15:00–17:30 ישראל (UTC+2 = 13:00–15:30 UTC)
+              const t = new Date(r.created_at).getTime();
+              const open  = new Date("2026-03-18T13:00:00Z").getTime();
+              const close = new Date("2026-03-18T15:30:00Z").getTime();
+              return t >= open && t <= close;
             })
             .map((r: any, idx: number) => {
               const trackName = TRACKS.find(t => t.id === r.quiz_id)?.name;
@@ -1289,9 +1292,9 @@ ${waMessage}` : waMessage;
                                 </span>
                                 {(r as any).created_at && (
                                   <span className="text-gray-600 text-[10px] px-1" dir="ltr">
-                                    {new Date((r as any).created_at).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })}
+                                    {new Date((r as any).created_at).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", timeZone: "Asia/Jerusalem" })}
                                     {" "}
-                                    {new Date((r as any).created_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+                                    {new Date((r as any).created_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem" })}
                                   </span>
                                 )}
                               </div>
