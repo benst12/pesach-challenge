@@ -36,6 +36,9 @@ export default function Coordinator() {
   const [waSearch, setWaSearch] = useState("");
   const [personalMsg, setPersonalMsg] = useState(true);
   const [dailyLeaders, setDailyLeaders] = useState<any[]>([]);
+  const [todayExamStats, setTodayExamStats] = useState<{
+    school: string; count: number; avg: number; passed80: number; passed95: number;
+  }[]>([]);
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
   const [reportSchool, setReportSchool] = useState("");
 
@@ -292,6 +295,35 @@ export default function Coordinator() {
             .sort((a: any, b: any) => b.dailyTotal - a.dailyTotal);
           setDailyLeaders(leaders);
         }
+      }
+
+      // ── סטטיסטיקות מבחן היום לפי מוסד ──
+      const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+      const { data: todayExamScores } = await supabase
+        .from("scores")
+        .select("student_id, score")
+        .neq("stage_title", "אתגר יומי")
+        .gte("created_at", todayStart.toISOString());
+
+      if (todayExamScores && todayExamScores.length > 0 && studentsData) {
+        const studentSchoolMap: Record<string, string> = {};
+        studentsData.forEach((s: any) => { studentSchoolMap[s.id] = s.school_name || "לא ידוע"; });
+        const bySchool: Record<string, number[]> = {};
+        todayExamScores.forEach((r: any) => {
+          const school = studentSchoolMap[r.student_id] || "לא ידוע";
+          if (!bySchool[school]) bySchool[school] = [];
+          bySchool[school].push(r.score);
+        });
+        const stats = Object.entries(bySchool)
+          .map(([school, scores]) => ({
+            school,
+            count: scores.length,
+            avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+            passed80: scores.filter(s => s >= 80).length,
+            passed95: scores.filter(s => s >= 95).length,
+          }))
+          .sort((a, b) => b.count - a.count);
+        setTodayExamStats(stats);
       }
     } catch (err) {
       console.error("Error loading students:", err);
@@ -936,6 +968,93 @@ ${waMessage}` : waMessage;
                     </tr>
                   ))}
                 </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        )}
+
+        {/* ── סטטיסטיקות מבחן היום לפי מוסד ── */}
+        {todayExamStats.length > 0 && (
+          <div className="bg-[#12243f] border border-gold-400/20 rounded-2xl overflow-hidden mb-8">
+            <div className="px-5 py-3 border-b border-gold-400/15 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📊</span>
+                <span className="text-white font-bold">מבחן היום — סטטיסטיקות לפי מוסד</span>
+                <span className="bg-gold-500/20 text-gold-400 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {todayExamStats.reduce((a, b) => a + b.count, 0)} נבחנו
+                </span>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 inline-block" />מעל 80%</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gold-400 inline-block" />מעל 95%</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-royal-400/10 bg-[#0f1d36]">
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">מוסד</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">נבחנו</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">ממוצע</th>
+                    <th className="text-right text-green-400 text-xs font-bold p-3">עברו 80%+</th>
+                    <th className="text-right text-gold-400 text-xs font-bold p-3">הצטיינות 95%+</th>
+                    <th className="text-right text-gray-400 text-xs font-medium p-3">התפלגות</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {todayExamStats.map((row, i) => {
+                    const pct80 = Math.round((row.passed80 / row.count) * 100);
+                    const pct95 = Math.round((row.passed95 / row.count) * 100);
+                    return (
+                      <tr key={i} className="border-b border-[#1a2f50] hover:bg-[#152a48]">
+                        <td className="p-3 text-white font-medium text-sm">{row.school}</td>
+                        <td className="p-3 text-gray-300 font-bold text-sm">{row.count}</td>
+                        <td className="p-3">
+                          <span className={`font-bold text-sm px-2 py-0.5 rounded-lg ${
+                            row.avg >= 95 ? "bg-gold-500/20 text-gold-400" :
+                            row.avg >= 80 ? "bg-green-500/15 text-green-400" :
+                            "bg-red-500/15 text-red-400"
+                          }`}>{row.avg}%</span>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-400 font-bold text-sm">{row.passed80}</span>
+                            <span className="text-gray-600 text-xs">({pct80}%)</span>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gold-400 font-bold text-sm">{row.passed95}</span>
+                            <span className="text-gray-600 text-xs">({pct95}%)</span>
+                          </div>
+                        </td>
+                        <td className="p-3 min-w-[120px]">
+                          <div className="h-2 bg-[#0c1a33] rounded-full overflow-hidden w-28">
+                            <div className="h-full bg-gradient-to-l from-gold-400 to-green-400 rounded-full"
+                              style={{ width: `${pct80}%` }} />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-gold-400/20 bg-[#0f1d36]">
+                    <td className="p-3 text-gold-400 font-bold text-sm">סה"כ</td>
+                    <td className="p-3 text-white font-bold">{todayExamStats.reduce((a, b) => a + b.count, 0)}</td>
+                    <td className="p-3">
+                      <span className="text-white font-bold text-sm">
+                        {Math.round(todayExamStats.reduce((a, b) => a + b.avg * b.count, 0) /
+                          todayExamStats.reduce((a, b) => a + b.count, 0))}%
+                      </span>
+                    </td>
+                    <td className="p-3 text-green-400 font-bold">{todayExamStats.reduce((a, b) => a + b.passed80, 0)}</td>
+                    <td className="p-3 text-gold-400 font-bold">{todayExamStats.reduce((a, b) => a + b.passed95, 0)}</td>
+                    <td className="p-3" />
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
