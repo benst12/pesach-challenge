@@ -239,8 +239,17 @@ export function getTrackExamConfig(trackId: string): TrackExamConfig | undefined
 
 export const PREVIEW_CODE = "פסח כשר";
 
+// מבחנים שפתוחים לכולם ללא קוד — מוגדר ידנית כאן
+const ALWAYS_OPEN_KEYS = new Set([
+  sk(ID_HE_VAV,  1),
+  sk(ID_ZET_HET, 1),
+  sk(ID_TET_YOD, 1),
+  sk(ID_ZAHAV,   1),
+]);
+
 export function isStageOpen(stage: ExamStage): boolean {
   try {
+    if (ALWAYS_OPEN_KEYS.has(stage.storageKey)) return true;
     if (localStorage.getItem(stage.storageKey) === "true") return true;
     // preview mode — קוד גישה מיוחד
     if (localStorage.getItem("pesach_preview_mode") === "true") return true;
