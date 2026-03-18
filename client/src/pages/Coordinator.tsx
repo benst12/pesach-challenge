@@ -268,7 +268,13 @@ export default function Coordinator() {
         const merged = studentsData.map((s: any) => ({
           ...s,
           results: (scoresData || [])
-            .filter((r: any) => r.student_id === s.id && r.stage_title !== "אתגר יומי")
+            .filter((r: any) => {
+              if (r.student_id !== s.id) return false;
+              if (r.stage_title === "אתגר יומי") return false;
+              // רק ציונים מרגע פתיחת המבחן הרשמי (18.3.2026 15:00 ישראל = 13:00 UTC)
+              const examOpenDate = new Date("2026-03-18T13:00:00Z");
+              return new Date(r.created_at) >= examOpenDate;
+            })
             .map((r: any, idx: number) => {
               const trackName = TRACKS.find(t => t.id === r.quiz_id)?.name;
               return {
