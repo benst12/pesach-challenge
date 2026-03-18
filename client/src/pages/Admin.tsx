@@ -1185,7 +1185,6 @@ ${waMessage}` : waMessage;
                           </button>
                         )}
                       </td>
-                      </td>
                     </tr>
                   ))
                 )}
