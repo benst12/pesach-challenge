@@ -1277,8 +1277,6 @@ ${waMessage}` : waMessage;
           </div>
         )}
 
-        )}
-
         {/* ── סטטיסטיקות מבחן היום לפי מוסד ── */}
         {todayExamStats.length > 0 && (
           <div className="bg-[#12243f] border border-gold-400/20 rounded-2xl overflow-hidden mb-8">
