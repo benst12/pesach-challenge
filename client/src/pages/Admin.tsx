@@ -38,6 +38,8 @@ export default function Admin() {
   const [waSearch, setWaSearch] = useState("");
   const [personalMsg, setPersonalMsg] = useState(true);
   const [dailyLeaders, setDailyLeaders] = useState<any[]>([]);
+  const [selectedSchools, setSelectedSchools] = useState<Set<string>>(new Set());
+  const [showSchoolPicker, setShowSchoolPicker] = useState(false);
   const [previewWinners, setPreviewWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
   const [previewCountdown, setPreviewCountdown] = useState("");
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
@@ -173,6 +175,22 @@ export default function Admin() {
   };
 
   // ייצוא רשימת טלפונים ל-WA Sender (עמודה אחת של מספרים בלבד)
+  const exportSelectedSchoolsPhones = () => {
+    const list = selectedSchools.size > 0
+      ? students.filter(s => s.grade !== "רכז מוסדי" && selectedSchools.has(s.school_name))
+      : students.filter(s => s.grade !== "רכז מוסדי");
+    const phones = list.map(s => {
+      const clean = (s.phone || "").replace(/[-\s]/g, "");
+      return clean.startsWith("0") ? clean.slice(1) : clean;
+    }).filter(Boolean);
+    const label = selectedSchools.size > 0 ? [...selectedSchools].join("_").slice(0,30) : "כולם";
+    const csv = "Phone\n" + phones.join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `טלפונים_${label}.csv`; a.click();
+  };
+
   const exportAllStudentsPhones = () => {
     const list = students.filter(s => s.grade !== "רכז מוסדי");
     const phones = list.map(s => {
@@ -1013,10 +1031,44 @@ ${waMessage}` : waMessage;
             <Download className="h-4 w-4" />
             Excel מלא
           </Button>
-          <Button onClick={exportAllStudentsPhones} variant="outline" className="border-royal-400/30 text-royal-300 hover:bg-royal-400/10 h-12 gap-2">
-            <MessageCircle className="h-4 w-4" />
-            WA טלפונים
-          </Button>
+          <div className="relative">
+            <Button onClick={() => setShowSchoolPicker(p => !p)} variant="outline" className="border-royal-400/30 text-royal-300 hover:bg-royal-400/10 h-12 gap-2">
+              <MessageCircle className="h-4 w-4" />
+              WA טלפונים
+              {selectedSchools.size > 0 && (
+                <span className="bg-gold-500 text-[#0c1a33] text-[10px] font-bold px-1.5 py-0.5 rounded-full">{selectedSchools.size}</span>
+              )}
+            </Button>
+            {showSchoolPicker && (
+              <div className="absolute left-0 top-14 z-50 bg-[#12243f] border border-royal-400/20 rounded-2xl p-4 shadow-2xl w-72">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-white font-bold text-sm">בחר מוסדות לדוח</span>
+                  <button onClick={() => setSelectedSchools(new Set())} className="text-gray-500 text-xs hover:text-gray-300">נקה הכל</button>
+                </div>
+                <div className="max-h-60 overflow-y-auto space-y-1 mb-3">
+                  {schoolStats.map(([school, count]) => (
+                    <label key={school} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[#1a2f50] cursor-pointer">
+                      <input type="checkbox"
+                        checked={selectedSchools.has(school)}
+                        onChange={e => {
+                          const next = new Set(selectedSchools);
+                          e.target.checked ? next.add(school) : next.delete(school);
+                          setSelectedSchools(next);
+                        }}
+                        className="accent-gold-500 w-3.5 h-3.5 flex-shrink-0"
+                      />
+                      <span className="text-white text-xs flex-1 truncate">{school}</span>
+                      <span className="text-gray-500 text-[10px]">{count}</span>
+                    </label>
+                  ))}
+                </div>
+                <Button onClick={() => { exportSelectedSchoolsPhones(); setShowSchoolPicker(false); }}
+                  className="w-full bg-gradient-to-l from-gold-500 to-gold-600 text-[#0c1a33] font-bold h-9 text-sm">
+                  {selectedSchools.size > 0 ? `הורד ${selectedSchools.size} מוסדות` : "הורד כולם"}
+                </Button>
+              </div>
+            )}
+          </div>
           <Button onClick={() => { setSelectMode(!selectMode); setDeleteMultiple(new Set()); }}
             variant="outline"
             className={`h-12 gap-2 ${selectMode ? "border-red-400/50 text-red-400 bg-red-400/10" : "border-red-400/20 text-red-400/60 hover:bg-red-400/10 hover:text-red-400"}`}>
