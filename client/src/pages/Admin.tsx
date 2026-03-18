@@ -52,15 +52,30 @@ export default function Admin() {
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
   const [reportSchool, setReportSchool] = useState("");
 
-  const [examStates, setExamStates] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {};
-    for (const tc of EXAM_CONFIGS) {
-      for (const stage of tc.stages) {
-        init[stage.storageKey] = isStageOpen(stage);
+  const [examStates, setExamStates] = useState<Record<string, boolean>>({});
+
+  // טען מצב מבחנים מ-Supabase
+  useEffect(() => {
+    const loadExamStates = async () => {
+      const { data } = await supabase.from("exam_states").select("key, is_open");
+      if (data) {
+        const states: Record<string, boolean> = {};
+        // אתחל כל המבחנים כסגורים
+        for (const tc of EXAM_CONFIGS) {
+          for (const stage of tc.stages) {
+            states[stage.storageKey] = false;
+          }
+        }
+        // עדכן לפי מה שב-Supabase
+        data.forEach((row: any) => { states[row.key] = row.is_open; });
+        setExamStates(states);
       }
-    }
-    return init;
-  });
+    };
+    loadExamStates();
+    // רענן כל 30 שניות
+    const interval = setInterval(loadExamStates, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // פתיחה אוטומטית לפי תאריך
   useEffect(() => {
@@ -240,25 +255,24 @@ export default function Admin() {
     a.click();
   };
 
-  const toggleStage = (storageKey: string) => {
+  const toggleStage = async (storageKey: string) => {
     const stage = EXAM_CONFIGS.flatMap(c => c.stages).find(s => s.storageKey === storageKey);
     if (!stage) return;
     const newVal = !examStates[storageKey];
-    setStageOpen(stage, newVal);
+    // שמור ב-Supabase — לכולם
+    await supabase.from("exam_states").upsert({ key: storageKey, is_open: newVal }, { onConflict: "key" });
     setExamStates(prev => ({ ...prev, [storageKey]: newVal }));
+    toast(newVal ? `✅ ${stage.title} נפתח לכולם` : `🔒 ${stage.title} נסגר`);
   };
 
-  const closeAllStages = () => {
+  const closeAllStages = async () => {
     const allStages = EXAM_CONFIGS.flatMap(c => c.stages);
+    const upserts = allStages.map(s => ({ key: s.storageKey, is_open: false }));
+    await supabase.from("exam_states").upsert(upserts, { onConflict: "key" });
     const newStates: Record<string, boolean> = {};
-    allStages.forEach(stage => {
-      setStageOpen(stage, false);
-      newStates[stage.storageKey] = false;
-    });
-    // סגור גם preview mode
-    try { localStorage.removeItem("pesach_preview_mode"); } catch {}
+    allStages.forEach(s => { newStates[s.storageKey] = false; });
     setExamStates(prev => ({ ...prev, ...newStates }));
-    toast.success("כל המבחנים נסגרו!");
+    toast.success("כל המבחנים נסגרו לכולם!");
   };
 
   const calcPreviewWinners = async (force = false) => {
@@ -362,6 +376,7 @@ export default function Admin() {
 
       // ציונים — אותה שיטה כמו הטבלה המוסדית שעובדת
       const todayStartScores = new Date(); todayStartScores.setHours(0, 0, 0, 0);
+      const todayEndScores = new Date(); todayEndScores.setHours(23, 59, 59, 999);
       let scoresData: any[] = [];
       let scoresFrom = 0;
       while (true) {
@@ -370,6 +385,7 @@ export default function Admin() {
           .select("student_id, score, quiz_id, created_at, stage_title")
           .neq("stage_title", "אתגר יומי")
           .gte("created_at", todayStartScores.toISOString())
+          .lte("created_at", todayEndScores.toISOString())
           .range(scoresFrom, scoresFrom + pageSize - 1);
         if (scoresError || !scoresPage || scoresPage.length === 0) break;
         scoresData = [...scoresData, ...scoresPage];

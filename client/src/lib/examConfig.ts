@@ -237,58 +237,38 @@ export function getTrackExamConfig(trackId: string): TrackExamConfig | undefined
   return EXAM_CONFIGS.find(c => c.trackId === trackId);
 }
 
-export const PREVIEW_CODE = "פסח כשר";
+import { createClient } from '@supabase/supabase-js';
 
-// מבחנים שפתוחים לכולם ללא קוד — מוגדר ידנית כאן
-const ALWAYS_OPEN_KEYS = new Set([
-  sk(ID_HE_VAV,  1),
-  sk(ID_ZET_HET, 1),
-  sk(ID_TET_YOD, 1),
-  sk(ID_ZAHAV,   1),
-]);
+const _supabase = createClient(
+  'https://qobhbnbbqnzbsnacbfxm.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvYmhibmJicW56YnNuYWNiZnhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjU2MTgsImV4cCI6MjA4ODg0MTYxOH0.hmRyy6OsGZRfx9B5KZsuN45mokd6FOflq4zNhbc0JVc'
+);
 
-// חלונות זמן לכל מבחן: [פתיחה, סגירה] UTC
-const EXAM_TIME_WINDOWS: Record<string, [string, string]> = {
-  [sk(ID_HE_VAV,  1)]: ["2026-03-18T13:00:00Z", "2026-03-18T15:30:00Z"],
-  [sk(ID_ZET_HET, 1)]: ["2026-03-18T13:00:00Z", "2026-03-18T15:30:00Z"],
-  [sk(ID_TET_YOD, 1)]: ["2026-03-18T13:00:00Z", "2026-03-18T15:30:00Z"],
-  [sk(ID_ZAHAV,   1)]: ["2026-03-18T13:00:00Z", "2026-03-18T15:30:00Z"],
-};
+// cache מקומי — מתרענן כל 30 שניות
+let _examStatesCache: Record<string, boolean> = {};
+let _lastFetch = 0;
+
+async function _refreshCache() {
+  const { data } = await _supabase.from("exam_states").select("key, is_open");
+  if (data) {
+    const newCache: Record<string, boolean> = {};
+    data.forEach((row: any) => { newCache[row.key] = row.is_open; });
+    _examStatesCache = newCache;
+    _lastFetch = Date.now();
+  }
+}
+
+// קרא בהתחלה
+_refreshCache();
 
 export function isStageOpen(stage: ExamStage): boolean {
   try {
-    // preview mode — קוד גישה מיוחד, עוקף הכל
-    if (localStorage.getItem("pesach_preview_mode") === "true") return true;
-    if (localStorage.getItem(stage.storageKey) === "true") return true;
-
-    // בדוק חלון זמן
-    if (ALWAYS_OPEN_KEYS.has(stage.storageKey)) {
-      const window = EXAM_TIME_WINDOWS[stage.storageKey];
-      if (window) {
-        const now = Date.now();
-        const open  = new Date(window[0]).getTime();
-        const close = new Date(window[1]).getTime();
-        return now >= open && now <= close;
-      }
-      return true;
-    }
-
-    return false;
+    // רענן cache אם עבר יותר מ-30 שניות
+    if (Date.now() - _lastFetch > 30000) _refreshCache();
+    return _examStatesCache[stage.storageKey] === true;
   } catch { return false; }
 }
 
-export function activatePreviewMode(code: string): boolean {
-  if (code === PREVIEW_CODE) {
-    localStorage.setItem("pesach_preview_mode", "true");
-    return true;
-  }
-  return false;
-}
-
-export function isPreviewMode(): boolean {
-  try { return localStorage.getItem("pesach_preview_mode") === "true"; } catch { return false; }
-}
-
-export function setStageOpen(stage: ExamStage, open: boolean): void {
-  try { localStorage.setItem(stage.storageKey, String(open)); } catch {}
+export function setStageOpen(_stage: ExamStage, _open: boolean): void {
+  // לא בשימוש יותר — הכל דרך Supabase מדף המנהל
 }
