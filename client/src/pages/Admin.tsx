@@ -241,6 +241,19 @@ export default function Admin() {
     setExamStates(prev => ({ ...prev, [storageKey]: newVal }));
   };
 
+  const closeAllStages = () => {
+    const allStages = EXAM_CONFIGS.flatMap(c => c.stages);
+    const newStates: Record<string, boolean> = {};
+    allStages.forEach(stage => {
+      setStageOpen(stage, false);
+      newStates[stage.storageKey] = false;
+    });
+    // סגור גם preview mode
+    try { localStorage.removeItem("pesach_preview_mode"); } catch {}
+    setExamStates(prev => ({ ...prev, ...newStates }));
+    toast.success("כל המבחנים נסגרו!");
+  };
+
   const calcPreviewWinners = async (force = false) => {
     const today = new Date().toISOString().split("T")[0];
     const cacheKey = "pesach_winners_" + today;
@@ -594,7 +607,15 @@ export default function Admin() {
 
         {/* פתיחת מבחנים */}
         <div className="mb-8">
-          <h2 className="font-display text-xl text-white mb-4">פתיחת מבחנים</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-xl text-white">פתיחת מבחנים</h2>
+            <button
+              onClick={closeAllStages}
+              className="flex items-center gap-2 bg-red-900/30 hover:bg-red-800/40 border border-red-500/30 text-red-400 text-sm font-bold px-4 py-2 rounded-xl transition-all"
+            >
+              🔒 סגור את כל המבחנים
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {EXAM_CONFIGS.map(tc => {
               const track = TRACKS.find(t => t.id === tc.trackId);
