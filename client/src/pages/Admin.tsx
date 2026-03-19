@@ -1212,17 +1212,28 @@ ${waMessage}` : waMessage;
                       <td className="p-4 text-gray-400">{s.grade}</td>
                       <td className="p-4 text-royal-300 text-sm">{getTrackName(s.track_id)}</td>
                       <td className="p-4">
-                        {s.results.length === 0 ? (
-                          <span className="text-gray-600 text-sm">לא נבחן</span>
-                        ) : (
-                          <div className="flex flex-col gap-1">
-                            {s.results.map((r, ri) => (
-                              <span key={ri} className={`text-sm font-medium ${r.score >= 95 ? "text-gold-400" : r.passed ? "text-green-400" : "text-red-400"}`}>
-                                מבחן {ri + 1}: {r.score}%
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        {(() => {
+                          const examR = s.results.filter((r:any) => r.stage_title !== "אתגר יומי");
+                          if (examR.length === 0) return <span className="text-gray-600 text-sm">לא נבחן</span>;
+                          return (
+                            <div className="flex flex-col gap-1">
+                              {examR.map((r:any, ri:number) => (
+                                <span key={ri} className={`text-xs font-bold px-2 py-0.5 rounded-lg ${r.score >= 95 ? "bg-gold-500/20 text-gold-400" : r.score >= 80 ? "bg-green-900/30 text-green-400" : "bg-red-900/30 text-red-400"}`}>
+                                  {r.stage_title || `מבחן ${ri+1}`}: {r.score}%
+                                </span>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </td>
+                      <td className="p-4">
+                        {(() => {
+                          const daily = s.results.filter((r:any) => r.stage_title === "אתגר יומי");
+                          const total = daily.reduce((sum:number, r:any) => sum + (r.correct_answers || 0), 0);
+                          return daily.length > 0
+                            ? <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-royal-500/20 text-royal-300">{total} ✓</span>
+                            : <span className="text-gray-600 text-xs">—</span>;
+                        })()}
                       </td>
                       <td className="p-4">
                         {deleteConfirm === s.id ? (
