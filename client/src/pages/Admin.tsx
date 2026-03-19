@@ -32,19 +32,18 @@ export default function Admin() {
   const [sortBy, setSortBy] = useState<"name" | "school" | "score">("name");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [coordDeleteConfirm, setCoordDeleteConfirm] = useState<string | null>(null);
+  const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
+  const toggleTable = (key: string) => setExpandedTables(prev => {
+    const next = new Set(prev);
+    next.has(key) ? next.delete(key) : next.add(key);
+    return next;
+  });
   const [deleteMultiple, setDeleteMultiple] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [autoSchedule, setAutoSchedule] = useState<Record<string, string>>({});
   const [waSearch, setWaSearch] = useState("");
   const [personalMsg, setPersonalMsg] = useState(true);
   const [dailyLeaders, setDailyLeaders] = useState<any[]>([]);
-  const [todayExamStats, setTodayExamStats] = useState<{
-    school: string;
-    count: number;
-    avg: number;
-    passed80: number;
-    passed95: number;
-  }[]>([]);
   const [selectedSchools, setSelectedSchools] = useState<Set<string>>(new Set());
   const [showSchoolPicker, setShowSchoolPicker] = useState(false);
   const [previewWinners, setPreviewWinners] = useState<{elementary:any,yeshiva:any,ulpana:any} | null>(null);
@@ -52,30 +51,15 @@ export default function Admin() {
   const [waMessage, setWaMessage] = useState("שלום! 👋\nתזכורת מאיתנו – מבצע שאגת הארי.\nזוכרים ללמוד את החומר ולהתכונן למבחן הקרוב! 🦁\nבהצלחה, רשת נעם צביה");
   const [reportSchool, setReportSchool] = useState("");
 
-  const [examStates, setExamStates] = useState<Record<string, boolean>>({});
-
-  // טען מצב מבחנים מ-Supabase
-  useEffect(() => {
-    const loadExamStates = async () => {
-      const { data } = await supabase.from("exam_states").select("key, is_open");
-      if (data) {
-        const states: Record<string, boolean> = {};
-        // אתחל כל המבחנים כסגורים
-        for (const tc of EXAM_CONFIGS) {
-          for (const stage of tc.stages) {
-            states[stage.storageKey] = false;
-          }
-        }
-        // עדכן לפי מה שב-Supabase
-        data.forEach((row: any) => { states[row.key] = row.is_open; });
-        setExamStates(states);
+  const [examStates, setExamStates] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    for (const tc of EXAM_CONFIGS) {
+      for (const stage of tc.stages) {
+        init[stage.storageKey] = isStageOpen(stage);
       }
-    };
-    loadExamStates();
-    // רענן כל 30 שניות
-    const interval = setInterval(loadExamStates, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    }
+    return init;
+  });
 
   // פתיחה אוטומטית לפי תאריך
   useEffect(() => {
@@ -255,24 +239,12 @@ export default function Admin() {
     a.click();
   };
 
-  const toggleStage = async (storageKey: string) => {
+  const toggleStage = (storageKey: string) => {
     const stage = EXAM_CONFIGS.flatMap(c => c.stages).find(s => s.storageKey === storageKey);
     if (!stage) return;
     const newVal = !examStates[storageKey];
-    // שמור ב-Supabase — לכולם
-    await supabase.from("exam_states").upsert({ key: storageKey, is_open: newVal }, { onConflict: "key" });
+    setStageOpen(stage, newVal);
     setExamStates(prev => ({ ...prev, [storageKey]: newVal }));
-    toast(newVal ? `✅ ${stage.title} נפתח לכולם` : `🔒 ${stage.title} נסגר`);
-  };
-
-  const closeAllStages = async () => {
-    const allStages = EXAM_CONFIGS.flatMap(c => c.stages);
-    const upserts = allStages.map(s => ({ key: s.storageKey, is_open: false }));
-    await supabase.from("exam_states").upsert(upserts, { onConflict: "key" });
-    const newStates: Record<string, boolean> = {};
-    allStages.forEach(s => { newStates[s.storageKey] = false; });
-    setExamStates(prev => ({ ...prev, ...newStates }));
-    toast.success("כל המבחנים נסגרו לכולם!");
   };
 
   const calcPreviewWinners = async (force = false) => {
@@ -374,18 +346,14 @@ export default function Admin() {
         from += pageSize;
       }
 
-      // ציונים — אותה שיטה כמו הטבלה המוסדית שעובדת
-      const todayStartScores = new Date(); todayStartScores.setHours(0, 0, 0, 0);
-      const todayEndScores = new Date(); todayEndScores.setHours(23, 59, 59, 999);
+      // טעינת ציונים — רק עמודות שבטוח קיימות
+      // ציונים — טעינה בחלקים
       let scoresData: any[] = [];
       let scoresFrom = 0;
       while (true) {
         const { data: scoresPage, error: scoresError } = await supabase
           .from("scores")
           .select("student_id, score, quiz_id, created_at, stage_title")
-          .neq("stage_title", "אתגר יומי")
-          .gte("created_at", todayStartScores.toISOString())
-          .lte("created_at", todayEndScores.toISOString())
           .range(scoresFrom, scoresFrom + pageSize - 1);
         if (scoresError || !scoresPage || scoresPage.length === 0) break;
         scoresData = [...scoresData, ...scoresPage];
@@ -407,7 +375,6 @@ export default function Admin() {
                 score: r.score,
                 passed: r.score >= 80,
                 stage_title: r.stage_title || (trackName ? trackName : `מבחן ${idx + 1}`),
-                created_at: r.created_at,
               };
             }),
         }));
@@ -428,45 +395,6 @@ export default function Admin() {
             .sort((a: any, b: any) => b.dailyTotal - a.dailyTotal);
           setDailyLeaders(leaders);
         }
-        // שלב dailyTotal לתוך רשימת התלמידים הראשית
-        setStudents(prev => prev.map(s => ({
-          ...s,
-          dailyTotal: totals[s.id] || 0,
-        })));
-      }
-
-      // ── סטטיסטיקות מבחן היום לפי מוסד ──
-      const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-      const { data: todayExamScores } = await supabase
-        .from("scores")
-        .select("student_id, score")
-        .neq("stage_title", "אתגר יומי")
-        .gte("created_at", todayStart.toISOString());
-
-      if (todayExamScores && todayExamScores.length > 0 && studentsData) {
-        // בנה מפה student_id → school_name
-        const studentSchoolMap: Record<string, string> = {};
-        studentsData.forEach((s: any) => { studentSchoolMap[s.id] = s.school_name || "לא ידוע"; });
-
-        // קבץ לפי מוסד
-        const bySchool: Record<string, number[]> = {};
-        todayExamScores.forEach((r: any) => {
-          const school = studentSchoolMap[r.student_id] || "לא ידוע";
-          if (!bySchool[school]) bySchool[school] = [];
-          bySchool[school].push(r.score);
-        });
-
-        const stats = Object.entries(bySchool)
-          .map(([school, scores]) => ({
-            school,
-            count: scores.length,
-            avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
-            passed80: scores.filter(s => s >= 80).length,
-            passed95: scores.filter(s => s >= 95).length,
-          }))
-          .sort((a, b) => b.count - a.count);
-
-        setTodayExamStats(stats);
       }
     } catch (err) {
       console.error("Error loading students:", err);
@@ -672,15 +600,7 @@ export default function Admin() {
 
         {/* פתיחת מבחנים */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-xl text-white">פתיחת מבחנים</h2>
-            <button
-              onClick={closeAllStages}
-              className="flex items-center gap-2 bg-red-900/30 hover:bg-red-800/40 border border-red-500/30 text-red-400 text-sm font-bold px-4 py-2 rounded-xl transition-all"
-            >
-              🔒 סגור את כל המבחנים
-            </button>
-          </div>
+          <h2 className="font-display text-xl text-white mb-4">פתיחת מבחנים</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {EXAM_CONFIGS.map(tc => {
               const track = TRACKS.find(t => t.id === tc.trackId);
@@ -715,91 +635,6 @@ export default function Admin() {
             })}
           </div>
         </div>
-
-        {/* ── סטטיסטיקות מבחן היום לפי מוסד ── */}
-        {todayExamStats.length > 0 && (
-          <div className="bg-[#12243f] border border-gold-400/20 rounded-2xl overflow-hidden mb-8">
-            <div className="px-5 py-3 border-b border-gold-400/15 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">📊</span>
-                <span className="text-white font-bold">מבחן היום — סטטיסטיקות לפי מוסד</span>
-                <span className="bg-gold-500/20 text-gold-400 text-xs font-bold px-2 py-0.5 rounded-full">
-                  {todayExamStats.reduce((a, b) => a + b.count, 0)} נבחנו
-                </span>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-gray-500">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 inline-block" />מעל 80%</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gold-400 inline-block" />מעל 95%</span>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-royal-400/10 bg-[#0f1d36]">
-                    <th className="text-right text-gray-400 text-xs font-medium p-3">מוסד</th>
-                    <th className="text-right text-gray-400 text-xs font-medium p-3">נבחנו</th>
-                    <th className="text-right text-gray-400 text-xs font-medium p-3">ממוצע</th>
-                    <th className="text-right text-green-400 text-xs font-bold p-3">עברו 80%+</th>
-                    <th className="text-right text-gold-400 text-xs font-bold p-3">הצטיינות 95%+</th>
-                    <th className="text-right text-gray-400 text-xs font-medium p-3">התפלגות</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {todayExamStats.map((row, i) => {
-                    const pct80 = Math.round((row.passed80 / row.count) * 100);
-                    const pct95 = Math.round((row.passed95 / row.count) * 100);
-                    return (
-                      <tr key={i} className="border-b border-[#1a2f50] hover:bg-[#152a48]">
-                        <td className="p-3 text-white font-medium text-sm">{row.school}</td>
-                        <td className="p-3 text-gray-300 font-bold text-sm">{row.count}</td>
-                        <td className="p-3">
-                          <span className={`font-bold text-sm px-2 py-0.5 rounded-lg ${
-                            row.avg >= 95 ? "bg-gold-500/20 text-gold-400" :
-                            row.avg >= 80 ? "bg-green-500/15 text-green-400" :
-                            "bg-red-500/15 text-red-400"
-                          }`}>{row.avg}%</span>
-                        </td>
-                        <td className="p-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-green-400 font-bold text-sm">{row.passed80}</span>
-                            <span className="text-gray-600 text-xs">({pct80}%)</span>
-                          </div>
-                        </td>
-                        <td className="p-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-gold-400 font-bold text-sm">{row.passed95}</span>
-                            <span className="text-gray-600 text-xs">({pct95}%)</span>
-                          </div>
-                        </td>
-                        <td className="p-3 min-w-[120px]">
-                          <div className="h-2 bg-[#0c1a33] rounded-full overflow-hidden w-28">
-                            <div className="h-full bg-gradient-to-l from-gold-400 to-green-400 rounded-full transition-all"
-                              style={{ width: `${pct80}%` }} />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 border-gold-400/20 bg-[#0f1d36]">
-                    <td className="p-3 text-gold-400 font-bold text-sm">סה"כ</td>
-                    <td className="p-3 text-white font-bold">{todayExamStats.reduce((a, b) => a + b.count, 0)}</td>
-                    <td className="p-3">
-                      <span className="text-white font-bold text-sm">
-                        {Math.round(todayExamStats.reduce((a, b) => a + b.avg * b.count, 0) /
-                          todayExamStats.reduce((a, b) => a + b.count, 0))}%
-                      </span>
-                    </td>
-                    <td className="p-3 text-green-400 font-bold">{todayExamStats.reduce((a, b) => a + b.passed80, 0)}</td>
-                    <td className="p-3 text-gold-400 font-bold">{todayExamStats.reduce((a, b) => a + b.passed95, 0)}</td>
-                    <td className="p-3" />
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        )}
 
         {/* ── תצוגה מקדימה זוכי האתגר היומי ── */}
         {new Date().getHours() >= 18 && (
@@ -849,6 +684,97 @@ export default function Admin() {
             </Button>
           </div>
         )}
+
+        {/* ── טבלת נבחנים לפי מוסד ── */}
+        {(() => {
+          // בנה נתוני מוסדות
+          const schoolExamData = Object.entries(
+            students.filter(s => s.grade !== "רכז מוסדי" && s.results.filter((r:any) => r.stage_title !== "אתגר יומי").length > 0)
+              .reduce((acc: Record<string, any[]>, s) => {
+                const key = s.school_name || "לא ידוע";
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(s);
+                return acc;
+              }, {})
+          )
+          .map(([school, studs]) => {
+            const examResults = studs.map((s:any) => {
+              const examScores = s.results.filter((r:any) => r.stage_title !== "אתגר יומי");
+              const best = examScores.length ? Math.max(...examScores.map((r:any) => r.score)) : null;
+              return best;
+            }).filter((s:any) => s !== null) as number[];
+            const failed = examResults.filter(s => s < 80).length;
+            const passed = examResults.filter(s => s >= 80 && s < 95).length;
+            const excellent = examResults.filter(s => s >= 95).length;
+            const avg = examResults.length ? Math.round(examResults.reduce((a,b) => a+b, 0) / examResults.length) : null;
+            return { school, total: examResults.length, failed, passed, excellent, avg };
+          })
+          .filter(d => d.total > 0)
+          .sort((a,b) => b.total - a.total);
+
+          if (schoolExamData.length === 0) return null;
+
+          const totals = {
+            total: schoolExamData.reduce((a,b) => a + b.total, 0),
+            failed: schoolExamData.reduce((a,b) => a + b.failed, 0),
+            passed: schoolExamData.reduce((a,b) => a + b.passed, 0),
+            excellent: schoolExamData.reduce((a,b) => a + b.excellent, 0),
+            avg: Math.round(schoolExamData.filter(d => d.avg !== null).reduce((a,b) => a + (b.avg||0), 0) / schoolExamData.filter(d=>d.avg!==null).length),
+          };
+
+          return (
+            <div className="bg-[#12243f] border border-royal-400/10 rounded-2xl overflow-hidden mb-8">
+              <div className="px-5 py-3 border-b border-royal-400/10 flex items-center gap-2">
+                <Award className="h-4 w-4 text-gold-400" />
+                <span className="text-white font-bold text-sm">נבחנים לפי מוסד</span>
+                <span className="text-gray-500 text-xs mr-auto">סה״כ {totals.total} נבחנו</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-royal-400/10 bg-[#0c1a33]/50">
+                      <th className="text-right text-gray-400 text-xs font-medium px-4 py-2">מוסד</th>
+                      <th className="text-center text-gray-400 text-xs font-medium px-3 py-2">נבחנו</th>
+                      <th className="text-center text-red-400 text-xs font-medium px-3 py-2">מתחת 80</th>
+                      <th className="text-center text-green-400 text-xs font-medium px-3 py-2">80–95</th>
+                      <th className="text-center text-gold-400 text-xs font-medium px-3 py-2">95–100</th>
+                      <th className="text-center text-royal-300 text-xs font-medium px-3 py-2">ממוצע</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {schoolExamData.map((d, i) => (
+                      <tr key={i} className="border-b border-[#1a2f50] hover:bg-[#152a48]">
+                        <td className="px-4 py-2 text-white text-xs">{d.school}</td>
+                        <td className="px-3 py-2 text-center text-white font-bold text-xs">{d.total}</td>
+                        <td className="px-3 py-2 text-center">
+                          {d.failed > 0 ? <span className="text-xs font-bold text-red-400">{d.failed}</span> : <span className="text-gray-600 text-xs">—</span>}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {d.passed > 0 ? <span className="text-xs font-bold text-green-400">{d.passed}</span> : <span className="text-gray-600 text-xs">—</span>}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {d.excellent > 0 ? <span className="text-xs font-bold text-gold-400">{d.excellent}</span> : <span className="text-gray-600 text-xs">—</span>}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {d.avg !== null ? <span className={`text-xs font-bold ${d.avg >= 95 ? "text-gold-400" : d.avg >= 80 ? "text-green-400" : "text-red-400"}`}>{d.avg}%</span> : <span className="text-gray-600 text-xs">—</span>}
+                        </td>
+                      </tr>
+                    ))}
+                    {/* שורת סיכום */}
+                    <tr className="bg-[#0c1a33]/80 border-t-2 border-royal-400/20">
+                      <td className="px-4 py-2 text-white font-bold text-xs">סה״כ</td>
+                      <td className="px-3 py-2 text-center text-white font-bold text-xs">{totals.total}</td>
+                      <td className="px-3 py-2 text-center text-red-400 font-bold text-xs">{totals.failed}</td>
+                      <td className="px-3 py-2 text-center text-green-400 font-bold text-xs">{totals.passed}</td>
+                      <td className="px-3 py-2 text-center text-gold-400 font-bold text-xs">{totals.excellent}</td>
+                      <td className="px-3 py-2 text-center text-royal-300 font-bold text-xs">{totals.avg}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── WhatsApp + אוטומציה + דוחות ── */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
@@ -1131,7 +1057,7 @@ ${waMessage}` : waMessage;
                   </tr>
                 </thead>
                 <tbody>
-                  {coordinators.map(s => (
+                  {(expandedTables.has("coordinators") ? coordinators : coordinators.slice(0, 5)).map(s => (
                     <tr key={s.id} className="border-b border-[#1a2f50] hover:bg-[#152a48]">
                       <td className="p-3 text-white font-medium text-sm">{s.first_name} {s.last_name}</td>
                       <td className="p-3 text-gray-400 text-sm" dir="ltr">{s.phone}</td>
@@ -1156,6 +1082,12 @@ ${waMessage}` : waMessage;
                 </tbody>
               </table>
             </div>
+            {coordinators.length > 5 && (
+              <button onClick={() => toggleTable("coordinators")}
+                className="w-full py-2 text-purple-400 text-xs hover:text-purple-300 border-t border-purple-400/10 transition-colors">
+                {expandedTables.has("coordinators") ? "▲ הצג פחות" : `▼ הצג את כל ${coordinators.length} הרכזים`}
+              </button>
+            )}
           </div>
         )}
 
@@ -1256,12 +1188,8 @@ ${waMessage}` : waMessage;
                   <th className="text-right text-gray-400 text-sm font-medium p-4">מוסד</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">כיתה</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">מסלול</th>
-                  <th className="text-right text-sm font-bold p-4 text-gold-400 bg-gold-500/5 border-r border-gold-400/20">
-                    🏆 ציוני מבחנים
-                  </th>
-                  <th className="text-right text-sm font-bold p-4 text-royal-300 bg-royal-400/5 border-r border-royal-400/20">
-                    ⚡ אתגר יומי
-                  </th>
+                  <th className="text-right text-gray-400 text-sm font-medium p-4">ציוני מבחנים</th>
+                  <th className="text-right text-gray-400 text-sm font-medium p-4 text-royal-300">אתגר יומי</th>
                   <th className="text-right text-gray-400 text-sm font-medium p-4">פעולות</th>
                 </tr>
               </thead>
@@ -1283,41 +1211,17 @@ ${waMessage}` : waMessage;
                       <td className="p-4 text-gray-400 text-sm">{s.school_name}</td>
                       <td className="p-4 text-gray-400">{s.grade}</td>
                       <td className="p-4 text-royal-300 text-sm">{getTrackName(s.track_id)}</td>
-                      <td className="p-4 bg-gold-500/3 border-r border-gold-400/10">
+                      <td className="p-4">
                         {s.results.length === 0 ? (
-                          <span className="text-gray-600 text-xs">לא נבחן</span>
+                          <span className="text-gray-600 text-sm">לא נבחן</span>
                         ) : (
-                          <div className="flex flex-col gap-1.5">
+                          <div className="flex flex-col gap-1">
                             {s.results.map((r, ri) => (
-                              <div key={ri} className="flex flex-col gap-0.5">
-                                <span className={`text-sm font-bold px-2 py-0.5 rounded-lg w-fit ${
-                                  r.score >= 95
-                                    ? "bg-gold-500/20 text-gold-400"
-                                    : r.passed
-                                    ? "bg-green-500/15 text-green-400"
-                                    : "bg-red-500/15 text-red-400"
-                                }`}>
-                                  מבחן {ri + 1}: {r.score}%
-                                </span>
-                                {(r as any).created_at && (
-                                  <span className="text-gray-600 text-[10px] px-1" dir="ltr">
-                                    {new Date((r as any).created_at).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", timeZone: "Asia/Jerusalem" })}
-                                    {" "}
-                                    {new Date((r as any).created_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem" })}
-                                  </span>
-                                )}
-                              </div>
+                              <span key={ri} className={`text-sm font-medium ${r.score >= 95 ? "text-gold-400" : r.passed ? "text-green-400" : "text-red-400"}`}>
+                                מבחן {ri + 1}: {r.score}%
+                              </span>
                             ))}
                           </div>
-                        )}
-                      </td>
-                      <td className="p-4 bg-royal-400/3 border-r border-royal-400/10">
-                        {(s as any).dailyTotal > 0 ? (
-                          <span className="inline-flex items-center gap-1.5 bg-royal-400/15 text-royal-300 font-bold text-sm px-3 py-1 rounded-lg">
-                            ⚡ {(s as any).dailyTotal}
-                          </span>
-                        ) : (
-                          <span className="text-gray-600 text-xs">—</span>
                         )}
                       </td>
                       <td className="p-4">
