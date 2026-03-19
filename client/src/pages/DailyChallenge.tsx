@@ -122,7 +122,7 @@ export default function DailyChallenge() {
             <h1 className="font-display text-3xl text-white mb-1 flex items-center gap-3 justify-center">
               <Zap className="h-8 w-8 text-gold-400" />אתגר יומי
             </h1>
-            <p className="text-gold-400 text-sm">א׳ ניסן תשפ״ו</p>
+            <p className="text-gold-400 text-sm">ב׳ ניסן תשפ״ו</p>
           </motion.div>
         </div>
       </div>
@@ -228,7 +228,7 @@ export default function DailyChallenge() {
                   <span className="text-gray-400 text-sm">{(() => {
                     const d = new Date(h.created_at);
                     const today = new Date(); today.setHours(0,0,0,0);
-                    return d >= today ? "א׳ ניסן תשפ״ו" : toHebrewDate(d);
+                    return d >= today ? "ב׳ ניסן תשפ״ו" : toHebrewDate(d);
                   })()}</span>
                   <span className={`font-bold text-sm ${
                     h.correct_answers === h.total_questions ? "text-gold-400" :
