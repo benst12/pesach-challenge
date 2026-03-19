@@ -28,7 +28,7 @@ function sk(trackId: string, n: number) {
 
 // ─── לוח זמנים ───────────────────────────────────────────────
 // מבחן א (כל המסלולים)  – יום רביעי  כ"ט אדר
-// מבחן ב (כל המסלולים)  – יום ראשון  ד' ניסן
+// מבחן ב (כל המסלולים)  – יום שני  ה' ניסן
 // מבחן ג (מסלולים ג+ד)  – יום חמישי  ח' ניסן
 // מבחן ד (מסלול זהב בלבד) – יום שלישי  י"ג ניסן
 // ─────────────────────────────────────────────────────────────
@@ -59,8 +59,8 @@ export const EXAM_CONFIGS: TrackExamConfig[] = [
       {
         examNumber: 2,
         title: "מבחן ב'",
-        date: "יום ראשון, ד' ניסן תשפ\"ה",
-        dateShort: "ד' ניסן",
+        date: "יום שני, ה' ניסן תשפ\"ו",
+        dateShort: "ה' ניסן",
         chapters: ["פרק טו", "פרק טז"],
         chapterNames: [
           { name: "פרק טו – הכנות לליל הסדר", url: "https://ph.yhb.org.il/04-15/" },
@@ -95,8 +95,8 @@ export const EXAM_CONFIGS: TrackExamConfig[] = [
       {
         examNumber: 2,
         title: "מבחן ב'",
-        date: "יום ראשון, ד' ניסן תשפ\"ה",
-        dateShort: "ד' ניסן",
+        date: "יום שני, ה' ניסן תשפ\"ו",
+        dateShort: "ה' ניסן",
         chapters: ["פרק טו", "פרק טז", "זמנים פרק ב", "זמנים פרק ג"],
         chapterNames: [
           { name: "פרק טו – הכנות לליל הסדר",               url: "https://ph.yhb.org.il/04-15/" },
@@ -134,8 +134,8 @@ export const EXAM_CONFIGS: TrackExamConfig[] = [
       {
         examNumber: 2,
         title: "מבחן ב'",
-        date: "יום ראשון, ד' ניסן תשפ\"ה",
-        dateShort: "ד' ניסן",
+        date: "יום שני, ה' ניסן תשפ\"ו",
+        dateShort: "ה' ניסן",
         chapters: ["פרק ה", "פרק ו", "פרק טו", "פרק טז"],
         chapterNames: [
           { name: "פרק ה – ביטול חמץ ושריפתו",  url: "https://ph.yhb.org.il/04-05/" },
@@ -188,8 +188,8 @@ export const EXAM_CONFIGS: TrackExamConfig[] = [
       {
         examNumber: 2,
         title: "מבחן ב'",
-        date: "יום ראשון, ד' ניסן תשפ\"ה",
-        dateShort: "ד' ניסן",
+        date: "יום שני, ה' ניסן תשפ\"ו",
+        dateShort: "ה' ניסן",
         chapters: ["פרק ה", "פרק ו", "פרק ז", "פרק ח"],
         chapterNames: [
           { name: "פרק ה – ביטול חמץ ושריפתו", url: "https://ph.yhb.org.il/04-05/" },
@@ -237,38 +237,29 @@ export function getTrackExamConfig(trackId: string): TrackExamConfig | undefined
   return EXAM_CONFIGS.find(c => c.trackId === trackId);
 }
 
-import { createClient } from '@supabase/supabase-js';
-
-const _supabase = createClient(
-  'https://qobhbnbbqnzbsnacbfxm.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvYmhibmJicW56YnNuYWNiZnhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNjU2MTgsImV4cCI6MjA4ODg0MTYxOH0.hmRyy6OsGZRfx9B5KZsuN45mokd6FOflq4zNhbc0JVc'
-);
-
-// cache מקומי — מתרענן כל 30 שניות
-let _examStatesCache: Record<string, boolean> = {};
-let _lastFetch = 0;
-
-async function _refreshCache() {
-  const { data } = await _supabase.from("exam_states").select("key, is_open");
-  if (data) {
-    const newCache: Record<string, boolean> = {};
-    data.forEach((row: any) => { newCache[row.key] = row.is_open; });
-    _examStatesCache = newCache;
-    _lastFetch = Date.now();
-  }
-}
-
-// קרא בהתחלה
-_refreshCache();
+export const PREVIEW_CODE = "פסח כשר";
 
 export function isStageOpen(stage: ExamStage): boolean {
   try {
-    // רענן cache אם עבר יותר מ-30 שניות
-    if (Date.now() - _lastFetch > 30000) _refreshCache();
-    return _examStatesCache[stage.storageKey] === true;
+    if (localStorage.getItem(stage.storageKey) === "true") return true;
+    // preview mode — קוד גישה מיוחד
+    if (localStorage.getItem("pesach_preview_mode") === "true") return true;
+    return false;
   } catch { return false; }
 }
 
-export function setStageOpen(_stage: ExamStage, _open: boolean): void {
-  // לא בשימוש יותר — הכל דרך Supabase מדף המנהל
+export function activatePreviewMode(code: string): boolean {
+  if (code === PREVIEW_CODE) {
+    localStorage.setItem("pesach_preview_mode", "true");
+    return true;
+  }
+  return false;
+}
+
+export function isPreviewMode(): boolean {
+  try { return localStorage.getItem("pesach_preview_mode") === "true"; } catch { return false; }
+}
+
+export function setStageOpen(stage: ExamStage, open: boolean): void {
+  try { localStorage.setItem(stage.storageKey, String(open)); } catch {}
 }

@@ -307,7 +307,7 @@ export default function Home() {
               <div className="bg-[#0c1a33]/60 border border-gold-400/20 rounded-xl p-4 mb-3">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">📅</span>
-                  <span className="text-gold-400 font-bold">מבחן שני — יום שני ד׳ ניסן בע״ה</span>
+                  <span className="text-gold-400 font-bold">מבחן שני — יום שני ה׳ ניסן בע״ה</span>
                 </div>
                 <div className="flex items-center gap-2 mb-3 bg-gold-500/10 border border-gold-400/20 rounded-lg px-3 py-1.5 w-fit">
                   <span className="text-gold-400">⏰</span>
