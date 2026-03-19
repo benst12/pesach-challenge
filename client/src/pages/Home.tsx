@@ -57,7 +57,7 @@ export default function Home() {
     const diff = Math.ceil((seder.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     setDaysToSeder(diff > 0 ? diff : 0);
 
-    setHebrewDate("א׳ ניסן תשפ״ו");
+    setHebrewDate("ב׳ ניסן תשפ״ו");
   }, []);
 
   useEffect(() => {
@@ -69,9 +69,9 @@ export default function Home() {
   useEffect(() => {
     // זוכי האתגר היומי — קבועים
     setPublishedWinners({
-      elementary: { first_name: "אליאב",  last_name: "קינסט",  school_name: "נעם בני דקלים בנים",       grade: "כיתה ה3" },
-      yeshiva:    { first_name: "שילה",   last_name: "שפיגל",  school_name: "ישיבת צביה הר ברכה",        grade: "כיתה ט" },
-      ulpana:     { first_name: "ציפורה", last_name: "רביבו",  school_name: "אולפנת צביה כוכב יעקב",     grade: "כיתה י2" },
+      elementary: { first_name: "אריאל",  last_name: "פדידה",  school_name: "נעם דימונה",                grade: "כיתה ה" },
+      yeshiva:    { first_name: "ידידיה", last_name: "דהן",    school_name: "ישיבת צביה מע\"א",           grade: "כיתה ז3" },
+      ulpana:     { first_name: "יעל מוריה", last_name: "ז'ק", school_name: "אולפנת צביה רננה",           grade: "כיתה י1" },
     });
   }, []);
 
@@ -294,7 +294,7 @@ export default function Home() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <span className="bg-green-500 text-white text-xs font-black px-3 py-1 rounded-full">✅ כל הכבוד!</span>
-                <span className="text-green-300 font-bold text-sm">א׳ ניסן תשפ״ו</span>
+                <span className="text-green-300 font-bold text-sm">ב׳ ניסן תשפ״ו</span>
               </div>
               <h2 className="font-display text-xl sm:text-2xl text-white mb-2">
                 🏆 ישר כוח לכל מי שנבחן במבחן הראשון!
@@ -328,7 +328,8 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <p className="text-gray-400 text-xs">📱 כניסה דרך האזור האישי עם מספר הטלפון</p>
+              <p className="text-gray-400 text-xs mb-1">📱 כניסה דרך האזור האישי עם מספר הטלפון</p>
+              <p className="text-royal-300 text-xs">⚡ האתגר היומי הבא יפורסם ביום ראשון בשבת!</p>
             </div>
           </div>
         </div>
