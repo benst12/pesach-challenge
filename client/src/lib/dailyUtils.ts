@@ -18,33 +18,33 @@ export function getTodayKeyFromDayIndex(): string {
 // כל שאלה: { id, chapter, question, options: [{text, correct, key}] }
 const MANUAL_QUESTIONS: any[] | null = [
   {
-    id: 31, chapter: "פרק יג",
-    question: "מה הפתרון המקובל לבכורות שלא רוצים להתענות?",
+    id: 107,
+    question: "כמה מצוות מהתורה עוסקות באיסור חמץ בפסח, ומה יחסן?",
     options: [
-      { text: "לשלם כופר לצדקה",              correct: false, key: "א" },
-      { text: "לאכול מעט לחם ממש בבוקר",      correct: false, key: "ב" },
-      { text: "להשתתף בסיום מסכת",             correct: true,  key: "ג" },
-      { text: "לצום עד חצות היום בלבד",        correct: false, key: "ד" },
+      { text: "שלוש מצוות – שלוש מצוות לא תעשה בלבד", correct: false, key: "א" },
+      { text: "ארבע מצוות – שלוש מצוות לא תעשה ומצוות עשה אחת", correct: true, key: "ב" },
+      { text: "חמש מצוות – שלוש לא תעשה ושתי עשה", correct: false, key: "ג" },
+      { text: "שתי מצוות בלבד – בל יראה ובל ימצא", correct: false, key: "ד" },
     ]
   },
   {
-    id: 149, chapter: "פרק יב",
-    question: 'מהי "מצה שמורה" ומדוע היא מיוחדת?',
+    id: 112,
+    question: "מה עונשו של האוכל חמץ בפסח, ובמה שונה מרוב איסורי אכילה?",
     options: [
-      { text: "מצה שמורה במקרר",                        correct: false, key: "א" },
-      { text: "מצה ששמרו אותה לשם מצוה מרגע הקצירה",   correct: true,  key: "ב" },
-      { text: "מצה שנשמרה על ידי הגוי",                 correct: false, key: "ג" },
-      { text: "מצה שהוכנה בפיקוח רב",                   correct: false, key: "ד" },
+      { text: "מיתה בידי שמים – חמור אפילו מכרת", correct: false, key: "א" },
+      { text: "מלקות – כמו שאר איסורי אכילה בתורה", correct: false, key: "ב" },
+      { text: "אין עונש מפורש – רק איסור עשה", correct: false, key: "ג" },
+      { text: "כרת – בעוד שרוב איסורי אכילה עונשם מלקות בלבד", correct: true, key: "ד" },
     ]
   },
   {
-    id: 170, chapter: "פרק טו",
-    question: 'מה מיוחד ב"שפיכת כוס אליהו"?',
+    id: 119,
+    question: "מתי ובמה מבצעים את בדיקת החמץ לכתחילה?",
     options: [
-      { text: "כוס שאחד הילדים שופך",          correct: false, key: "א" },
-      { text: "כוס שאסור לשתות ממנה",           correct: false, key: "ב" },
-      { text: "כוס שמוסיפים לה יין בכל פרשה",  correct: false, key: "ג" },
-      { text: "כוס יין שמוזגים לאליהו הנביא",  correct: true,  key: "ד" },
+      { text: 'בתחילת ליל י"ד בניסן – לאור נר שעווה שאורו ממוקד ומגיע לחורים', correct: true, key: "א" },
+      { text: 'ביום י"ד בניסן בשחרית – לאור פנס חשמלי חזק', correct: false, key: "ב" },
+      { text: 'בתחילת ליל י"ד בניסן – לאור אבוקה שאורה חזק', correct: false, key: "ג" },
+      { text: 'בליל ט"ו בניסן לפני הסדר – לאור נר שמן', correct: false, key: "ד" },
     ]
   },
 ];

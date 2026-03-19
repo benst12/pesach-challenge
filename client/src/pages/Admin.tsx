@@ -1248,7 +1248,7 @@ ${waMessage}` : waMessage;
                           const days = daily.length;
                           return days > 0 ? (
                             <div className="flex flex-col gap-0.5">
-                              {totalCorrect > 0 && <span className="text-xs font-bold text-royal-300">{totalCorrect} ✓</span>}
+                              <span className="text-xs font-bold text-royal-300">{totalCorrect} ✓ נכון</span>
                               <span className="text-[10px] text-gray-500">{days} יום</span>
                             </div>
                           ) : <span className="text-gray-600 text-xs">—</span>;
