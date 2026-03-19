@@ -283,59 +283,52 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── הודעת מבחן ── */}
-      <div className="bg-gradient-to-l from-[#1a0a00] via-[#2d1500] to-[#1a0a00] border-y-2 border-gold-400/60 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-l from-gold-500/5 via-gold-400/10 to-gold-500/5" />
-        <div className="container max-w-4xl py-6 px-4 relative z-10">
+            {/* ── הודעת מבחן ── */}
+      <div className="bg-gradient-to-l from-[#0a1a08] via-[#0f2a10] to-[#0a1a08] border-y-2 border-green-500/40 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-l from-green-500/3 via-green-400/6 to-green-500/3" />
+        <div className="container max-w-4xl py-5 px-4 relative z-10">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 mt-1">
-              <div className="w-12 h-12 rounded-xl bg-gold-500/20 border border-gold-400/40 flex items-center justify-center text-2xl">🦁</div>
+              <div className="w-11 h-11 rounded-xl bg-green-500/20 border border-green-400/30 flex items-center justify-center text-xl">🎉</div>
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <span className="bg-gold-500 text-[#0c1a33] text-xs font-black px-3 py-1 rounded-full">📢 הודעה חשובה</span>
-                <span className="text-gold-300 font-bold text-sm">א׳ ניסן תשפ״ו</span>
+                <span className="bg-green-500 text-white text-xs font-black px-3 py-1 rounded-full">✅ כל הכבוד!</span>
+                <span className="text-green-300 font-bold text-sm">א׳ ניסן תשפ״ו</span>
               </div>
-              <h2 className="font-display text-2xl sm:text-3xl text-white mb-3">🎯 המבחן הראשון — היום בע"ה!</h2>
-              <div className="flex items-center gap-2 mb-4 bg-gold-500/15 border border-gold-400/30 rounded-xl px-4 py-2.5 w-fit">
-                <span className="text-gold-400 text-lg">⏰</span>
-                <span className="text-white font-bold text-lg">15:00 — 16:30</span>
-                <span className="text-gold-300 text-sm">שעות המבחן</span>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-3 mb-4">
-                <div className="bg-[#0c1a33]/60 border border-gold-400/20 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">👑</span>
-                    <span className="text-gold-400 font-bold text-sm">מסלול זהב — כיתות ה׳–י"ב</span>
+              <h2 className="font-display text-xl sm:text-2xl text-white mb-2">
+                🏆 ישר כוח לכל מי שנבחן במבחן הראשון!
+              </h2>
+              <p className="text-green-200/80 text-sm mb-4">
+                כל מי שהשתתף עשה דבר נהדר — ממשיכים ומתכוננים למבחן הבא!
+              </p>
+
+              {/* מבחן שני */}
+              <div className="bg-[#0c1a33]/60 border border-gold-400/20 rounded-xl p-4 mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">📅</span>
+                  <span className="text-gold-400 font-bold">מבחן שני — יום שני ד׳ ניסן בע״ה</span>
+                </div>
+                <div className="flex items-center gap-2 mb-3 bg-gold-500/10 border border-gold-400/20 rounded-lg px-3 py-1.5 w-fit">
+                  <span className="text-gold-400">⏰</span>
+                  <span className="text-white font-bold">14:30 — 16:00</span>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="bg-[#0c1a33]/60 rounded-lg p-3">
+                    <p className="text-gold-400 font-bold text-xs mb-1">👑 מסלול זהב</p>
+                    <p className="text-gray-300 text-xs">פרקים ה׳–ח׳ פניני הלכה לפסח</p>
+                    <p className="text-gold-300 text-[11px] mt-1">25 שאלות • 25 דקות</p>
                   </div>
-                  <p className="text-gray-300 text-sm">פרקים א׳–ד׳ פניני הלכה לפסח</p>
-                  <p className="text-gold-300 text-xs mt-1 font-medium">25 שאלות • 25 דקות</p>
-                </div>
-                <div className="bg-[#0c1a33]/60 border border-royal-400/20 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">📚</span>
-                    <span className="text-royal-300 font-bold text-sm">מסלולים א׳ ב׳ ג׳</span>
+                  <div className="bg-[#0c1a33]/60 rounded-lg p-3">
+                    <p className="text-royal-300 font-bold text-xs mb-1">📚 מסלולים א׳ב׳ג׳</p>
+                    <p className="text-gray-400 text-[11px]">א׳ — כיתות ה׳–ו׳: פרקים טו׳–טז׳</p>
+                    <p className="text-gray-400 text-[11px]">ב׳ — כיתות ז׳–ח׳: פרקים טו׳–טז׳ + זמנים ב׳–ג׳</p>
+                    <p className="text-gray-400 text-[11px]">ג׳ — כיתות ט׳–י״ב: פרקים ה׳–ו׳ + טו׳–טז׳</p>
+                    <p className="text-royal-300 text-[11px] mt-1">15 שאלות • 25 דקות</p>
                   </div>
-                  <div className="space-y-0.5 mb-1">
-                    <p className="text-gray-400 text-xs">מסלול א׳ — כיתות ה׳–ו׳</p>
-                    <p className="text-gray-400 text-xs">מסלול ב׳ — כיתות ז׳–ח׳</p>
-                    <p className="text-gray-400 text-xs">מסלול ג׳ — כיתות ט׳–י"ב</p>
-                  </div>
-                  <p className="text-gray-300 text-sm">פרק א׳ ופרק ח׳ פניני הלכה לפסח</p>
-                  <p className="text-royal-300 text-xs mt-1 font-medium">15 שאלות • 25 דקות</p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-4 text-sm mb-3">
-                <div className="flex items-center gap-1.5 text-gray-300">
-                  <span>📱</span>
-                  <span>כניסה דרך האזור האישי עם מספר הטלפון</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-gray-300">
-                  <span>✅</span>
-                  <span>שאלות בחירה כמו באתגר היומי</span>
-                </div>
-              </div>
-              <p className="text-gold-400 font-bold text-xl">!בהצלחה לכולם 🌟</p>
+              <p className="text-gray-400 text-xs">📱 כניסה דרך האזור האישי עם מספר הטלפון</p>
             </div>
           </div>
         </div>

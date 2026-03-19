@@ -375,6 +375,8 @@ export default function Admin() {
                 score: r.score,
                 passed: r.score >= 80,
                 stage_title: r.stage_title || (trackName ? trackName : `מבחן ${idx + 1}`),
+                created_at: r.created_at,
+                correct_answers: r.correct_answers,
               };
             }),
         }));
@@ -742,7 +744,7 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {schoolExamData.map((d, i) => (
+                    {(expandedTables.has("schoolExam") ? schoolExamData : schoolExamData.slice(0,10)).map((d, i) => (
                       <tr key={i} className="border-b border-[#1a2f50] hover:bg-[#152a48]">
                         <td className="px-4 py-2 text-white text-xs">{d.school}</td>
                         <td className="px-3 py-2 text-center text-white font-bold text-xs">{d.total}</td>
@@ -772,6 +774,12 @@ export default function Admin() {
                   </tbody>
                 </table>
               </div>
+              {schoolExamData.length > 10 && (
+                <button onClick={() => toggleTable("schoolExam")}
+                  className="w-full py-2 text-gold-400 text-xs hover:text-gold-300 border-t border-royal-400/10 transition-colors">
+                  {expandedTables.has("schoolExam") ? "▲ הצג פחות" : `▼ הצג את כל ${schoolExamData.length} המוסדות`}
+                </button>
+              )}
             </div>
           );
         })()}
@@ -1218,9 +1226,10 @@ ${waMessage}` : waMessage;
                           return (
                             <div className="flex flex-col gap-1">
                               {examR.map((r:any, ri:number) => (
-                                <span key={ri} className={`text-xs font-bold px-2 py-0.5 rounded-lg ${r.score >= 95 ? "bg-gold-500/20 text-gold-400" : r.score >= 80 ? "bg-green-900/30 text-green-400" : "bg-red-900/30 text-red-400"}`}>
-                                  {r.stage_title || `מבחן ${ri+1}`}: {r.score}%
-                                </span>
+                                <div key={ri} className={`text-xs font-bold px-2 py-0.5 rounded-lg ${r.score >= 95 ? "bg-gold-500/20 text-gold-400" : r.score >= 80 ? "bg-green-900/30 text-green-400" : "bg-red-900/30 text-red-400"}`}>
+                                  <span>{r.stage_title || `מבחן ${ri+1}`}: {r.score}%</span>
+                                  {r.created_at && <span className="text-[10px] opacity-60 mr-1">{new Date(r.created_at).toLocaleDateString("he-IL")} {new Date(r.created_at).toLocaleTimeString("he-IL", {hour:"2-digit",minute:"2-digit"})}</span>}
+                                </div>
                               ))}
                             </div>
                           );
@@ -1229,10 +1238,14 @@ ${waMessage}` : waMessage;
                       <td className="p-4">
                         {(() => {
                           const daily = s.results.filter((r:any) => r.stage_title === "אתגר יומי");
-                          const total = daily.reduce((sum:number, r:any) => sum + (r.correct_answers || 0), 0);
-                          return daily.length > 0
-                            ? <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-royal-500/20 text-royal-300">{total} ✓</span>
-                            : <span className="text-gray-600 text-xs">—</span>;
+                          const totalCorrect = daily.reduce((sum:number, r:any) => sum + (r.correct_answers || 0), 0);
+                          const days = daily.length;
+                          return days > 0 ? (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-xs font-bold text-royal-300">{totalCorrect} ✓ נכון</span>
+                              <span className="text-[10px] text-gray-500">{days} יום</span>
+                            </div>
+                          ) : <span className="text-gray-600 text-xs">—</span>;
                         })()}
                       </td>
                       <td className="p-4">
@@ -1285,7 +1298,7 @@ ${waMessage}` : waMessage;
                   </tr>
                 </thead>
                 <tbody>
-                  {dailyLeaders.map((s, i) => (
+                  {(expandedTables.has("daily") ? dailyLeaders : dailyLeaders.slice(0,5)).map((s, i) => (
                     <tr key={s.id} className={`border-b border-[#1a2f50] ${i < 3 ? "bg-gold-500/5" : ""}`}>
                       <td className="p-3">
                         <span className="text-lg">{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : <span className="text-gray-500 text-sm">{i+1}</span>}</span>
@@ -1302,6 +1315,12 @@ ${waMessage}` : waMessage;
                 </tbody>
               </table>
             </div>
+            {dailyLeaders.length > 5 && (
+              <button onClick={() => toggleTable("daily")}
+                className="w-full py-2 text-gold-400 text-xs hover:text-gold-300 border-t border-gold-400/10 transition-colors">
+                {expandedTables.has("daily") ? "▲ הצג פחות" : `▼ הצג את כל ${dailyLeaders.length} המצטיינים`}
+              </button>
+            )}
           </div>
         )}
 
