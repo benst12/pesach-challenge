@@ -957,7 +957,7 @@ ${waMessage}` : waMessage;
               <span className="text-white font-bold text-sm">נרשמים לפי מוסד</span>
             </div>
             <div className="p-4 space-y-2">
-              {schoolStats.map(([school, count], i) => (
+              {(expandedTables.has("schools") ? schoolStats : schoolStats.slice(0,8)).map(([school, count], i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="text-gray-500 text-xs w-4 text-center">{i + 1}</span>
                   <div className="flex-1">
@@ -979,6 +979,12 @@ ${waMessage}` : waMessage;
               ))}
               {schoolStats.length === 0 && <p className="text-gray-600 text-sm text-center py-4">אין נתונים</p>}
             </div>
+            {schoolStats.length > 8 && (
+              <button onClick={() => toggleTable("schools")}
+                className="w-full py-2 text-royal-300 text-xs hover:text-royal-200 border-t border-royal-400/10 transition-colors">
+                {expandedTables.has("schools") ? "▲ הצג פחות" : `▼ הצג את כל ${schoolStats.length} המוסדות`}
+              </button>
+            )}
           </div>
 
           {/* לפי מסלול */}
@@ -1242,7 +1248,7 @@ ${waMessage}` : waMessage;
                           const days = daily.length;
                           return days > 0 ? (
                             <div className="flex flex-col gap-0.5">
-                              <span className="text-xs font-bold text-royal-300">{totalCorrect} ✓ נכון</span>
+                              {totalCorrect > 0 && <span className="text-xs font-bold text-royal-300">{totalCorrect} ✓</span>}
                               <span className="text-[10px] text-gray-500">{days} יום</span>
                             </div>
                           ) : <span className="text-gray-600 text-xs">—</span>;

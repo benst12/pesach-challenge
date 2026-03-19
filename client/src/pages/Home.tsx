@@ -324,7 +324,7 @@ export default function Home() {
                     <p className="text-gray-400 text-[11px]">א׳ — כיתות ה׳–ו׳: פרקים טו׳–טז׳</p>
                     <p className="text-gray-400 text-[11px]">ב׳ — כיתות ז׳–ח׳: פרקים טו׳–טז׳ + זמנים ב׳–ג׳</p>
                     <p className="text-gray-400 text-[11px]">ג׳ — כיתות ט׳–י״ב: פרקים ה׳–ו׳ + טו׳–טז׳</p>
-                    <p className="text-royal-300 text-[11px] mt-1">15 שאלות • 25 דקות</p>
+                    <p className="text-royal-300 text-[11px] mt-1">15–25 שאלות • 25 דקות</p>
                   </div>
                 </div>
               </div>
