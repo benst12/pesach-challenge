@@ -384,6 +384,7 @@ export default function Admin() {
                 stage_title: r.stage_title || (trackName ? trackName : `מבחן ${idx + 1}`),
                 created_at: r.created_at,
                 correct_answers: r.correct_answers,
+                quiz_id: r.quiz_id,
               };
             }),
         }));
@@ -713,7 +714,7 @@ export default function Admin() {
             ).length;
             // מבחן 2 — quiz_id מכיל _2
             const exam2 = studs.filter((s:any) =>
-              s.results.some((r:any) => r.quiz_id?.endsWith("_2"))
+              s.results.some((r:any) => r.quiz_id?.includes("_2") || r.stage_title === "מבחן ב'")
             ).length;
             const examResults = studs.flatMap((s:any) =>
               s.results.filter((r:any) => r.stage_title !== "אתגר יומי").map((r:any) => r.score)
