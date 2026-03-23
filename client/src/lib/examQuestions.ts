@@ -649,7 +649,7 @@ export const EXAM_ZAHAV_2: ExamQuestion[] = [
     id: 306,
     question: "מה ארבעת שלבי השבתת החמץ?",
     options: [
-      { text: `בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י`ד", correct: false },
+      { text: `בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י"ד`, correct: false },
       { text: "בדיקה, שריפה, ביטול, מכירה", correct: false },
       { text: "ניקוי, בדיקה, ביעור, ביטול", correct: true },
       { text: "ביטול ראשון, בדיקה, ביטול שני, ביעור", correct: false },
