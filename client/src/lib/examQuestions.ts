@@ -26,7 +26,7 @@ export const EXAM_ABC_1: ExamQuestion[] = [
     options: [
       { text: "לחם העוני שאכלו ישראל בשעבוד מצרים", correct: false },
       { text: "זכר לניסים שנעשו לישראל במצרים", correct: false },
-      { text: 'שנגלה הקב\"ה על אבותינו וגאלם קודם שהספיק בצקם להחמיץ', correct: true },
+      { text: `שנגלה הקב\"ה על אבותינו וגאלם קודם שהספיק בצקם להחמיץ`, correct: true },
       { text: "האמונה שישראל נשאו עמם ביציאתם", correct: false },
     ]
   },
@@ -144,8 +144,8 @@ export const EXAM_ABC_1: ExamQuestion[] = [
     id: 14,
     question: "מה ההבדל בין גישת השולחן ערוך לגישת הרמ\"א בהלכות כשרות לפסח?",
     options: [
-      { text: 'הרמ\"א מקל יותר מהשולחן ערוך', correct: false },
-      { text: 'השולחן ערוך הולך לפי כללי ההלכה הרגילים, הרמ\"א נוטה להחמיר ולחשוש לדעות יחיד', correct: true },
+      { text: `הרמ\"א מקל יותר מהשולחן ערוך`, correct: false },
+      { text: `השולחן ערוך הולך לפי כללי ההלכה הרגילים, הרמ\"א נוטה להחמיר ולחשוש לדעות יחיד`, correct: true },
       { text: "אין ביניהם הבדל עקרוני", correct: false },
       { text: "שניהם שווים ורק נחלקו בפרטים קטנים", correct: false },
     ]
@@ -183,7 +183,7 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
     options: [
       { text: "לחם העוני שאכלו ישראל בשעבוד מצרים", correct: false },
       { text: "זכר לניסים שנעשו לישראל במצרים", correct: false },
-      { text: 'שנגלה הקב\"ה על אבותינו וגאלם קודם שהספיק בצקם להחמיץ', correct: true },
+      { text: `שנגלה הקב\"ה על אבותינו וגאלם קודם שהספיק בצקם להחמיץ`, correct: true },
       { text: "האמונה שישראל נשאו עמם ביציאתם", correct: false },
     ]
   },
@@ -241,7 +241,7 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
     id: 108,
     question: 'מאימתי אסור מהתורה לאכול חמץ ביום י"ד בניסן?',
     options: [
-      { text: 'מתחילת יום י"ד – כיוון שהוא יום ערב פסח', correct: false },
+      { text: `מתחילת יום י"ד – כיוון שהוא יום ערב פסח`, correct: false },
       { text: "מהשעה החמישית – כפי שאסרו חכמים", correct: false },
       { text: "מהשעה השישית – שאז אסור גם בהנאה מדברי חכמים", correct: false },
       { text: "מחצות היום – שהוא זמן הראוי להקרבת קרבן פסח", correct: true },
@@ -292,8 +292,8 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
     question: 'מה מצוות "תשביתו" ומתי היא חלה?',
     options: [
       { text: "מצווה לשרוף את החמץ – חלה מתחילת ליל פסח", correct: false },
-      { text: 'מצווה לבדוק את הבית – חלה מליל י"ד בניסן', correct: false },
-      { text: 'מצווה לבער את החמץ מרשותנו – חלה עד חצות יום י"ד בניסן', correct: true },
+      { text: `מצווה לבדוק את הבית – חלה מליל י"ד בניסן`, correct: false },
+      { text: `מצווה לבער את החמץ מרשותנו – חלה עד חצות יום י"ד בניסן`, correct: true },
       { text: "מצווה לבטל את החמץ בלב – חלה מתחילת חודש ניסן", correct: false },
     ]
   },
@@ -303,7 +303,7 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
     options: [
       { text: "כן, כיוון שנמצא בתחום ביתו של היהודי", correct: false },
       { text: "כן, אם הגוי עובד אצל היהודי", correct: false },
-      { text: 'לא, כי "לְךָ" – רק חמץ השייך לו אסור, אך צריך להעמיד מחיצה או לנעול', correct: true },
+      { text: `לא, כי "לְךָ" – רק חמץ השייך לו אסור, אך צריך להעמיד מחיצה או לנעול`, correct: true },
       { text: "לא, אם הגוי אחראי עליו, אך כן אם היהודי אחראי", correct: false },
     ]
   },
@@ -333,7 +333,7 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
     options: [
       { text: "בדיקה, שריפה, ביטול, מכירה", correct: false },
       { text: "ניקוי, בדיקה, ביעור, ביטול", correct: false },
-      { text: 'בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י"ד', correct: true },
+      { text: `בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י"ד`, correct: true },
       { text: "ביטול ראשון, בדיקה, ביטול שני, ביעור", correct: false },
     ]
   },
@@ -351,10 +351,10 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
     id: 119,
     question: 'מתי ובמה מבצעים את בדיקת החמץ לכתחילה?',
     options: [
-      { text: 'ביום י"ד בניסן בשחרית – לאור פנס חשמלי חזק', correct: false },
-      { text: 'בתחילת ליל י"ד בניסן – לאור נר שעווה שאורו ממוקד ומגיע לחורים', correct: true },
-      { text: 'בתחילת ליל י"ד בניסן – לאור אבוקה שאורה חזק', correct: false },
-      { text: 'בליל ט"ו בניסן לפני הסדר – לאור נר שמן', correct: false },
+      { text: `ביום י"ד בניסן בשחרית – לאור פנס חשמלי חזק`, correct: false },
+      { text: `בתחילת ליל י"ד בניסן – לאור נר שעווה שאורו ממוקד ומגיע לחורים`, correct: true },
+      { text: `בתחילת ליל י"ד בניסן – לאור אבוקה שאורה חזק`, correct: false },
+      { text: `בליל ט"ו בניסן לפני הסדר – לאור נר שמן`, correct: false },
     ]
   },
   {
@@ -364,7 +364,7 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
       { text: 'על בדיקת חמץ – כי עיקר המצווה היא הבדיקה עצמה', correct: false },
       { text: 'לבדוק את החמץ – כי כך נוסח הברכה לפי כל הפוסקים', correct: false },
       { text: 'על ביעור חמץ – כי הבדיקה היא הכנה לביעור שהוא עיקר המצווה', correct: true },
-      { text: 'על השבתת חמץ – כי כך לשון התורה "תשביתו"', correct: false },
+      { text: `על השבתת חמץ – כי כך לשון התורה "תשביתו"`, correct: false },
     ]
   },
   {
@@ -392,7 +392,7 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
     question: 'מה עושים אם שכח ולא בדק בליל י"ד בניסן?',
     options: [
       { text: "מבטל את החמץ בלב ודי בכך, ואינו צריך לבדוק", correct: false },
-      { text: 'בודק ביום י"ד, ואם לא בדק עד ליל פסח – בודק בפסח לאור הנר', correct: true },
+      { text: `בודק ביום י"ד, ואם לא בדק עד ליל פסח – בודק בפסח לאור הנר`, correct: true },
       { text: "אינו צריך לבדוק כלל, כיוון שהביטול יחול עליו", correct: false },
       { text: "ממתין לפסח הבא ומחמיר בהשנה בבדיקה כפולה", correct: false },
     ]
@@ -600,8 +600,8 @@ export const EXAM_ZAHAV_2: ExamQuestion[] = [
     question: "מה מצוות 'תשביתו' ומתי היא חלה?",
     options: [
       { text: "מצווה לשרוף את החמץ ביום טוב בלבד", correct: false },
-      { text: 'מצווה לבדוק את הבית בליל י"ד', correct: false },
-      { text: 'מצווה לבער את החמץ מרשותנו עד חצות יום י"ד', correct: true },
+      { text: `מצווה לבדוק את הבית בליל י"ד`, correct: false },
+      { text: `מצווה לבער את החמץ מרשותנו עד חצות יום י"ד`, correct: true },
       { text: "מצווה לבטל בלב בתחילת חודש ניסן", correct: false },
     ]
   },
@@ -649,7 +649,7 @@ export const EXAM_ZAHAV_2: ExamQuestion[] = [
     id: 306,
     question: "מה ארבעת שלבי השבתת החמץ?",
     options: [
-      { text: 'בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י'ד", correct: false },
+      { text: `בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י`ד", correct: false },
       { text: "בדיקה, שריפה, ביטול, מכירה", correct: false },
       { text: "ניקוי, בדיקה, ביעור, ביטול", correct: true },
       { text: "ביטול ראשון, בדיקה, ביטול שני, ביעור", correct: false },
@@ -832,8 +832,8 @@ export const EXAM_ZAHAV_2: ExamQuestion[] = [
     id: 324,
     question: 'מה ההבדל בין השולחן ערוך לרמ"א בהלכות כשרות לפסח?',
     options: [
-      { text: 'השולחן ערוך הולך לפי כללי ההלכה הרגילים, הרמ"א נוטה להחמיר', correct: false },
-      { text: 'הרמ"א מקל יותר מהשולחן ערוך בפסח', correct: true },
+      { text: `השולחן ערוך הולך לפי כללי ההלכה הרגילים, הרמ"א נוטה להחמיר`, correct: false },
+      { text: `הרמ"א מקל יותר מהשולחן ערוך בפסח`, correct: true },
       { text: "אין ביניהם הבדל עקרוני", correct: false },
       { text: "השולחן ערוך אוסר יותר בתערובות", correct: false },
     ]
@@ -973,8 +973,8 @@ export const EXAM_B_2: ExamQuestion[] = [
     options: [
       { text: "בליל פסח – ליל הסדר", correct: false },
       { text: "בראש חודש אייר", correct: false },
-      { text: 'בליל ט"ז בניסן – מוצאי יום טוב ראשון', correct: true },
-      { text: 'בל"ג בעומר', correct: false },
+      { text: `בליל ט"ז בניסן – מוצאי יום טוב ראשון`, correct: true },
+      { text: `בל"ג בעומר`, correct: false },
     ]
   },
   {
@@ -1024,7 +1024,7 @@ export const EXAM_B_2: ExamQuestion[] = [
       { text: "יום שפסקו תלמידי רבי עקיבא למות", correct: true },
       { text: "יום שקיבלו ישראל את התורה", correct: false },
       { text: "יום אמצע הספירה", correct: false },
-      { text: 'יום הולדת רשב"י', correct: false },
+      { text: `יום הולדת רשב"י`, correct: false },
     ]
   },
   // זמנים פרק ג — 6 שאלות
@@ -1044,7 +1044,7 @@ export const EXAM_B_2: ExamQuestion[] = [
     options: [
       { text: "אבלות כל שבעה שבועות", correct: false },
       { text: "אבלות בשבועיים הראשונים", correct: false },
-      { text: 'אבלות עד ל"ג בעומר', correct: true },
+      { text: `אבלות עד ל"ג בעומר`, correct: true },
       { text: "אין מנהג אבלות", correct: false },
     ]
   },
@@ -1054,7 +1054,7 @@ export const EXAM_B_2: ExamQuestion[] = [
     options: [
       { text: "אסור כי הוא אמצע הספירה", correct: false },
       { text: "מותר רק אחרי חצות", correct: false },
-      { text: 'כן, ל"ג בעומר הוא יום שמחה', correct: false },
+      { text: `כן, ל"ג בעומר הוא יום שמחה`, correct: false },
       { text: "כן, נהוג לשאת נשים ביום זה", correct: true },
     ]
   },
@@ -1073,7 +1073,7 @@ export const EXAM_B_2: ExamQuestion[] = [
     question: "מה מנהג ספרדים?",
     options: [
       { text: "ספרדים אינם נוהגים אבלות כלל", correct: false },
-      { text: 'אבלות מר"ח אייר עד שבועות', correct: true },
+      { text: `אבלות מר"ח אייר עד שבועות`, correct: true },
       { text: "אבלות כל ימי הספירה", correct: false },
       { text: "אבלות בשבועיים האחרונים", correct: false },
     ]
@@ -1101,8 +1101,8 @@ export const EXAM_C_2: ExamQuestion[] = [
     options: [
       { text: "מצווה לשרוף את החמץ בלבד", correct: false },
       { text: "מצווה לבטל בלב בתחילת ניסן", correct: false },
-      { text: 'מצווה לבדוק את הבית בליל י"ד', correct: false },
-      { text: 'מצווה לבער את החמץ עד חצות יום י"ד', correct: true },
+      { text: `מצווה לבדוק את הבית בליל י"ד`, correct: false },
+      { text: `מצווה לבער את החמץ עד חצות יום י"ד`, correct: true },
     ]
   },
   {
@@ -1150,7 +1150,7 @@ export const EXAM_C_2: ExamQuestion[] = [
     question: "מה ארבעת שלבי השבתת החמץ?",
     options: [
       { text: "ניקוי, בדיקה, ביעור, ביטול", correct: false },
-      { text: 'בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י'ד", correct: true },
+      { text: `בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י`ד", correct: true },
       { text: "בדיקה, שריפה, ביטול, מכירה", correct: false },
       { text: "ביטול ראשון, בדיקה, ביטול שני, ביעור", correct: false },
     ]
