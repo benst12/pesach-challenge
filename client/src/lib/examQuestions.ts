@@ -419,3 +419,923 @@ export const EXAM_ZAHAV_1: ExamQuestion[] = [
   },
 ];
 
+
+// ══════════════════════════════════════════
+// מבחן ב׳ — מסלולים א ב ג — פרקים טו+טז — 16 שאלות
+// תשובות נכונות מפוזרות: א,ג,ב,ד,א,ג,ב,ד,ג,א,ד,ב,א,ד,ג,ב
+// ══════════════════════════════════════════
+export const EXAM_ABC_2: ExamQuestion[] = [
+  // פרק טו — 8 שאלות
+  {
+    id: 201,
+    question: "מה מיוחד בהלל שאומרים בליל הסדר?",
+    options: [
+      { text: "חלקו אומרים לפני הסעודה וחלקו אחריה", correct: true },
+      { text: "אומרים אותו כולו לפני הסדר", correct: false },
+      { text: "אומרים אותו כולו אחרי הסדר", correct: false },
+      { text: "לא אומרים הלל בליל הסדר – רק מגיד", correct: false },
+    ]
+  },
+  {
+    id: 202,
+    question: "מה פירוש הביטוי 'עבדים היינו לפרעה במצרים'?",
+    options: [
+      { text: "הכרזה שאנחנו עדיין עבדים בגלות", correct: false },
+      { text: "תפילה שלא נשוב לגלות מצרים", correct: false },
+      { text: "פתיחת המגיד – מתחילים בגנות ומסיימים בשבח", correct: true },
+      { text: "סיפור שנאמר רק לבנים הקטנים", correct: false },
+    ]
+  },
+  {
+    id: 203,
+    question: "מה תפקיד הכרפס בסדר פסח?",
+    options: [
+      { text: "מין חרוסת שמסמלת את הטיט", correct: false },
+      { text: "ירק שטובלים במי מלח כדי שהילדים ישאלו", correct: true },
+      { text: "ירק מר שאוכלים במקום מרור בשעת הדחק", correct: false },
+      { text: "ירק שאוכלים בסוף הסדר לסיום", correct: false },
+    ]
+  },
+  {
+    id: 204,
+    question: "מה תפקיד המרור בסדר פסח?",
+    options: [
+      { text: "לשמור על הבריאות בלילה ארוך", correct: false },
+      { text: "לצמצם את התיאבון לפני הסעודה", correct: false },
+      { text: "להתנקות מהחמץ שאכלו לפני פסח", correct: false },
+      { text: "זכר למרירות השעבוד במצרים", correct: true },
+    ]
+  },
+  {
+    id: 205,
+    question: "מה שיעור אכילת מרור?",
+    options: [
+      { text: "כזית", correct: true },
+      { text: "כביצה", correct: false },
+      { text: "שלושה עלי חסה שלמים", correct: false },
+      { text: "כחצי ביצה", correct: false },
+    ]
+  },
+  {
+    id: 206,
+    question: "מהו המרור המועדף לכתחילה?",
+    options: [
+      { text: "חזרת – שורש מר", correct: false },
+      { text: "פלפל חריף", correct: false },
+      { text: "חסה – רומן", correct: true },
+      { text: "עלי לענה", correct: false },
+    ]
+  },
+  {
+    id: 207,
+    question: "מה מסמל החרוסת בסדר?",
+    options: [
+      { text: "מתיקות הגאולה", correct: false },
+      { text: "את הדם שנמרח על המשקופים", correct: false },
+      { text: "אדמת ארץ ישראל", correct: false },
+      { text: "טיט המצרים שבו עמלו בני ישראל", correct: true },
+    ]
+  },
+  {
+    id: 208,
+    question: "כמה מצות מניחים על השולחן בליל הסדר ומה הן מסמלות?",
+    options: [
+      { text: "שתיים – כנגד שתי לחם של שבת", correct: false },
+      { text: "שלוש – כנגד כהן לוי וישראל", correct: true },
+      { text: "ארבע – כנגד ארבע לשונות גאולה", correct: false },
+      { text: "אחת גדולה – כנגד לחם עוני", correct: false },
+    ]
+  },
+  // פרק טז — 8 שאלות
+  {
+    id: 209,
+    question: "מה פירוש 'קדש' בסדר פסח?",
+    options: [
+      { text: "לשיר שיר קדוש בפתיחה", correct: false },
+      { text: "לקדש את השולחן לפני הסעודה", correct: false },
+      { text: "קידוש על הכוס – כוס ראשונה", correct: true },
+      { text: "להתפלל תפילת ערבית לפני הסדר", correct: false },
+    ]
+  },
+  {
+    id: 210,
+    question: "מה פירוש 'נרצה'?",
+    options: [
+      { text: "סיום הסדר – תפילה שיהיה רצוי לפני ה'", correct: true },
+      { text: "ריקוד חגיגי סביב השולחן", correct: false },
+      { text: "ברכה אחרונה על היין", correct: false },
+      { text: "שירה בקול רם לסיום", correct: false },
+    ]
+  },
+  {
+    id: 211,
+    question: "האם חובה לשתות את כל הכוס בארבע הכוסות?",
+    options: [
+      { text: "מספיק לטעום טיפה סמלית", correct: false },
+      { text: "חייבים לשתות הכל עד הסוף", correct: false },
+      { text: "חייבים לשתות רבע כוס בדיוק", correct: false },
+      { text: "לכתחילה שותים את רוב הכוס", correct: true },
+    ]
+  },
+  {
+    id: 212,
+    question: "מה 'ניצח' – שירים שאחרי הסדר?",
+    options: [
+      { text: "ברכת המזון שאומרים בניגון", correct: false },
+      { text: "שירים ופיוטים כחד גדיא ואחד מי יודע", correct: true },
+      { text: "ניצחון ישראל על מצרים", correct: false },
+      { text: "שיר השירים שקוראים בסוף", correct: false },
+    ]
+  },
+  {
+    id: 213,
+    question: "מה 'מגיד' בסדר פסח?",
+    options: [
+      { text: "סיפור יציאת מצרים על פי ההגדה – עיקר מצוות הלילה", correct: true },
+      { text: "שירת ים סוף בניגון מיוחד", correct: false },
+      { text: "הסבר הלכות פסח לילדים", correct: false },
+      { text: "ברכת המזון הארוכה", correct: false },
+    ]
+  },
+  {
+    id: 214,
+    question: "מה 'צפון' בסדר פסח?",
+    options: [
+      { text: "חלק נסתר מההגדה", correct: false },
+      { text: "שמירת המצה לשנה הבאה", correct: false },
+      { text: "ברכת ה'צפון' על הפירות", correct: false },
+      { text: "אכילת האפיקומן – חצי מצה שהוצנעה", correct: true },
+    ]
+  },
+  {
+    id: 215,
+    question: "מה 'כורך' בסדר?",
+    options: [
+      { text: "עטיפת המצות לפני הסדר", correct: false },
+      { text: "אכילת מרור ומצה יחד זכר למנהג הלל", correct: true },
+      { text: "קשירת ה'אפיקומן' בבד", correct: false },
+      { text: "כריכת ההגדה בסיום הסדר", correct: false },
+    ]
+  },
+  {
+    id: 216,
+    question: "מה 'שולחן עורך'?",
+    options: [
+      { text: "הכנת השולחן לפני ליל הסדר", correct: false },
+      { text: "סדר עריכת השולחן לפי הלכה", correct: false },
+      { text: "אכילת סעודת יום טוב – הסעודה הרגילה", correct: true },
+      { text: "ניגון מיוחד על ערך השולחן", correct: false },
+    ]
+  },
+];
+
+// ══════════════════════════════════════════
+// מבחן ב׳ — מסלול זהב — פרקים ה-ח — 24 שאלות
+// תשובות נכונות מפוזרות על כל האותיות
+// ══════════════════════════════════════════
+export const EXAM_ZAHAV_2: ExamQuestion[] = [
+  // פרק ה — 6 שאלות
+  {
+    id: 301,
+    question: "מה מצוות 'תשביתו' ומתי היא חלה?",
+    options: [
+      { text: "מצווה לשרוף את החמץ ביום טוב בלבד", correct: false },
+      { text: "מצווה לבדוק את הבית בליל י"ד", correct: false },
+      { text: "מצווה לבער את החמץ מרשותנו עד חצות יום י"ד", correct: true },
+      { text: "מצווה לבטל בלב בתחילת חודש ניסן", correct: false },
+    ]
+  },
+  {
+    id: 302,
+    question: "מדוע תיקנו חכמים לבדוק ולבער בנוסף לביטול?",
+    options: [
+      { text: "שמא לא יבטל בלב שלם, וכן שמא ימצא חמץ ויתאחר", correct: true },
+      { text: "כי הביטול אינו מועיל כלל מהתורה", correct: false },
+      { text: "כי כך מצווה מן המובחר לכתחילה", correct: false },
+      { text: "כי הביעור מבטל את הצורך בבדיקה", correct: false },
+    ]
+  },
+  {
+    id: 303,
+    question: "מה הדרך המועדפת לביעור חמץ לכתחילה?",
+    options: [
+      { text: "קבורה באדמה עמוקה", correct: false },
+      { text: "שריפה, ובדיעבד כל דרך ביעור כשרה", correct: false },
+      { text: "פירור לרוח", correct: false },
+      { text: "שריפה – זו המצווה המועדפת", correct: true },
+    ]
+  },
+  {
+    id: 304,
+    question: "עד מתי ניתן למכור חמץ לגוי ביום י"ד?",
+    options: [
+      { text: "עד סוף שעה חמישית", correct: true },
+      { text: "עד חצות היום", correct: false },
+      { text: "עד שקיעת החמה", correct: false },
+      { text: "עד תחילת שעה שביעית", correct: false },
+    ]
+  },
+  {
+    id: 305,
+    question: "האם חמץ של גוי שהופקד ביהודי עובר בבל יראה?",
+    options: [
+      { text: "כן, כי נמצא בביתו של ישראל", correct: false },
+      { text: "כן, אם היהודי קיבל אחריות", correct: false },
+      { text: "לא, אפילו ללא מחיצה, כי הגוי בעליו", correct: false },
+      { text: "לא, כי 'לך' – רק חמץ שלו, אך צריך מחיצה", correct: true },
+    ]
+  },
+  {
+    id: 306,
+    question: "מה ארבעת שלבי השבתת החמץ?",
+    options: [
+      { text: "בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י"ד", correct: false },
+      { text: "בדיקה, שריפה, ביטול, מכירה", correct: false },
+      { text: "ניקוי, בדיקה, ביעור, ביטול", correct: true },
+      { text: "ביטול ראשון, בדיקה, ביטול שני, ביעור", correct: false },
+    ]
+  },
+  // פרק ו — 6 שאלות
+  {
+    id: 307,
+    question: "מה הצורך במכירת חמץ לגוי לפני פסח?",
+    options: [
+      { text: "כדי שהחמץ לא יהיה ברשות היהודי ויעבור על 'בל יראה'", correct: false },
+      { text: "כדי להרוויח כסף לצרכי החג", correct: false },
+      { text: "כדי להימנע מחיוב בדיקה", correct: false },
+      { text: "כדי לסלק חמץ מהבית – מצווה מן המובחר", correct: true },
+    ]
+  },
+  {
+    id: 308,
+    question: "האם מכירת חמץ לגוי היא מכירה גמורה?",
+    options: [
+      { text: "כן, המכירה גמורה והגוי יכול לקחת את החמץ", correct: true },
+      { text: "לא, זו מכירה פיקטיבית בלבד", correct: false },
+      { text: "כן, אך הגוי אינו רשאי לקחת בפועל", correct: false },
+      { text: "לא, רק כסוי לחמץ שאינו ידוע", correct: false },
+    ]
+  },
+  {
+    id: 309,
+    question: "מה קורה אם הגוי בא לקחת את החמץ שמכר לו?",
+    options: [
+      { text: "מותר לסרב כי המכירה הייתה פיקטיבית", correct: false },
+      { text: "חייב לפדות ממנו את החמץ", correct: false },
+      { text: "חייב למסור לו את החמץ, שהרי הוא שלו", correct: true },
+      { text: "פונה לרב שיבטל את עסקת המכירה", correct: false },
+    ]
+  },
+  {
+    id: 310,
+    question: "מה דין חמץ שנשאר ברשות יהודי בפסח בשוגג?",
+    options: [
+      { text: "מותר באכילה כי לא עבר במזיד", correct: false },
+      { text: "אסור באכילה ובהנאה אחרי פסח, אפילו בשוגג", correct: false },
+      { text: "מותר בהנאה אך אסור באכילה", correct: false },
+      { text: "אסור לאותו יהודי, אך מותר למכרו לאחרים", correct: true },
+    ]
+  },
+  {
+    id: 311,
+    question: "האם ניתן למכור חמץ שאינו ידוע מיקומו?",
+    options: [
+      { text: "לא, חייבים לדעת היכן החמץ", correct: false },
+      { text: "כן, מוכרים 'חמץ כלשהו' שאינו ידוע", correct: true },
+      { text: "כן, אך רק חמץ בבית ולא בחנות", correct: false },
+      { text: "לא, צריך לבדוק תחילה את כל הבית", correct: false },
+    ]
+  },
+  {
+    id: 312,
+    question: "מדוע יש להיזהר לא להשתמש בחמץ שנמכר לגוי בפסח?",
+    options: [
+      { text: "כי הוא שייך לגוי ממש, ושימוש בו הוא גזל", correct: false },
+      { text: "כי אסור לנגוע בחמץ כלל בפסח מדרבנן", correct: false },
+      { text: "כי השימוש מבטל את תוקף המכירה", correct: true },
+      { text: "כי ייראה כאילו לא מקיים מצוות ביעור", correct: false },
+    ]
+  },
+  // פרק ז — 6 שאלות
+  {
+    id: 313,
+    question: "מהם חמשת מיני הדגן שחימוצם אסור מן התורה?",
+    options: [
+      { text: "חיטה, שעורה, כוסמין, שיפון ושיבולת שועל", correct: false },
+      { text: "חיטה, שעורה, אורז, דוחן ושיפון", correct: false },
+      { text: "חיטה, שעורה, כוסמת, שיפון ושיבולת שועל", correct: false },
+      { text: "חיטה, שעורה, כוסמין, שיפון ושיבולת שועל (כוסמין ולא כוסמת)", correct: true },
+    ]
+  },
+  {
+    id: 314,
+    question: "מה הדין לגבי אורז וקטניות בפסח?",
+    options: [
+      { text: "אורז וקטניות אינם חמץ מהתורה, אך אשכנזים נהגו שלא לאוכלם", correct: true },
+      { text: "אורז אסור מהתורה כמו חיטה", correct: false },
+      { text: "קטניות אסורות מהתורה בכל העדות", correct: false },
+      { text: "אורז מותר לכולם כי אינו מחמיץ כלל", correct: false },
+    ]
+  },
+  {
+    id: 315,
+    question: "כיצד נוצר חמץ מבצק?",
+    options: [
+      { text: "כאשר הבצק נחשף לחום מעל 40 מעלות", correct: false },
+      { text: "כאשר קמח ממיני הדגן מתערב במים ועומד יותר מ-18 דקות", correct: false },
+      { text: "כאשר מוסיפים שמרים לקמח ומים", correct: true },
+      { text: "כאשר הבצק מתייבש מהר מהרגיל", correct: false },
+    ]
+  },
+  {
+    id: 316,
+    question: "מה הכלל לגבי תערובת חמץ בפסח?",
+    options: [
+      { text: "חמץ בטל בשישים כמו שאר איסורים", correct: false },
+      { text: "חמץ בטל ברוב אם נפל לפני פסח", correct: false },
+      { text: "תלוי אם ניתן להרגיש את טעמו", correct: false },
+      { text: "חמץ בפסח אוסר בכל שהוא – אפילו אחד לאלף", correct: true },
+    ]
+  },
+  {
+    id: 317,
+    question: "מה מצה עשירה ולמי מותרת?",
+    options: [
+      { text: "מצה שנלושה במיץ פירות – לספרדים מותרת, לאשכנזים אסורה לבריאים", correct: false },
+      { text: "מצה ביצה – אסורה לחולים בלבד", correct: false },
+      { text: "מצה עם סוכר – מותרת לכולם לכתחילה", correct: true },
+      { text: "מצה אפויה מיד – מותרת לכולם", correct: false },
+    ]
+  },
+  {
+    id: 318,
+    question: "מה דין שכר שנעשה מחמשת מיני דגן?",
+    options: [
+      { text: "מותר כי הדגן עבר שינוי צורה", correct: false },
+      { text: "אסור מהתורה כחמץ גמור לכל דבר", correct: true },
+      { text: "אסור מדרבנן בלבד כי אינו נאכל", correct: false },
+      { text: "מותר בהנאה אך אסור בשתייה", correct: false },
+    ]
+  },
+  // פרק ח — 6 שאלות
+  {
+    id: 319,
+    question: "מה הדין לגבי תרופות שיש בהן חמץ בפסח?",
+    options: [
+      { text: "תרופות חיוניות מותרות – חולה אינו בגדר אוכל", correct: false },
+      { text: "כל תרופה אסורה בפסח גם לחולה מסוכן", correct: false },
+      { text: "מותרות רק בהמלצת רב מוסמך", correct: false },
+      { text: "תרופות חיוניות מותרות כי 'פיקוח נפש דוחה' את האיסור", correct: true },
+    ]
+  },
+  {
+    id: 320,
+    question: "האם יש בעיה בקוסמטיקה המכילה חמץ?",
+    options: [
+      { text: "בדרך כלל אין בעיה כי אינן ראויות לאכילה", correct: true },
+      { text: "כל קוסמטיקה אסורה כי עלולה להיבלע", correct: false },
+      { text: "רק שפתון אסור כי נוגע ישירות בפה", correct: false },
+      { text: "יש לבדוק כל מוצר אצל הרב", correct: false },
+    ]
+  },
+  {
+    id: 321,
+    question: "מה ההבדל בין ספרדים ואשכנזים לגבי מצה עשירה?",
+    options: [
+      { text: "שניהם מתירים למי שקשה לו לאכול מצה רגילה", correct: false },
+      { text: "לאשכנזים מותרת, לספרדים אסורה לכולם", correct: false },
+      { text: "לספרדים מותרת, לאשכנזים אסורה לבריאים", correct: false },
+      { text: "שניהם אוסרים אלא בשעת הדחק ממש", correct: true },
+    ]
+  },
+  {
+    id: 322,
+    question: "מהי 'מצה שרויה' ומה מנהג החסידים?",
+    options: [
+      { text: "מצה ספוגה בדבש – מותרת לכולם", correct: false },
+      { text: "מצה השרויה במים – החסידים נוהגים שלא לאוכלה", correct: true },
+      { text: "מצה ביצה – אסורה לכולם מהתורה", correct: false },
+      { text: "מצה טחונה – חסידים מחמירים עליה", correct: false },
+    ]
+  },
+  {
+    id: 323,
+    question: "מה הכלל לגבי תרופה שטעמה מר?",
+    options: [
+      { text: "אסורה לגמרי ללא קשר לטעמה", correct: false },
+      { text: "מותרת רק לחולה מסוכן", correct: false },
+      { text: "אסורה כי חמץ בפסח אוסר בכלשהו", correct: false },
+      { text: "מותר לבולעה כי נפסלה מאכילת כלב", correct: true },
+    ]
+  },
+  {
+    id: 324,
+    question: "מה ההבדל בין השולחן ערוך לרמ"א בהלכות כשרות לפסח?",
+    options: [
+      { text: "השולחן ערוך הולך לפי כללי ההלכה הרגילים, הרמ"א נוטה להחמיר", correct: false },
+      { text: "הרמ"א מקל יותר מהשולחן ערוך בפסח", correct: true },
+      { text: "אין ביניהם הבדל עקרוני", correct: false },
+      { text: "השולחן ערוך אוסר יותר בתערובות", correct: false },
+    ]
+  },
+];
+
+// ══════════════════════════════════════════
+// מבחן ב׳ — מסלול ב׳ (ז-ח) — פרקים טו+טז+זמנים ב+זמנים ג — 24 שאלות
+// ══════════════════════════════════════════
+export const EXAM_B_2: ExamQuestion[] = [
+  // פרק טו — 6 שאלות
+  {
+    id: 401,
+    question: "מה מיוחד בהלל שאומרים בליל הסדר?",
+    options: [
+      { text: "חלקו אומרים לפני הסעודה וחלקו אחריה", correct: true },
+      { text: "אומרים אותו כולו לפני הסדר", correct: false },
+      { text: "אומרים אותו כולו אחרי הסדר", correct: false },
+      { text: "לא אומרים הלל בליל הסדר", correct: false },
+    ]
+  },
+  {
+    id: 402,
+    question: "מה פירוש 'עבדים היינו לפרעה במצרים'?",
+    options: [
+      { text: "הכרזה שאנחנו עדיין עבדים בגלות", correct: false },
+      { text: "פתיחת המגיד – מתחילים בגנות ומסיימים בשבח", correct: true },
+      { text: "תפילה שלא נשוב לגלות", correct: false },
+      { text: "סיפור לבנים הקטנים בלבד", correct: false },
+    ]
+  },
+  {
+    id: 403,
+    question: "מה תפקיד המרור?",
+    options: [
+      { text: "לצמצם תיאבון לפני הסעודה", correct: false },
+      { text: "להתנקות מהחמץ", correct: false },
+      { text: "לשמור על הבריאות", correct: false },
+      { text: "זכר למרירות השעבוד במצרים", correct: true },
+    ]
+  },
+  {
+    id: 404,
+    question: "מה שיעור אכילת מרור?",
+    options: [
+      { text: "כזית", correct: false },
+      { text: "כביצה", correct: false },
+      { text: "כזית – שיעור הלכתי מינימלי", correct: true },
+      { text: "שלושה עלי חסה", correct: false },
+    ]
+  },
+  {
+    id: 405,
+    question: "מהו המרור המועדף לכתחילה?",
+    options: [
+      { text: "חסה – רומן", correct: false },
+      { text: "חזרת – שורש", correct: false },
+      { text: "פלפל חריף", correct: false },
+      { text: "חסה (רומן) לפי רוב הפוסקים", correct: true },
+    ]
+  },
+  {
+    id: 406,
+    question: "מה מסמל החרוסת?",
+    options: [
+      { text: "טיט המצרים שבו עמלו בני ישראל", correct: false },
+      { text: "מתיקות הגאולה", correct: true },
+      { text: "אדמת ארץ ישראל", correct: false },
+      { text: "הדם שנמרח על המשקופים", correct: false },
+    ]
+  },
+  // פרק טז — 6 שאלות
+  {
+    id: 407,
+    question: "מה פירוש 'קדש'?",
+    options: [
+      { text: "קידוש על הכוס – כוס ראשונה", correct: true },
+      { text: "לקדש את השולחן", correct: false },
+      { text: "להתפלל ערבית", correct: false },
+      { text: "לשיר שיר קדוש", correct: false },
+    ]
+  },
+  {
+    id: 408,
+    question: "מה פירוש 'נרצה'?",
+    options: [
+      { text: "ריקוד חגיגי", correct: false },
+      { text: "ברכה אחרונה על היין", correct: false },
+      { text: "סיום הסדר – תפילה שיהיה רצוי לפני ה'", correct: true },
+      { text: "שירה בקול רם", correct: false },
+    ]
+  },
+  {
+    id: 409,
+    question: "האם חובה לשתות את כל הכוס בארבע הכוסות?",
+    options: [
+      { text: "חייבים לשתות הכל", correct: false },
+      { text: "מספיק טיפה סמלית", correct: false },
+      { text: "חייבים רבע כוס", correct: false },
+      { text: "לכתחילה שותים רוב הכוס", correct: true },
+    ]
+  },
+  {
+    id: 410,
+    question: "מה 'מגיד' בסדר פסח?",
+    options: [
+      { text: "סיפור יציאת מצרים – עיקר מצוות הלילה", correct: false },
+      { text: "הסבר הלכות פסח לילדים", correct: false },
+      { text: "סיפור יציאת מצרים על פי ההגדה", correct: true },
+      { text: "ברכת המזון הארוכה", correct: false },
+    ]
+  },
+  {
+    id: 411,
+    question: "מה 'כורך'?",
+    options: [
+      { text: "עטיפת המצות לפני הסדר", correct: false },
+      { text: "אכילת מרור ומצה יחד זכר למנהג הלל", correct: false },
+      { text: "קשירת האפיקומן", correct: false },
+      { text: "אכילת מצה, מרור וחרוסת יחד", correct: true },
+    ]
+  },
+  {
+    id: 412,
+    question: "כמה מצות מניחים ומה הן מסמלות?",
+    options: [
+      { text: "שלוש – כנגד כהן לוי וישראל", correct: true },
+      { text: "שתיים – כנגד שתי לחם", correct: false },
+      { text: "ארבע – כנגד ארבע כוסות", correct: false },
+      { text: "אחת גדולה – לחם עוני", correct: false },
+    ]
+  },
+  // זמנים פרק ב — 6 שאלות
+  {
+    id: 413,
+    question: "מאימתי מתחילים לספור ספירת העומר?",
+    options: [
+      { text: "בליל פסח – ליל הסדר", correct: false },
+      { text: "בראש חודש אייר", correct: false },
+      { text: "בליל ט"ז בניסן – מוצאי יום טוב ראשון", correct: true },
+      { text: "בל"ג בעומר", correct: false },
+    ]
+  },
+  {
+    id: 414,
+    question: "כמה ימים סופרים?",
+    options: [
+      { text: "ארבעים ותשעה ימים", correct: false },
+      { text: "חמישים ימים", correct: false },
+      { text: "שלושים ושלושה ימים", correct: false },
+      { text: "שבעה שבועות – ארבעים ותשעה ימים", correct: true },
+    ]
+  },
+  {
+    id: 415,
+    question: "מה עיקר משמעות ספירת העומר?",
+    options: [
+      { text: "ספירה מיציאת מצרים לקבלת התורה", correct: true },
+      { text: "זכר להקרבת עומר השעורים", correct: false },
+      { text: "מנין הימים עד בניין הבית", correct: false },
+      { text: "חישוב זמן קציר השעורה", correct: false },
+    ]
+  },
+  {
+    id: 416,
+    question: "מה דין מי ששכח לספור לילה אחת?",
+    options: [
+      { text: "יספור ביום ללא ברכה, ויוכל להמשיך בברכה", correct: false },
+      { text: "אינו יכול להמשיך בברכה כלל", correct: false },
+      { text: "ימשיך לספור בברכה כרגיל", correct: false },
+      { text: "יספור ביום, ויוכל להמשיך בברכה בלילה הבא", correct: true },
+    ]
+  },
+  {
+    id: 417,
+    question: "האם יש לספור בלילה דווקא?",
+    options: [
+      { text: "כן, לכתחילה בצאת הכוכבים, בדיעבד ביום", correct: false },
+      { text: "אפשר לספור כל היום", correct: false },
+      { text: "יש לספור בשחרית", correct: false },
+      { text: "לכתחילה בצאת הכוכבים – זמן קבלת שבת", correct: true },
+    ]
+  },
+  {
+    id: 418,
+    question: "מה חשיבות ל"ג בעומר?",
+    options: [
+      { text: "יום שפסקו תלמידי רבי עקיבא למות", correct: true },
+      { text: "יום שקיבלו ישראל את התורה", correct: false },
+      { text: "יום אמצע הספירה", correct: false },
+      { text: "יום הולדת רשב"י", correct: false },
+    ]
+  },
+  // זמנים פרק ג — 6 שאלות
+  {
+    id: 419,
+    question: "מה נאסר בתקופת ספירת העומר?",
+    options: [
+      { text: "בישול בשר ויין", correct: false },
+      { text: "עריכת נסיעות", correct: false },
+      { text: "לימוד תורה בשמחה", correct: false },
+      { text: "תספורת, נישואים ושמחות גדולות", correct: true },
+    ]
+  },
+  {
+    id: 420,
+    question: "מה מנהג רוב האשכנזים?",
+    options: [
+      { text: "אבלות כל שבעה שבועות", correct: false },
+      { text: "אבלות בשבועיים הראשונים", correct: false },
+      { text: "אבלות עד ל"ג בעומר", correct: true },
+      { text: "אין מנהג אבלות", correct: false },
+    ]
+  },
+  {
+    id: 421,
+    question: "האם מותר לערוך נישואים בל"ג בעומר?",
+    options: [
+      { text: "אסור כי הוא אמצע הספירה", correct: false },
+      { text: "מותר רק אחרי חצות", correct: false },
+      { text: "כן, ל"ג בעומר הוא יום שמחה", correct: false },
+      { text: "כן, נהוג לשאת נשים ביום זה", correct: true },
+    ]
+  },
+  {
+    id: 422,
+    question: "מה הסיבה לאבלות בספירה?",
+    options: [
+      { text: "שמתו 24,000 תלמידי רבי עקיבא", correct: false },
+      { text: "שמתה מרים הנביאה", correct: false },
+      { text: "שחרב בית המקדש", correct: false },
+      { text: "שמתו תלמידי ר' עקיבא ולא נהגו כבוד זה לזה", correct: true },
+    ]
+  },
+  {
+    id: 423,
+    question: "מה מנהג ספרדים?",
+    options: [
+      { text: "ספרדים אינם נוהגים אבלות כלל", correct: false },
+      { text: "אבלות מר"ח אייר עד שבועות", correct: true },
+      { text: "אבלות כל ימי הספירה", correct: false },
+      { text: "אבלות בשבועיים האחרונים", correct: false },
+    ]
+  },
+  {
+    id: 424,
+    question: "מדוע ל"ג בעומר קשור להילולת רשב"י?",
+    options: [
+      { text: "כי ביום זה סיים את כתיבת הזוהר", correct: false },
+      { text: "כי ביום זה יצא מהמערה", correct: false },
+      { text: "לפי המסורת ביום זה נפטר וציווה לשמוח", correct: false },
+      { text: "כי ביום זה חנך את בית מדרשו", correct: true },
+    ]
+  },
+];
+
+// ══════════════════════════════════════════
+// מבחן ב׳ — מסלול ג׳ (ט-יב) — פרקים ה+ו+טו+טז — 24 שאלות
+// ══════════════════════════════════════════
+export const EXAM_C_2: ExamQuestion[] = [
+  // פרק ה — 6 שאלות
+  {
+    id: 501,
+    question: "מה מצוות 'תשביתו'?",
+    options: [
+      { text: "מצווה לשרוף את החמץ בלבד", correct: false },
+      { text: "מצווה לבטל בלב בתחילת ניסן", correct: false },
+      { text: "מצווה לבדוק את הבית בליל י"ד", correct: false },
+      { text: "מצווה לבער את החמץ עד חצות יום י"ד", correct: true },
+    ]
+  },
+  {
+    id: 502,
+    question: "מדוע תיקנו חכמים לבדוק ולבער מעבר לביטול?",
+    options: [
+      { text: "שמא לא יבטל בלב שלם, ושמא ימצא חמץ ויתאחר", correct: false },
+      { text: "כי הביטול אינו מועיל כלל", correct: true },
+      { text: "כי כך מצווה מן המובחר", correct: false },
+      { text: "כי הביעור מבטל הצורך בבדיקה", correct: false },
+    ]
+  },
+  {
+    id: 503,
+    question: "מהי הדרך המועדפת לביעור חמץ?",
+    options: [
+      { text: "קבורה באדמה", correct: false },
+      { text: "שריפה", correct: true },
+      { text: "פירור לרוח", correct: false },
+      { text: "שטיפה בים", correct: false },
+    ]
+  },
+  {
+    id: 504,
+    question: "עד מתי ניתן למכור חמץ לגוי?",
+    options: [
+      { text: "עד חצות היום", correct: false },
+      { text: "עד שקיעת החמה", correct: false },
+      { text: "עד שעה שביעית", correct: false },
+      { text: "עד סוף שעה חמישית", correct: true },
+    ]
+  },
+  {
+    id: 505,
+    question: "האם חמץ של גוי שהופקד ביהודי עובר בבל יראה?",
+    options: [
+      { text: "לא, כי 'לך' – רק חמץ שלו, אך צריך מחיצה", correct: false },
+      { text: "כן, כי נמצא בביתו של ישראל", correct: false },
+      { text: "לא, אפילו ללא מחיצה", correct: true },
+      { text: "כן, אם קיבל אחריות", correct: false },
+    ]
+  },
+  {
+    id: 506,
+    question: "מה ארבעת שלבי השבתת החמץ?",
+    options: [
+      { text: "ניקוי, בדיקה, ביעור, ביטול", correct: false },
+      { text: "בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י"ד", correct: true },
+      { text: "בדיקה, שריפה, ביטול, מכירה", correct: false },
+      { text: "ביטול ראשון, בדיקה, ביטול שני, ביעור", correct: false },
+    ]
+  },
+  // פרק ו — 6 שאלות
+  {
+    id: 507,
+    question: "מה הצורך במכירת חמץ לגוי?",
+    options: [
+      { text: "כדי שהחמץ לא יהיה ברשות היהודי בפסח", correct: true },
+      { text: "כדי להרוויח כסף לחג", correct: false },
+      { text: "כדי להימנע מחיוב בדיקה", correct: false },
+      { text: "כדי לסלק חמץ מהבית לגמרי", correct: false },
+    ]
+  },
+  {
+    id: 508,
+    question: "האם המכירה לגוי היא מכירה גמורה?",
+    options: [
+      { text: "לא, זו מכירה פיקטיבית", correct: false },
+      { text: "כן, אך הגוי לא יכול לקחת בפועל", correct: false },
+      { text: "כן, המכירה גמורה לכל דבר", correct: false },
+      { text: "כן – הגוי יכול לקחת את החמץ בפועל", correct: true },
+    ]
+  },
+  {
+    id: 509,
+    question: "מה קורה אם הגוי בא לקחת את החמץ?",
+    options: [
+      { text: "חייב למסור לו", correct: false },
+      { text: "מותר לסרב", correct: true },
+      { text: "חייב לפדות ממנו", correct: false },
+      { text: "הרב מחליט", correct: false },
+    ]
+  },
+  {
+    id: 510,
+    question: "האם ניתן למכור חמץ שאינו ידוע מיקומו?",
+    options: [
+      { text: "לא, חייבים לדעת מיקומו", correct: false },
+      { text: "כן, מוכרים 'חמץ כלשהו'", correct: true },
+      { text: "כן, רק חמץ בבית", correct: false },
+      { text: "לא, צריך לבדוק תחילה", correct: false },
+    ]
+  },
+  {
+    id: 511,
+    question: "מדוע אסור להשתמש בחמץ שנמכר לגוי?",
+    options: [
+      { text: "כי השימוש מבטל המכירה", correct: false },
+      { text: "כי אסור לנגוע בחמץ בפסח", correct: false },
+      { text: "כי הוא שייך לגוי – שימוש הוא גזל", correct: false },
+      { text: "כי ייראה כאילו לא קיים ביעור", correct: true },
+    ]
+  },
+  {
+    id: 512,
+    question: "מה דין חמץ שנשאר ברשות יהודי בשוגג?",
+    options: [
+      { text: "מותר כי לא עבר במזיד", correct: false },
+      { text: "אסור באכילה ובהנאה אחרי פסח", correct: true },
+      { text: "מותר בהנאה אך אסור באכילה", correct: false },
+      { text: "תלוי אם ביטל לפני פסח", correct: false },
+    ]
+  },
+  // פרק טו — 6 שאלות
+  {
+    id: 513,
+    question: "מה מיוחד בהלל בליל הסדר?",
+    options: [
+      { text: "חלקו לפני הסעודה וחלקו אחריה", correct: false },
+      { text: "אומרים כולו לפני הסדר", correct: false },
+      { text: "חלק לפני, חלק אחרי – מסורת עתיקה", correct: true },
+      { text: "לא אומרים הלל בלילה זה", correct: false },
+    ]
+  },
+  {
+    id: 514,
+    question: "מה שיעור מרור?",
+    options: [
+      { text: "כביצה", correct: false },
+      { text: "כזית – שיעור הלכתי", correct: true },
+      { text: "שלושה עלים", correct: false },
+      { text: "כחצי ביצה", correct: false },
+    ]
+  },
+  {
+    id: 515,
+    question: "מה מסמל החרוסת?",
+    options: [
+      { text: "מתיקות הגאולה", correct: false },
+      { text: "הדם על המשקופים", correct: false },
+      { text: "אדמת ארץ ישראל", correct: false },
+      { text: "טיט המצרים שבו עמלו", correct: true },
+    ]
+  },
+  {
+    id: 516,
+    question: "כמה מצות ומה הן מסמלות?",
+    options: [
+      { text: "שלוש – כהן לוי וישראל", correct: true },
+      { text: "שתיים – כנגד שתי לחם", correct: false },
+      { text: "ארבע – כנגד ארבע כוסות", correct: false },
+      { text: "אחת גדולה", correct: false },
+    ]
+  },
+  {
+    id: 517,
+    question: "מה תפקיד המרור?",
+    options: [
+      { text: "לצמצם תיאבון", correct: false },
+      { text: "לשמור על הבריאות", correct: false },
+      { text: "זכר למרירות השעבוד", correct: false },
+      { text: "זכר לקושי השעבוד וייסורי מצרים", correct: true },
+    ]
+  },
+  {
+    id: 518,
+    question: "מהו המרור המועדף?",
+    options: [
+      { text: "חזרת – שורש", correct: false },
+      { text: "פלפל חריף", correct: false },
+      { text: "חסה – רומן", correct: true },
+      { text: "עלי לענה", correct: false },
+    ]
+  },
+  // פרק טז — 6 שאלות
+  {
+    id: 519,
+    question: "מה 'קדש'?",
+    options: [
+      { text: "לקדש השולחן", correct: false },
+      { text: "קידוש – כוס ראשונה", correct: true },
+      { text: "להתפלל ערבית", correct: false },
+      { text: "שיר קדוש", correct: false },
+    ]
+  },
+  {
+    id: 520,
+    question: "מה 'נרצה'?",
+    options: [
+      { text: "סיום הסדר – תפילה שיהיה רצוי", correct: false },
+      { text: "ריקוד חגיגי", correct: false },
+      { text: "ברכה אחרונה", correct: false },
+      { text: "סיום הסדר בתפילה ושבח", correct: true },
+    ]
+  },
+  {
+    id: 521,
+    question: "האם חובה לשתות כל הכוס?",
+    options: [
+      { text: "לכתחילה שותים רוב הכוס", correct: false },
+      { text: "כל הכוס חובה", correct: false },
+      { text: "מספיק טיפה", correct: false },
+      { text: "לכתחילה רוב הכוס – ובדיעבד כזית", correct: true },
+    ]
+  },
+  {
+    id: 522,
+    question: "מה 'מגיד'?",
+    options: [
+      { text: "הסבר הלכות לילדים", correct: false },
+      { text: "ברכת המזון", correct: false },
+      { text: "שירת ים סוף", correct: false },
+      { text: "סיפור יציאת מצרים – עיקר מצוות הלילה", correct: true },
+    ]
+  },
+  {
+    id: 523,
+    question: "מה 'כורך'?",
+    options: [
+      { text: "עטיפת המצות", correct: false },
+      { text: "קשירת האפיקומן", correct: false },
+      { text: "אכילת מצה ומרור יחד זכר למנהג הלל", correct: true },
+      { text: "כריכת ההגדה בסיום", correct: false },
+    ]
+  },
+  {
+    id: 524,
+    question: "מה 'צפון'?",
+    options: [
+      { text: "חלק נסתר מההגדה", correct: false },
+      { text: "אכילת האפיקומן – חצי מצה שהוצנעה", correct: false },
+      { text: "שמירת מצה לשנה הבאה", correct: false },
+      { text: "האפיקומן – נאכל בסוף הסעודה", correct: true },
+    ]
+  },
+];
