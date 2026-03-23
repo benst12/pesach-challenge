@@ -697,28 +697,34 @@ export default function Admin() {
         {/* ── טבלת נבחנים לפי מוסד ── */}
         {(() => {
           // בנה נתוני מוסדות
-          const schoolExamData = Object.entries(
-            students.filter(s => s.grade !== "רכז מוסדי" && s.results.filter((r:any) => r.stage_title !== "אתגר יומי").length > 0)
-              .reduce((acc: Record<string, any[]>, s) => {
-                const key = s.school_name || "לא ידוע";
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(s);
-                return acc;
-              }, {})
-          )
+          // קבץ לפי מוסד
+          const schoolMap: Record<string, any[]> = {};
+          students.filter(s => s.grade !== "רכז מוסדי").forEach(s => {
+            const key = s.school_name || "לא ידוע";
+            if (!schoolMap[key]) schoolMap[key] = [];
+            schoolMap[key].push(s);
+          });
+
+          const schoolExamData = Object.entries(schoolMap)
           .map(([school, studs]) => {
-            const examResults = studs.map((s:any) => {
-              const examScores = s.results.filter((r:any) => r.stage_title !== "אתגר יומי");
-              const best = examScores.length ? Math.max(...examScores.map((r:any) => r.score)) : null;
-              return best;
-            }).filter((s:any) => s !== null) as number[];
+            // מבחן 1 — quiz_id מכיל _1
+            const exam1 = studs.filter((s:any) =>
+              s.results.some((r:any) => r.stage_title !== "אתגר יומי" && (r.quiz_id?.endsWith("_1") || !r.quiz_id?.endsWith("_2")))
+            ).length;
+            // מבחן 2 — quiz_id מכיל _2
+            const exam2 = studs.filter((s:any) =>
+              s.results.some((r:any) => r.quiz_id?.endsWith("_2"))
+            ).length;
+            const examResults = studs.flatMap((s:any) =>
+              s.results.filter((r:any) => r.stage_title !== "אתגר יומי").map((r:any) => r.score)
+            ).filter((s:any) => s !== null) as number[];
             const failed = examResults.filter(s => s < 80).length;
             const passed = examResults.filter(s => s >= 80 && s < 95).length;
             const excellent = examResults.filter(s => s >= 95).length;
             const avg = examResults.length ? Math.round(examResults.reduce((a,b) => a+b, 0) / examResults.length) : null;
-            return { school, total: examResults.length, failed, passed, excellent, avg };
+            return { school, total: exam1, exam2, failed, passed, excellent, avg };
           })
-          .filter(d => d.total > 0)
+          .filter(d => d.total > 0 || d.exam2 > 0)
           .sort((a,b) => b.total - a.total);
 
           if (schoolExamData.length === 0) return null;
@@ -743,7 +749,8 @@ export default function Admin() {
                   <thead>
                     <tr className="border-b border-royal-400/10 bg-[#0c1a33]/50">
                       <th className="text-right text-gray-400 text-xs font-medium px-4 py-2">מוסד</th>
-                      <th className="text-center text-gray-400 text-xs font-medium px-3 py-2">נבחנו</th>
+                      <th className="text-center text-gray-400 text-xs font-medium px-3 py-2">מבחן א</th>
+                      <th className="text-center text-royal-300 text-xs font-medium px-3 py-2">מבחן ב</th>
                       <th className="text-center text-red-400 text-xs font-medium px-3 py-2">מתחת 80</th>
                       <th className="text-center text-green-400 text-xs font-medium px-3 py-2">80–95</th>
                       <th className="text-center text-gold-400 text-xs font-medium px-3 py-2">95–100</th>
@@ -755,6 +762,9 @@ export default function Admin() {
                       <tr key={i} className="border-b border-[#1a2f50] hover:bg-[#152a48]">
                         <td className="px-4 py-2 text-white text-xs">{d.school}</td>
                         <td className="px-3 py-2 text-center text-white font-bold text-xs">{d.total}</td>
+                        <td className="px-3 py-2 text-center">
+                          {d.exam2 > 0 ? <span className="text-xs font-bold text-royal-300">{d.exam2}</span> : <span className="text-gray-600 text-xs">—</span>}
+                        </td>
                         <td className="px-3 py-2 text-center">
                           {d.failed > 0 ? <span className="text-xs font-bold text-red-400">{d.failed}</span> : <span className="text-gray-600 text-xs">—</span>}
                         </td>
@@ -773,6 +783,7 @@ export default function Admin() {
                     <tr className="bg-[#0c1a33]/80 border-t-2 border-royal-400/20">
                       <td className="px-4 py-2 text-white font-bold text-xs">סה״כ</td>
                       <td className="px-3 py-2 text-center text-white font-bold text-xs">{totals.total}</td>
+                      <td className="px-3 py-2 text-center text-royal-300 font-bold text-xs">{schoolExamData.reduce((a,b) => a + b.exam2, 0)}</td>
                       <td className="px-3 py-2 text-center text-red-400 font-bold text-xs">{totals.failed}</td>
                       <td className="px-3 py-2 text-center text-green-400 font-bold text-xs">{totals.passed}</td>
                       <td className="px-3 py-2 text-center text-gold-400 font-bold text-xs">{totals.excellent}</td>
