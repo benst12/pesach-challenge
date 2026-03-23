@@ -239,13 +239,26 @@ export function getTrackExamConfig(trackId: string): TrackExamConfig | undefined
 
 export const PREVIEW_CODE = "פסח כשר";
 
+// examKey = קידומת track + מספר שלב
+export function getExamKey(stage: ExamStage): string {
+  return stage.storageKey.replace("pesach_exam_open_", "").replace(/_\d$/, "") + "_" + stage.examNumber;
+}
+
+// בדיקה מקומית (cache) — מתעדכן מסופאבייס
 export function isStageOpen(stage: ExamStage): boolean {
   try {
-    if (localStorage.getItem(stage.storageKey) === "true") return true;
-    // preview mode — קוד גישה מיוחד
     if (localStorage.getItem("pesach_preview_mode") === "true") return true;
-    return false;
+    const key = "exam_open_" + getExamKey(stage);
+    return localStorage.getItem(key) === "true";
   } catch { return false; }
+}
+
+// עדכון cache מקומי
+export function setStageOpenLocal(stage: ExamStage, open: boolean): void {
+  try {
+    const key = "exam_open_" + getExamKey(stage);
+    localStorage.setItem(key, String(open));
+  } catch {}
 }
 
 export function activatePreviewMode(code: string): boolean {

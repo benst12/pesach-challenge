@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ADMIN_PASSWORD, IMAGES, TRACKS } from "@/lib/data";
-import { EXAM_CONFIGS, isStageOpen, setStageOpen } from "@/lib/examConfig";
+import { EXAM_CONFIGS, isStageOpen, setStageOpenLocal, getExamKey } from "@/lib/examConfig";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -70,7 +70,7 @@ export default function Admin() {
         if (!scheduled) return;
         const openTime = new Date(scheduled).getTime();
         if (Date.now() >= openTime && !examStates[stage.storageKey]) {
-          setStageOpen(stage, true);
+          setStageOpenLocal(stage, true);
           setExamStates(prev => ({ ...prev, [stage.storageKey]: true }));
           toast.success(`${stage.title} נפתח אוטומטית!`);
         }
@@ -239,11 +239,18 @@ export default function Admin() {
     a.click();
   };
 
-  const toggleStage = (storageKey: string) => {
+  const toggleStage = async (storageKey: string) => {
     const stage = EXAM_CONFIGS.flatMap(c => c.stages).find(s => s.storageKey === storageKey);
     if (!stage) return;
     const newVal = !examStates[storageKey];
-    setStageOpen(stage, newVal);
+    // שמור בסופאבייס — גלובלי לכל המשתמשים
+    const examKey = getExamKey(stage);
+    await supabase.from("exam_status").upsert({
+      exam_key: examKey,
+      is_open: newVal,
+      updated_at: new Date().toISOString()
+    });
+    setStageOpenLocal(stage, newVal);
     setExamStates(prev => ({ ...prev, [storageKey]: newVal }));
   };
 

@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IMAGES } from "@/lib/data";
-import { getTrackExamConfig, isStageOpen, activatePreviewMode, type ExamStage } from "@/lib/examConfig";
+import { getTrackExamConfig, isStageOpen, setStageOpenLocal, getExamKey, activatePreviewMode, EXAM_CONFIGS, type ExamStage } from "@/lib/examConfig";
+import { supabase } from "@/lib/supabase";
 import { useStudent } from "@/contexts/StudentContext";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -12,7 +13,7 @@ import {
   GraduationCap, Lock, CalendarDays, ChevronDown, ChevronUp,
   Zap, BarChart2, LogOut,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ClassUpdateModal from "@/components/ClassUpdateModal";
 
 export default function Materials() {
@@ -34,6 +35,23 @@ export default function Materials() {
   const [previewActivated, setPreviewActivated] = useState(
     typeof window !== "undefined" && localStorage.getItem("pesach_preview_mode") === "true"
   );
+  const [examStatusLoaded, setExamStatusLoaded] = useState(false);
+
+  // טען סטטוס מבחנים מסופאבייס — גלובלי לכל המשתמשים
+  useEffect(() => {
+    const loadExamStatus = async () => {
+      const { data } = await supabase.from("exam_status").select("exam_key, is_open");
+      if (data) {
+        data.forEach((row: any) => {
+          const allStages = EXAM_CONFIGS.flatMap(c => c.stages);
+          const stage = allStages.find(s => getExamKey(s) === row.exam_key);
+          if (stage) setStageOpenLocal(stage, row.is_open);
+        });
+      }
+      setExamStatusLoaded(true);
+    };
+    loadExamStatus();
+  }, []);
 
   if (!student || !selectedTrack) {
     navigate("/register");
