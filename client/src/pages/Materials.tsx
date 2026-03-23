@@ -36,12 +36,16 @@ export default function Materials() {
     typeof window !== "undefined" && localStorage.getItem("pesach_preview_mode") === "true"
   );
   const [examStatusLoaded, setExamStatusLoaded] = useState(false);
+  const [openExamKeys, setOpenExamKeys] = useState<Set<string>>(new Set());
 
-  // טען סטטוס מבחנים מסופאבייס — גלובלי לכל המשתמשים
+  // טען סטטוס מבחנים מסופאבייס
   useEffect(() => {
     const loadExamStatus = async () => {
       const { data } = await supabase.from("exam_status").select("exam_key, is_open");
       if (data) {
+        const openKeys = new Set(data.filter((r: any) => r.is_open).map((r: any) => r.exam_key));
+        setOpenExamKeys(openKeys);
+        // עדכן גם localStorage לצורך Quiz.tsx
         data.forEach((row: any) => {
           const allStages = EXAM_CONFIGS.flatMap(c => c.stages);
           const stage = allStages.find(s => getExamKey(s) === row.exam_key);
@@ -138,7 +142,7 @@ export default function Materials() {
 
           <div className="space-y-4">
             {config.stages.map((stage, idx) => {
-              const stageOpen = isStageOpen(stage);
+              const stageOpen = (typeof window !== "undefined" && localStorage.getItem("pesach_preview_mode") === "true") || openExamKeys.has(getExamKey(stage));
               const isExpanded = openStage === idx;
               const isChecked = checkedMap[stage.examNumber] ?? false;
 
