@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IMAGES } from "@/lib/data";
-import { getTrackExamConfig, isStageOpen, type ExamStage } from "@/lib/examConfig";
+import { getTrackExamConfig, isStageOpen, activatePreviewMode, type ExamStage } from "@/lib/examConfig";
 import { useStudent } from "@/contexts/StudentContext";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -43,6 +43,7 @@ export default function Materials() {
     setStudyCompleted(true);
     localStorage.setItem("pesach_current_stage_chapters", JSON.stringify(stage.chapters));
     localStorage.setItem("pesach_current_stage_title", stage.title);
+    localStorage.setItem("pesach_current_stage_num", String(stage.examNumber));
     navigate("/quiz");
   };
 
@@ -254,6 +255,38 @@ export default function Materials() {
                               <p className="text-gray-600 text-xs mt-2 mb-4">
                                 בינתיים – למדו את הפרקים והתכוננו 📖
                               </p>
+                              {/* קוד גישה לתצוגה מקדימה */}
+                              <div className="mt-3 border-t border-gray-700/30 pt-3">
+                                <div className="flex gap-2 max-w-xs mx-auto">
+                                  <input
+                                    type="text"
+                                    value={previewInput}
+                                    onChange={e => { setPreviewInput(e.target.value); setPreviewError(false); }}
+                                    onKeyDown={e => {
+                                      if (e.key === "Enter") {
+                                        if (activatePreviewMode(previewInput)) {
+                                          setPreviewActivated(true);
+                                          window.location.reload();
+                                        } else setPreviewError(true);
+                                      }
+                                    }}
+                                    placeholder="קוד גישה מיוחד"
+                                    className={`flex-1 bg-[#0c1a33] border rounded-lg px-3 py-2 text-white text-xs focus:outline-none ${previewError ? "border-red-500" : "border-gray-700/50 focus:border-gold-400/50"}`}
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      if (activatePreviewMode(previewInput)) {
+                                        setPreviewActivated(true);
+                                        window.location.reload();
+                                      } else setPreviewError(true);
+                                    }}
+                                    className="bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 text-xs px-3 py-2 rounded-lg transition-all"
+                                  >
+                                    כניסה
+                                  </button>
+                                </div>
+                                {previewError && <p className="text-red-400 text-[10px] mt-1">קוד שגוי</p>}
+                              </div>
                             </>
                           )}
                         </div>
