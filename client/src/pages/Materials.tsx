@@ -29,6 +29,11 @@ export default function Materials() {
   };
   const [openStage, setOpenStage] = useState<number | null>(0);
   const [checkedMap, setCheckedMap] = useState<Record<number, boolean>>({});
+  const [previewInput, setPreviewInput] = useState("");
+  const [previewError, setPreviewError] = useState(false);
+  const [previewActivated, setPreviewActivated] = useState(
+    typeof window !== "undefined" && localStorage.getItem("pesach_preview_mode") === "true"
+  );
 
   if (!student || !selectedTrack) {
     navigate("/register");
