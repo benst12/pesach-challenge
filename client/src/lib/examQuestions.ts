@@ -1150,7 +1150,7 @@ export const EXAM_C_2: ExamQuestion[] = [
     question: "מה ארבעת שלבי השבתת החמץ?",
     options: [
       { text: "ניקוי, בדיקה, ביעור, ביטול", correct: false },
-      { text: `בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י`ד", correct: true },
+      { text: `בדיקה וביטול ראשון בליל י"ד, ביעור וביטול שני ביום י"ד`, correct: true },
       { text: "בדיקה, שריפה, ביטול, מכירה", correct: false },
       { text: "ביטול ראשון, בדיקה, ביטול שני, ביעור", correct: false },
     ]
