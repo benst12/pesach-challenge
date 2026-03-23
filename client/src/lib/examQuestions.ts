@@ -627,7 +627,7 @@ export const EXAM_ZAHAV_2: ExamQuestion[] = [
   },
   {
     id: 304,
-    question: "עד מתי ניתן למכור חמץ לגוי ביום י"ד?",
+    question: 'עד מתי ניתן למכור חמץ לגוי ביום י"ד?',
     options: [
       { text: "עד סוף שעה חמישית", correct: true },
       { text: "עד חצות היום", correct: false },
@@ -830,7 +830,7 @@ export const EXAM_ZAHAV_2: ExamQuestion[] = [
   },
   {
     id: 324,
-    question: "מה ההבדל בין השולחן ערוך לרמ"א בהלכות כשרות לפסח?",
+    question: 'מה ההבדל בין השולחן ערוך לרמ"א בהלכות כשרות לפסח?',
     options: [
       { text: 'השולחן ערוך הולך לפי כללי ההלכה הרגילים, הרמ"א נוטה להחמיר', correct: false },
       { text: 'הרמ"א מקל יותר מהשולחן ערוך בפסח', correct: true },
@@ -1019,7 +1019,7 @@ export const EXAM_B_2: ExamQuestion[] = [
   },
   {
     id: 418,
-    question: "מה חשיבות ל"ג בעומר?",
+    question: 'מה חשיבות ל"ג בעומר?',
     options: [
       { text: "יום שפסקו תלמידי רבי עקיבא למות", correct: true },
       { text: "יום שקיבלו ישראל את התורה", correct: false },
@@ -1050,7 +1050,7 @@ export const EXAM_B_2: ExamQuestion[] = [
   },
   {
     id: 421,
-    question: "האם מותר לערוך נישואים בל"ג בעומר?",
+    question: 'האם מותר לערוך נישואים בל"ג בעומר?',
     options: [
       { text: "אסור כי הוא אמצע הספירה", correct: false },
       { text: "מותר רק אחרי חצות", correct: false },
@@ -1080,7 +1080,7 @@ export const EXAM_B_2: ExamQuestion[] = [
   },
   {
     id: 424,
-    question: "מדוע ל"ג בעומר קשור להילולת רשב"י?",
+    question: 'מדוע ל"ג בעומר קשור להילולת רשב"י?',
     options: [
       { text: "כי ביום זה סיים את כתיבת הזוהר", correct: false },
       { text: "כי ביום זה יצא מהמערה", correct: false },
