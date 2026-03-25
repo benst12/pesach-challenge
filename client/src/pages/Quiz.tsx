@@ -9,7 +9,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight, Clock, Loader2, Send, Download, Trophy, Star } from "lucide-react";
 import { toast } from "sonner";
-import { EXAM_ABC_1, EXAM_ZAHAV_1, EXAM_ABC_2, EXAM_ZAHAV_2, EXAM_B_2, EXAM_C_2, type ExamQuestion } from "@/lib/examQuestions";
+import { EXAM_ABC_1, EXAM_ZAHAV_1, EXAM_ABC_2, EXAM_ZAHAV_2, EXAM_B_2, EXAM_C_2, EXAM_C_3, EXAM_ZAHAV_3, type ExamQuestion } from "@/lib/examQuestions";
 import { ID_HE_VAV, ID_ZET_HET, ID_TET_YOD, ID_ZAHAV } from "@/lib/examConfig";
 
 const EXAM_DURATION = 25 * 60;
@@ -128,6 +128,7 @@ export default function Quiz() {
     if (selectedTrack?.id === ID_ZAHAV) {
       if (stageNum === 1) pool = EXAM_ZAHAV_1;
       else if (stageNum === 2) pool = EXAM_ZAHAV_2;
+      else if (stageNum === 3) pool = EXAM_ZAHAV_3;
     } else if (selectedTrack?.id === ID_ZET_HET) {
       // מסלול ב — ז-ח
       if (stageNum === 1) pool = EXAM_ABC_1;
@@ -136,6 +137,7 @@ export default function Quiz() {
       // מסלול ג — ט-יב
       if (stageNum === 1) pool = EXAM_ABC_1;
       else if (stageNum === 2) pool = EXAM_C_2;
+      else if (stageNum === 3) pool = EXAM_C_3;
     } else {
       // מסלול א — ה-ו
       if (stageNum === 1) pool = EXAM_ABC_1;
