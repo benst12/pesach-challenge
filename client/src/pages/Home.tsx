@@ -281,55 +281,69 @@ export default function Home() {
             </div>
           )}
         </div>
-      </div>
-
-            {/* ── הודעת מבחן ── */}
+      </div>      {/* ── הודעת מבחן ── */}
       <div className="bg-gradient-to-l from-[#0a1a08] via-[#0f2a10] to-[#0a1a08] border-y-2 border-green-500/40 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-l from-green-500/3 via-green-400/6 to-green-500/3" />
-        <div className="container max-w-4xl py-5 px-4 relative z-10">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 mt-1">
-              <div className="w-11 h-11 rounded-xl bg-green-500/20 border border-green-400/30 flex items-center justify-center text-xl">🎉</div>
+        <div className="container max-w-4xl py-6 px-4 relative z-10" dir="rtl">
+
+          <div className="flex items-start gap-4 mb-5">
+            <div className="flex-shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-green-500/20 border border-green-400/30 flex items-center justify-center text-xl">🏆</div>
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <span className="bg-green-500 text-white text-xs font-black px-3 py-1 rounded-full">✅ כל הכבוד!</span>
-                <span className="text-green-300 font-bold text-sm">ה׳ ניסן תשפ״ו</span>
+                <span className="bg-green-500 text-white text-xs font-black px-3 py-1 rounded-full">✅ תודה ופרגון!</span>
+                <span className="text-green-300 font-bold text-sm">לכל הנבחנים במסלולים א׳ וב׳ — כיתות ה׳–ח׳</span>
               </div>
-              <h2 className="font-display text-xl sm:text-2xl text-white mb-2">
-                🏆 ישר כוח לכל מי שנבחן במבחן הראשון!
+              <h2 className="font-display text-xl sm:text-2xl text-white mb-3">
+                🎉 כל הכבוד לכל מי שנבחן בשני המבחנים!
               </h2>
-              <p className="text-green-200/80 text-sm mb-4">
-                כל מי שהשתתף עשה דבר נהדר — ממשיכים ומתכוננים למבחן הבא!
-              </p>
 
-              {/* מבחן שני */}
-              <div className="bg-[#0c1a33]/60 border border-gold-400/20 rounded-xl p-4 mb-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">📅</span>
-                  <span className="text-gold-400 font-bold">מבחן שני — יום שני ה׳ ניסן בע״ה</span>
+              <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                <div className="bg-[#0c1a33]/70 border border-green-400/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">🍕</span>
+                    <span className="text-green-300 font-bold text-sm">כ-70 תלמידים</span>
+                  </div>
+                  <p className="text-gray-300 text-sm">השיגו ממוצע המזכה אותם ב<strong className="text-white">מגש פיצה!</strong></p>
                 </div>
-                <div className="flex items-center gap-2 mb-3 bg-gold-500/10 border border-gold-400/20 rounded-lg px-3 py-1.5 w-fit">
+                <div className="bg-[#0c1a33]/70 border border-gold-400/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">⭐</span>
+                    <span className="text-gold-400 font-bold text-sm">כ-10 מצטיינים!</span>
+                  </div>
+                  <p className="text-gray-300 text-sm">יקבלו גם <strong className="text-white">שובר לחנות הספרים &quot;דברי שיר&quot;</strong></p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 bg-[#0c1a33]/50 border border-green-400/15 rounded-lg px-4 py-2.5 mb-5">
+                <span className="text-green-400">📱</span>
+                <p className="text-gray-300 text-sm">כל השוברים יגיעו לסלולרי שאיתו נרשמתם למבצע</p>
+              </div>
+
+              <div className="border-t border-gray-700/40 pt-4">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                  <span className="bg-gold-500 text-[#0c1a33] text-xs font-black px-3 py-1 rounded-full">📅 מחר — יום חמישי</span>
+                  <span className="text-gold-300 font-bold text-sm">מבחן ג׳ למסלולים ג׳ וזהב</span>
+                </div>
+                <div className="flex items-center gap-2 mb-3 bg-gold-500/10 border border-gold-400/20 rounded-lg px-4 py-2.5 w-fit">
                   <span className="text-gold-400">⏰</span>
-                  <span className="text-white font-bold">14:30 — 16:00</span>
+                  <span className="text-white font-bold">20:00 — 22:00</span>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <div className="bg-[#0c1a33]/60 rounded-lg p-3">
+                  <div className="bg-[#0c1a33]/60 rounded-lg p-3 border border-gold-400/15">
                     <p className="text-gold-400 font-bold text-xs mb-1">👑 מסלול זהב</p>
-                    <p className="text-gray-300 text-xs">פרקים ה׳–ח׳ פניני הלכה לפסח</p>
+                    <p className="text-gray-300 text-xs">פרקים ט׳–ט״ז פניני הלכה לפסח</p>
                     <p className="text-gold-300 text-[11px] mt-1">25 שאלות • 25 דקות</p>
                   </div>
-                  <div className="bg-[#0c1a33]/60 rounded-lg p-3">
-                    <p className="text-royal-300 font-bold text-xs mb-1">📚 מסלולים א׳ב׳ג׳</p>
-                    <p className="text-gray-400 text-[11px]">א׳ — כיתות ה׳–ו׳: פרקים טו׳–טז׳</p>
-                    <p className="text-gray-400 text-[11px]">ב׳ — כיתות ז׳–ח׳: פרקים טו׳–טז׳ + זמנים ב׳–ג׳</p>
-                    <p className="text-gray-400 text-[11px]">ג׳ — כיתות ט׳–י״ב: פרקים ה׳–ו׳ + טו׳–טז׳</p>
-                    <p className="text-royal-300 text-[11px] mt-1">15–25 שאלות • 25 דקות</p>
+                  <div className="bg-[#0c1a33]/60 rounded-lg p-3 border border-royal-400/15">
+                    <p className="text-royal-300 font-bold text-xs mb-1">📚 מסלול ג׳ — כיתות ט׳–י״ב</p>
+                    <p className="text-gray-300 text-xs">זמנים פרק ב׳ + פרק ג׳</p>
+                    <p className="text-royal-300 text-[11px] mt-1">25 שאלות • 25 דקות</p>
                   </div>
                 </div>
+                <p className="text-gray-500 text-xs mt-3">📱 כניסה דרך האזור האישי עם מספר הטלפון</p>
               </div>
-              <p className="text-gray-400 text-xs mb-1">📱 כניסה דרך האזור האישי עם מספר הטלפון</p>
-              <p className="text-royal-300 text-xs">⚡ האתגר היומי הבא יפורסם ביום ראשון בשבת!</p>
             </div>
           </div>
         </div>
